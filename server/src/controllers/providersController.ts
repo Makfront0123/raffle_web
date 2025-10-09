@@ -44,4 +44,13 @@ export class ProviderController {
       res.status(500).json({ message: 'Error obteniendo proveedor', error });
     }
   }
+
+  async update(req: Request, res: Response) {
+    try {
+      const provider = await providerService.updateProvider(Number(req.params.id), req.body);
+      res.status(200).json(provider);
+    } catch (error) {
+      res.status(500).json({ message: 'Error actualizando proveedor', error });
+    }
+  }
 }

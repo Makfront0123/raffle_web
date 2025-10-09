@@ -12,99 +12,108 @@ import { ReservationTicket } from "../entities/reservation_ticket.entity";
 export class PaymentService {
   private ticketRepository = AppDataSource.getRepository(Ticket);
   private paymentRepo = AppDataSource.getRepository(Payment);
-  private paymentDetailRepository = AppDataSource.getRepository(PaymentDetail);
-  private userRepo = AppDataSource.getRepository(User);
-  private raffleRepo = AppDataSource.getRepository(Raffle);
-  private reservationTicketRepo = AppDataSource.getRepository(ReservationTicket);
+
 
   async createPayment(payment: any) {
-    // 1️⃣ Buscar usuario y rifa
-    const user = await this.userRepo.findOne({ where: { id: payment.user_id } });
-    if (!user) throw new Error("No se encontró el usuario");
-
-    const raffle = await this.raffleRepo.findOne({ where: { id: payment.raffle_id } });
-    if (!raffle) throw new Error("No se encontró la rifa");
-
-    // 2️⃣ Obtener tickets seleccionados
-    const tickets = await this.ticketRepository.findByIds(payment.ticket_ids);
-    if (tickets.length === 0) throw new Error("No hay tickets seleccionados");
-
-    // 3️⃣ Obtener reservas del usuario para esos tickets
-    const userReservations = await this.reservationTicketRepo
-      .createQueryBuilder("resTicket")
-      .innerJoinAndSelect("resTicket.reservation", "reservation")
-      .innerJoinAndSelect("reservation.user", "user")
-      .innerJoinAndSelect("resTicket.ticket", "ticket")
-      .where("ticket.id_ticket IN (:...ticketIds)", { ticketIds: payment.ticket_ids })
-      .andWhere("user.id = :userId", { userId: payment.user_id })
-      .getMany();
-
-
-    // 4️⃣ Validar tickets
-    for (const ticket of tickets) {
-      if (ticket.raffleId !== raffle.id)
-        throw new Error(`El ticket ${ticket.id_ticket} no pertenece a esta rifa`);
-
-      if (ticket.status === "purchased")
-        throw new Error(`El ticket ${ticket.id_ticket} ya fue comprado`);
-
-      const isReservedByUser = userReservations.some(r => r.ticket.id_ticket === ticket.id_ticket);
-
-      if (ticket.status === "reserved" && !isReservedByUser)
-        throw new Error(`El ticket ${ticket.id_ticket} está reservado por otro usuario`);
-    }
-
-    // 5️⃣ Calcular total
-    const totalAmount = tickets.length * Number(raffle.price);
-
-    // 6️⃣ Crear pago
-    const paymentEntity = this.paymentRepo.create({
-      user,
-      raffle,
-      total_amount: totalAmount,
-      status: "pending",
-      method: payment.method || "manual",
-      transaction_id: `TX-${Date.now()}`,
-    });
-    await this.paymentRepo.save(paymentEntity);
-
-    // 7️⃣ Crear detalles de pago y actualizar tickets
-    for (const ticket of tickets) {
-      const detail = this.paymentDetailRepository.create({
-        payment: paymentEntity,
-        ticket: ticket,
-        amount: Number(raffle.price),
+    return await AppDataSource.transaction(async (manager) => {
+      // 1️⃣ Buscar usuario y rifa
+      const user = await manager.getRepository(User).findOne({
+        where: { id: payment.user_id },
       });
-      await this.paymentDetailRepository.save(detail);
+      if (!user) throw new Error("No se encontró el usuario");
 
-      ticket.status = "purchased";
-      ticket.purchased_at = new Date();
-      await this.ticketRepository.save(ticket);
-    }
+      const raffle = await manager.getRepository(Raffle).findOne({
+        where: { id: payment.raffle_id },
+      });
+      if (!raffle) throw new Error("No se encontró la rifa");
 
-    const resTicketsToDelete = await this.reservationTicketRepo
-      .createQueryBuilder("resTicket")
-      .innerJoin("resTicket.reservation", "reservation")
-      .innerJoin("reservation.user", "user")
-      .where("resTicket.ticketIdTicket IN (:...ticketIds)", { ticketIds: tickets.map(t => t.id_ticket) })
-      .andWhere("user.id = :userId", { userId: user.id })
-      .getMany();
+      // 2️⃣ Obtener tickets seleccionados
+      const tickets = await manager.getRepository(Ticket).find({
+        where: { id_ticket: In(payment.ticket_ids) },
+      });
+      if (tickets.length === 0) throw new Error("No hay tickets seleccionados");
 
-    // eliminar correctamente
-    await this.reservationTicketRepo.remove(resTicketsToDelete);
+      // 3️⃣ Obtener reservas del usuario para esos tickets
+      const userReservations = await manager
+        .getRepository(ReservationTicket)
+        .createQueryBuilder("resTicket")
+        .innerJoinAndSelect("resTicket.reservation", "reservation")
+        .innerJoinAndSelect("reservation.user", "user")
+        .innerJoinAndSelect("resTicket.ticket", "ticket")
+        .where("ticket.id_ticket IN (:...ticketIds)", { ticketIds: payment.ticket_ids })
+        .andWhere("user.id = :userId", { userId: payment.user_id })
+        .getMany();
 
+      // 4️⃣ Validar tickets
+      for (const ticket of tickets) {
+        if (ticket.raffleId !== raffle.id)
+          throw new Error(`El ticket ${ticket.id_ticket} no pertenece a esta rifa`);
 
+        if (ticket.status === "purchased")
+          throw new Error(`El ticket ${ticket.id_ticket} ya fue comprado`);
 
-    return {
-      message: "Pago registrado correctamente",
-      payment_id: paymentEntity.id,
-      total_amount: totalAmount,
-      tickets: tickets.map(t => ({
-        id: t.id_ticket,
-        number: t.ticket_number,
-        status: t.status,
-      })),
-    };
+        const isReservedByUser = userReservations.some(
+          (r) => r.ticket.id_ticket === ticket.id_ticket
+        );
+
+        if (ticket.status === "reserved" && !isReservedByUser)
+          throw new Error(`El ticket ${ticket.id_ticket} está reservado por otro usuario`);
+      }
+
+      // 5️⃣ Calcular total
+      const totalAmount = tickets.length * Number(raffle.price);
+
+      // 6️⃣ Crear pago
+      const paymentEntity = manager.getRepository(Payment).create({
+        user,
+        raffle,
+        total_amount: totalAmount,
+        status: "pending",
+        method: payment.method || "manual",
+        transaction_id: `TX-${Date.now()}`,
+      });
+      await manager.getRepository(Payment).save(paymentEntity);
+
+      // 7️⃣ Crear detalles de pago y actualizar tickets
+      for (const ticket of tickets) {
+        const detail = manager.getRepository(PaymentDetail).create({
+          payment: paymentEntity,
+          ticket: ticket,
+          amount: Number(raffle.price),
+        });
+        await manager.getRepository(PaymentDetail).save(detail);
+
+        ticket.status = "purchased";
+        ticket.purchased_at = new Date();
+        await manager.getRepository(Ticket).save(ticket);
+      }
+
+      // 8️⃣ Eliminar reservas
+      const resTicketsToDelete = await manager
+        .getRepository(ReservationTicket)
+        .createQueryBuilder("resTicket")
+        .innerJoin("resTicket.reservation", "reservation")
+        .innerJoin("reservation.user", "user")
+        .where("resTicket.ticketIdTicket IN (:...ticketIds)", { ticketIds: tickets.map(t => t.id_ticket) })
+        .andWhere("user.id = :userId", { userId: user.id })
+        .getMany();
+
+      if (resTicketsToDelete.length > 0) {
+        await manager.getRepository(ReservationTicket).remove(resTicketsToDelete);
+      }
+
+      // 9️⃣ Retornar resultado
+      return {
+        message: "Pago registrado correctamente",
+        payment_id: paymentEntity.id,
+        total_amount: totalAmount,
+        tickets: tickets.map((t) => ({
+          id: t.id_ticket,
+          number: t.ticket_number,
+          status: t.status,
+        })),
+      };
+    });
   }
 
   async getPaymentById(id: number) {

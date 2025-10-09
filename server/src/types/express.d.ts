@@ -6,7 +6,10 @@ declare global {
     interface AuthUserPayload extends JwtPayload {
       id?: number;
       email?: string;
-      roleId?: number;
+      role?: {
+        id: number;
+        name: string;
+      };
       name?: string;
       picture?: string;
     }
