@@ -21,15 +21,19 @@ export class ProviderController {
       res.status(500).json({ message: 'Error creando proveedor', error });
     }
   }
-
   async delete(req: Request, res: Response) {
     try {
       await providerService.deleteProvider(Number(req.params.id));
-      res.status(200).json({ message: 'Proveedor eliminado' });
-    } catch (error) {
-      res.status(500).json({ message: 'Error eliminando proveedor', error });
+      res.status(200).json({ message: 'Proveedor eliminado correctamente' });
+    } catch (error: any) {
+        // Error genérico
+      res.status(500).json({
+        message: 'Error eliminando proveedor',
+        error: error.message || error.toString(),
+      });
     }
   }
+
 
   async getById(req: Request, res: Response) {
     try {

@@ -1,9 +1,10 @@
-
 import { AppDataSource } from '../data-source';
 import { Provider } from '../entities/provider.entity';
+import { Prize } from '../entities/prize.entity';
 
 export class ProviderService {
   private providerRepo = AppDataSource.getRepository(Provider);
+  private prizeRepo = AppDataSource.getRepository(Prize);
 
   async getAllProviders() {
     return this.providerRepo.find({ relations: ['prizes'] });
@@ -26,7 +27,17 @@ export class ProviderService {
   async deleteProvider(id: number) {
     const provider = await this.providerRepo.findOne({ where: { id } });
     if (!provider) throw new Error('Proveedor no encontrado');
-    await this.providerRepo.delete(id);
-  }
+    const prizes = await this.prizeRepo
+      .createQueryBuilder('prize')
+      .leftJoin('prize.provider', 'provider')
+      .where('provider.id = :id', { id })
+      .getMany();
 
+    if (prizes.length > 0) {
+      throw new Error('No se puede eliminar el proveedor porque tiene premios asociados');
+    }
+
+    await this.providerRepo.delete(id);
+    return { message: `Proveedor #${id} eliminado correctamente` };
+  }
 }

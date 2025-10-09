@@ -10,10 +10,14 @@ export class AuthController {
       const googleUser = req.user;
       if (!googleUser)
         return res.status(401).json({ message: "Usuario no autenticado" });
- 
-      const { user, isNew } = await authService.findOrCreateUser(googleUser);
 
- 
+      const { user, isNew } = await authService.findOrCreateUser({
+        name: googleUser.name!,
+        email: googleUser.email!,
+        picture: googleUser.picture,
+      });
+
+
       const token = jwt.sign(
         { id: user.id, email: user.email, roleId: user.role.id },
         process.env.JWT_SECRET!,
@@ -29,7 +33,7 @@ export class AuthController {
           picture: user.picture,
           role: user.role.name,
         },
-        token,  
+        token,
       });
     } catch (error: any) {
       console.error(error);

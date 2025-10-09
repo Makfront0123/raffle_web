@@ -1,5 +1,6 @@
 
 import { AppDataSource } from '../data-source';
+import { Payment } from '../entities/payment.entity';
 import { Prize } from '../entities/prize.entity';
 import { Provider } from '../entities/provider.entity';
 import { Raffle } from '../entities/raffle.entity';
@@ -58,33 +59,47 @@ export class PrizesService {
 
 
     async deletePrize(id: number) {
-        if (!id) return null;
+        if (!id) throw new Error('ID requerido');
+        const prize = await this.prizeRepo.findOne({ where: { id }, relations: ['raffle', 'winnerTicketIdTicket'] });
+        if (!prize) throw new Error('Premio no encontrado');
+        if (prize.raffle) {
+            throw new Error('No se puede eliminar el premio porque tiene una rifa asociada');
+        }
+        if (prize.winner_ticket) {
+            throw new Error('No se puede eliminar el premio porque tiene un ticket ganador asociado');
+        }
         await this.prizeRepo.delete(id);
+        return { message: `Premio #${id} eliminado correctamente` };
     }
 
     async selectWinner(prizeId: number) {
         const prize = await this.prizeRepo.findOne({
             where: { id: prizeId },
-            relations: ['raffle', 'raffle.tickets', 'raffle.tickets.user'],
+            relations: ['raffle', 'raffle.tickets'],
         });
 
         if (!prize) throw new Error('Premio no encontrado');
 
-        // Filtrar tickets comprados
         const purchasedTickets = prize.raffle.tickets.filter(t => t.status === 'purchased');
 
         if (purchasedTickets.length === 0) {
             throw new Error('No hay tickets comprados para esta rifa');
         }
 
-        // Selección aleatoria
         const winnerTicket = purchasedTickets[Math.floor(Math.random() * purchasedTickets.length)];
 
-        // Guardar ganador
-        // Guardar ganador
+        // Buscar quién compró ese ticket
+        const paymentRepo = AppDataSource.getRepository(Payment);
+        const payment = await paymentRepo.findOne({
+            where: {
+                raffle: { id: prize.raffle.id },
+                user: { id: undefined }, // se ajusta abajo
+            },
+            relations: ['user'],
+        });
+
         prize.winner_ticket = winnerTicket;
         await this.prizeRepo.save(prize);
-
 
         return {
             prizeId: prize.id,
@@ -92,7 +107,7 @@ export class PrizesService {
             winnerTicket: {
                 id_ticket: winnerTicket.id_ticket,
                 ticket_number: winnerTicket.ticket_number,
-                user: winnerTicket.user ? { id: winnerTicket.user.id, name: winnerTicket.user.name } : null,
+                user: payment?.user ? { id: payment.user.id, name: payment.user.name } : null,
             },
         };
     }

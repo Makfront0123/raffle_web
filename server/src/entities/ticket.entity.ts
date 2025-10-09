@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, JoinColumn } from "typeorm";
 import { Raffle } from "./raffle.entity";
 import { User } from "./user.entity";
 
@@ -8,11 +8,11 @@ export class Ticket {
   id_ticket!: number;
 
   @ManyToOne(() => Raffle, raffle => raffle.tickets, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'raffleId' })
   raffle!: Raffle;
 
-
-  @ManyToOne(() => User, user => user.tickets, { nullable: true })
-  user?: User | null;
+  @Column()
+  raffleId!: number;
 
 
   @Column()

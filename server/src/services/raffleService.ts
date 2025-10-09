@@ -43,7 +43,7 @@ export class RaffleService {
                 raffle: raffle,
                 status: 'available',
                 purchased_at: null,
-                user: null,
+
             })
         );
         await ticketRepo.save(tickets);
@@ -61,7 +61,20 @@ export class RaffleService {
 
     async deleteRaffle(id: number) {
         const raffleRepo = AppDataSource.getRepository(Raffle);
+        const ticketRepo = AppDataSource.getRepository(Ticket);
+
+        const raffle = await raffleRepo.findOne({ where: { id }, relations: ['tickets'] });
+        console.log(raffle);
+        if (!raffle) throw new Error('Raffle no encontrado');
+
+        //VERIFICAR STATUS DE LOS TICKETS
+        const hasReservedOrPurchasedTickets = raffle.tickets.some(t => t.status === 'reserved' || t.status === 'purchased');
+        if (hasReservedOrPurchasedTickets) {
+            throw new Error('No se puede eliminar la rifa porque tiene tickets reservados o comprados');
+        }
+
         return await raffleRepo.delete(id);
+        return { message: `La rifa #${id} se ha eliminado correctamente` };
     }
 
     async updateRaffle(id: number, data: Partial<Raffle>) {
@@ -69,4 +82,67 @@ export class RaffleService {
         await raffleRepo.update(id, data);
         return await raffleRepo.findOne({ where: { id } });
     }
+    async regenerateTickets(raffleId: number, newDigits: number) {
+        const raffleRepo = AppDataSource.getRepository(Raffle);
+        const ticketRepo = AppDataSource.getRepository(Ticket);
+
+        // Buscar la rifa y sus tickets
+        const raffle = await raffleRepo.findOne({ where: { id: raffleId } });
+        if (!raffle) throw new Error('Rifa no encontrada');
+
+
+        // Verificar que no haya tickets reservados o comprados
+        const tickets = await ticketRepo.find({ where: { raffle: { id: raffleId } } });
+        const hasActiveTickets = tickets.some(t => t.status !== 'available');
+
+
+        if (hasActiveTickets) {
+            throw new Error('No se pueden regenerar los tickets porque hay reservas o compras activas.');
+        }
+
+        // Crear queryRunner para manejar transacción
+        const queryRunner = AppDataSource.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+        try {
+            // Eliminar tickets actuales
+            await queryRunner.manager.delete(Ticket, { raffle: { id: raffleId } });
+
+            // Generar nuevos tickets con newDigits
+            const totalTickets = Math.pow(10, newDigits);
+            const ticketNumbers = generateAllTicketNumbers(newDigits);
+
+            // Insertar tickets en bloques de 200
+            const chunkSize = 200;
+            for (let i = 0; i < ticketNumbers.length; i += chunkSize) {
+                const chunk = ticketNumbers.slice(i, i + chunkSize);
+                const ticketsChunk = chunk.map(num =>
+                    queryRunner.manager.create(Ticket, {
+                        ticket_number: num,
+                        raffleId: raffle.id, // 🔹 importante
+                        status: 'available',
+                        purchased_at: null,
+                    })
+                );
+
+                await queryRunner.manager.save(ticketsChunk);
+            }
+
+            raffle.digits = newDigits;
+            raffle.total_numbers = Math.pow(10, newDigits);
+            await queryRunner.manager.save(raffle);
+
+            await queryRunner.commitTransaction();
+
+            return { message: 'Tickets regenerados correctamente', total: totalTickets };
+        } catch (error) {
+            await queryRunner.rollbackTransaction();
+            throw error;
+        } finally {
+            await queryRunner.release();
+        }
+    }
+
+
 }

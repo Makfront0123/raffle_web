@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, CreateDateColumn } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, CreateDateColumn, JoinColumn } from "typeorm";
 import { Role } from "./role.entity";
 import { Ticket } from "./ticket.entity";
 import { Payment } from "./payment.entity";
@@ -17,13 +17,13 @@ export class User {
 
   @Column({ nullable: true })
   picture?: string;
-
   @ManyToOne(() => Role, role => role.users)
+  @JoinColumn({ name: 'roleId' })
   role!: Role;
 
+  @Column()
+  roleId!: number;
 
-  @OneToMany(() => Ticket, ticket => ticket.user)
-  tickets!: Ticket[];
 
   @OneToMany(() => Payment, payment => payment.user)
   payments!: Payment[];

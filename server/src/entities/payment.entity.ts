@@ -2,7 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, CreateDat
 import { User } from "./user.entity";
 import { Raffle } from "./raffle.entity";
 import { PaymentDetail } from "./payment_details.entity";
- 
+
 
 @Entity('payments')
 export class Payment {
@@ -13,7 +13,7 @@ export class Payment {
   user!: User;
 
   @ManyToOne(() => Raffle, raffle => raffle.payments)
-  raffle!: Raffle;  
+  raffle!: Raffle;
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   total_amount!: number;
@@ -30,6 +30,8 @@ export class Payment {
   @CreateDateColumn()
   created_at!: Date;
 
+  @Column({ type: 'timestamp', nullable: true })
+  cancelled_at?: Date;
   @OneToMany(() => PaymentDetail, detail => detail.payment)
   details!: PaymentDetail[];
 }

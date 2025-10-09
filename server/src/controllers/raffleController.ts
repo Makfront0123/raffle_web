@@ -61,20 +61,30 @@ export class RaffleController {
   async updateRaffle(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const { title, description, price, endDate, digits } = req.body;
+      const { title, description, price, endDate } = req.body;
 
       const raffle = await raffleService.updateRaffle(Number(id), {
         title,
         description,
         price,
         end_date: new Date(endDate),
-        digits,
       });
 
       res.status(200).json(raffle);
     } catch (error) {
       console.error(error);
       return res.status(500).json({ message: 'Error actualizando la rifa', error });
+    }
+  }
+
+  async regenerateTickets(req: Request, res: Response) {
+    try {
+      const { raffleId, digits } = req.params;
+      const raffle = await raffleService.regenerateTickets(Number(raffleId), Number(digits));
+      res.status(200).json(raffle);
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: 'Error regenerando tickets', error });
     }
   }
 }

@@ -30,8 +30,6 @@ export class PaymentService {
 
     //VERIFICAR TICKETS SELECCIONADOS
     const tickets = await ticketRepository.findByIds(payment.ticket_ids);
-
-
     if (tickets.length === 0) throw new Error('No hay tickets seleccionados');
 
 
@@ -69,7 +67,6 @@ export class PaymentService {
 
       //ACTUALIZAR ESTADO DEL TICKET Y ASIGNAR USUARIO
       ticket.status = 'purchased';
-      ticket.user = user;
       ticket.purchased_at = new Date();
       await ticketRepository.save(ticket);
     }
@@ -104,13 +101,9 @@ export class PaymentService {
   async updatePayment(id: number, payment: any) {
     const paymentRepo = AppDataSource.getRepository(Payment);
     const paymentEntity = await paymentRepo.findOne({ where: { id } });
-    if (!paymentEntity) throw new Error('No se encontró el pago');
+    if (!paymentEntity) throw new Error("No se encontró el pago");
 
-    paymentEntity.status = payment.status;
-    paymentEntity.method = payment.method;
-    paymentEntity.total_amount = payment.total_amount;
-    paymentEntity.transaction_id = payment.transaction_id;
-
+    Object.assign(paymentEntity, payment);
     await paymentRepo.save(paymentEntity);
     return paymentEntity;
   }
@@ -128,7 +121,6 @@ export class PaymentService {
 
     for (const d of payment.details) {
       d.ticket.status = 'purchased';
-      d.ticket.user = payment.user;
       await ticketRepository.save(d.ticket);
     }
   }
@@ -138,6 +130,7 @@ export class PaymentService {
     const ticketRepo = AppDataSource.getRepository(Ticket);
     const detailsRepo = AppDataSource.getRepository(PaymentDetail);
 
+    // Buscar el pago con sus detalles y tickets
     const payment = await paymentRepo.findOne({
       where: { id: paymentId },
       relations: ['details', 'details.ticket']
@@ -146,16 +139,23 @@ export class PaymentService {
     if (!payment) throw new Error('Pago no encontrado');
 
     payment.status = 'cancelled';
+    payment.cancelled_at = new Date();
     await paymentRepo.save(payment);
 
-    for (const d of payment.details) {
-      d.ticket.status = 'available';
-      d.ticket.user = null;
-      await ticketRepo.save(d.ticket);
+
+    // Liberar los tickets asociados
+    for (const detail of payment.details) {
+      detail.ticket.status = 'available';
+      detail.ticket.purchased_at = null;
+      await ticketRepo.save(detail.ticket);
     }
 
-    return { message: 'Pago cancelado y tickets liberados correctamente' };
+    return {
+      message: `Pago #${paymentId} cancelado correctamente. Tickets liberados.`,
+    };
   }
+
+
 
 }
 

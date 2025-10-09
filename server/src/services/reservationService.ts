@@ -3,13 +3,14 @@ import { AppDataSource } from "../data-source";
 import { Reservation } from "../entities/reservation.entity";
 import { ReservationTicket } from "../entities/reservation_ticket.entity";
 import { Ticket } from "../entities/ticket.entity";
-import { LessThan } from "typeorm";
+import { In, LessThan } from "typeorm";
 import { Raffle } from "../entities/raffle.entity";
 
 export class ReservationService {
   private reservationRepo = AppDataSource.getRepository(Reservation);
 
   async createReservation(userId: number, raffleId: number, ticketIds: number[]) {
+    console.log(userId, raffleId, ticketIds);
     const queryRunner = AppDataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -19,10 +20,15 @@ export class ReservationService {
       if (!raffle) throw new Error('Rifa no encontrada.');
       if (raffle.status !== 'active') throw new Error('La rifa no está activa.');
       // Buscar tickets
-      const tickets = await queryRunner.manager.findByIds(Ticket, ticketIds);
+      const tickets = await queryRunner.manager.find(Ticket, {
+        where: { id_ticket: In(ticketIds) },
+        relations: ["raffle"],
+      });
 
       // 3️⃣ Validar que los tickets pertenezcan a la rifa
-      const invalidTickets = tickets.filter((t: Ticket) => t.raffle.id !== raffleId);
+      const invalidTickets = tickets.filter((t: Ticket) => !t.raffle || t.raffle.id !== raffleId);
+
+      console.log(invalidTickets);
       if (invalidTickets.length > 0) throw new Error('Uno o más tickets no pertenecen a esta rifa.');
 
 
@@ -54,9 +60,10 @@ export class ReservationService {
         const resTicket = queryRunner.manager.create(ReservationTicket, { reservation, ticket });
         await queryRunner.manager.save(resTicket);
 
-        ticket.status = 'reserved';
+        ticket.status = 'reserved'
         await queryRunner.manager.save(ticket);
       }
+
 
       // 9️⃣ Commit
       await queryRunner.commitTransaction();
@@ -136,6 +143,49 @@ export class ReservationService {
       relations: ['reservationTickets', 'reservationTickets.ticket'],
     });
   }
+  async deleteReservation(id: number) {
+    const queryRunner = AppDataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
+    try {
+      // 1️⃣ Buscar la reserva con sus relaciones
+      const reservation = await queryRunner.manager.findOne(Reservation, {
+        where: { id },
+        relations: ['reservationTickets', 'reservationTickets.ticket'],
+      });
+
+      if (!reservation) {
+        throw new Error('Reserva no encontrada');
+      }
+
+      // 2️⃣ Validar si alguno de los tickets ya fue comprado
+      const hasPurchased = reservation.reservationTickets.some(
+        rt => rt.ticket.status === 'purchased'
+      );
+
+      if (hasPurchased) {
+        throw new Error('No se puede eliminar la reserva: uno o más tickets ya fueron comprados.');
+      }
+
+      // 3️⃣ Liberar tickets (cambiar a available)
+      for (const resTicket of reservation.reservationTickets) {
+        resTicket.ticket.status = 'available';
+        await queryRunner.manager.save(resTicket.ticket);
+      }
+
+      // 4️⃣ Eliminar la reserva (y sus reservation_tickets en cascada)
+      await queryRunner.manager.remove(reservation);
+
+      await queryRunner.commitTransaction();
+
+      return { message: `Reserva #${id} eliminada correctamente y tickets liberados.` };
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
+  }
 
 }
