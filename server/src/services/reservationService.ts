@@ -47,21 +47,20 @@ export class ReservationService {
       const expiresAt = new Date();
       expiresAt.setMinutes(expiresAt.getMinutes() + 10);
 
-      // Crear reserva
       const reservation = queryRunner.manager.create(Reservation, {
         user: { id: userId } as any,
         raffle: { id: raffleId } as any,
         expires_at: expiresAt,
+        reservationTickets: tickets.map(ticket =>
+          queryRunner.manager.create(ReservationTicket, { ticket })
+        ),
       });
+
       await queryRunner.manager.save(reservation);
 
-      // Asociar tickets reservados
-      for (const ticket of tickets) {
-        const resTicket = queryRunner.manager.create(ReservationTicket, { reservation, ticket });
-        await queryRunner.manager.save(resTicket);
-
-        ticket.status = 'reserved'
-        await queryRunner.manager.save(ticket);
+      for (const resTicket of reservation.reservationTickets) {
+        resTicket.ticket.status = 'reserved';
+        await queryRunner.manager.save(resTicket.ticket);
       }
 
 
