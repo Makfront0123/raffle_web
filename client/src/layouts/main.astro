@@ -4,16 +4,16 @@ import "../styles/global.css";
 ---
 
 <html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<title>Rifa Web</title>
-	</head>
-	<body class="bg-black text-white">
-		<Header client:load />
-		<main>
-			<slot />
-		</main>
-	</body>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Admin Dashboard</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+  </head>
+  <body class="min-h-screen bg-white text-black">
+    <main class="p-10">
+      <Header client:load />
+      <slot />
+    </main>
+  </body>
 </html>

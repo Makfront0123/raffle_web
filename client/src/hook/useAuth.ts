@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
 import { AuthService } from "@/services/authService";
 import { useUserStore } from "@/stores/userStore";
 
@@ -11,54 +10,65 @@ export function useAuth() {
     const { user, setUser, logout } = useUserStore();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [client, setClient] = useState<any>(null);
 
-    // Inicializar Google Identity Services
+    // Inicializa el cliente OAuth
     useEffect(() => {
-        if (typeof window === "undefined" || user) return;
+        if (typeof window === "undefined") return;
 
-        window.google?.accounts.id.initialize({
-            client_id: import.meta.env.PUBLIC_GOOGLE_CLIENT_ID,
-            callback: handleCredentialResponse,
-            use_fedcm_for_prompt: false, // modo anterior temporal
-        });
+        const interval = setInterval(() => {
+            if (window.google && !client) {
+                clearInterval(interval);
+
+                const tokenClient = window.google.accounts.oauth2.initTokenClient({
+                    client_id: import.meta.env.PUBLIC_GOOGLE_CLIENT_ID,
+                    scope: "openid profile email",
+                    ux_mode: "popup",
+                    callback: async (response: any) => {
+                        if (response && response.access_token) {
+                            await handleCredentialResponse(response);
+                        } else {
+                            console.error("No se obtuvo access_token de Google", response);
+                        }
+                    },
+                });
+
+
+                setClient(tokenClient);
+
+            }
+        }, 300);
+
+        return () => clearInterval(interval);
     }, []);
-
     const handleCredentialResponse = async (response: any) => {
-        try {
-            setLoading(true);
-            setError(null);
-
-            const googleToken = response.credential;
-
-            const userData = await authService.getUserByGoogle({ token: googleToken });
-
-            // Guardamos usuario
-            setUser(userData.user);
-
-            // Guardamos token del backend
-            localStorage.setItem("token", userData.token);
-
-            console.log("Usuario logueado:", userData.user);
-        } catch (err: any) {
-            console.error("Error en login:", err);
-            setError("Error al iniciar sesión");
-        } finally {
-            setLoading(false);
-        }
-    };
+  try {
+    setLoading(true);
+    const token = response.access_token; // ✅ solo este
+    const userData = await authService.getUserByGoogle({ token });
+    setUser(userData.user);
+    localStorage.setItem("token", userData.token);
+  } catch (err: any) {
+    console.error("Error en login:", err);
+    setError(err.message);
+  } finally {
+    setLoading(false);
+  }
+};
 
 
- 
+
     const loginWithGoogle = () => {
-        if (!window.google) {
-            console.error("Google Identity Services no está cargado");
+        if (!client) {
+            console.error("Cliente OAuth de Google no inicializado aún");
             return;
         }
-        window.google.accounts.id.prompt();
+        client.requestAccessToken(); // ✅ método correcto para initTokenClient
+
     };
 
     return {
-        user,          
+        user,
         loading,
         error,
         loginWithGoogle,

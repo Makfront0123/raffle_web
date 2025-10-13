@@ -1,7 +1,8 @@
 ---
-import Main from "@/layouts/main.astro";
+import RafflesList from "@/components/RaffleList";
+import User from "@/layouts/user.astro";
 ---
 
-<Main>
-    <h1 class="text-4xl font-bold p-10">🎟️ Todas las Rifas</h1>
-</Main>
+<User>
+    <RafflesList client:load />
+</User>

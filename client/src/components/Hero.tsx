@@ -10,9 +10,9 @@ const Hero = () => {
   return (
 
     <header className="w-full min-h-[120vh] relative">
+      
 
-
-      <div className="flex items-start px-60">
+      <div className="flex items-start px-30">
         <div className="flex flex-col items-start mt-40">
           <span className="text-2xl">Contest FOR YOUR CHANCE</span>
           <h3 className="uppercase text-8xl">big win</h3>

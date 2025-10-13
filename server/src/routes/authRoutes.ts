@@ -6,7 +6,7 @@ const router = Router();
 const authController = new AuthController();
 
 // 👉 Para el flujo OAuth tradicional (usado en Insomnia o redirección)
-router.get("/google", authenticateGoogle, authController.googleProfile);
+///router.get("/google", authenticateGoogle, authController.googleProfile);
 
 // 👉 Para el nuevo flujo de Google Identity (frontend envía el token)
 router.post("/google", (req, res) => authController.loginWithGoogle(req, res));

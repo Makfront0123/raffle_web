@@ -16,7 +16,7 @@ export function Header() {
 
   return (
     <header className="w-full relative">
-      <nav className="w-full p-1 border-b border-[#1E293B] bg-black flex items-center justify-between px-60">
+      <nav className="w-full p-1 border-b border-[#1E293B] flex items-center justify-between px-30">
         <span>Contactar a soporte</span>
 
         <div className="flex items-center gap-x-10">
@@ -50,7 +50,7 @@ export function Header() {
           )}
         </div>
       </nav>
-      <nav className="w-full p-6 flex items-center justify-between gap-x-8 px-60 bg-black">
+      <nav className="w-full p-6 flex items-center justify-between gap-x-8 px-30 ">
         <h1>ICON</h1>
         <div className="flex items-center gap-x-10">
           {

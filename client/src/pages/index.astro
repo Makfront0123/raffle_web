@@ -3,6 +3,7 @@ import { Header } from "@/components/Header";
 import "../styles/global.css";
 
 import { AuthContent } from "@/components/AuthContent.jsx"; // componente React
+import User from "@/layouts/user.astro";
 ---
 
 <html lang="es">
@@ -14,8 +15,8 @@ import { AuthContent } from "@/components/AuthContent.jsx"; // componente React
   </head>
 
   <body class="text-white">
-    <Header client:load />
-    <!-- Contenido que depende del rol -->
-    <AuthContent client:load />
+    <User client:load> 
+      <AuthContent client:load />
+    </User>
   </body>
 </html>
