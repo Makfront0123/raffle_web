@@ -1,6 +1,6 @@
 ---
-import '../styles/global.css';
-const { content } = Astro.props;
+import { Header } from "@/components/Header";
+import "../styles/global.css";
 ---
 
 <html lang="en">
@@ -8,9 +8,12 @@ const { content } = Astro.props;
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<title>{content.title}</title>
+		<title>Rifa Web</title>
 	</head>
-	<body>
-		<slot />
+	<body class="bg-black text-white">
+		<Header client:load />
+		<main>
+			<slot />
+		</main>
 	</body>
 </html>

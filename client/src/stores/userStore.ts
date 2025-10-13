@@ -12,4 +12,5 @@ export const useUserStore = create<UserState>((set) => ({
     token: null,
     setUser: (user) => set({ user }),
     logout: () => set({ user: null, token: null }),
+    
 }));

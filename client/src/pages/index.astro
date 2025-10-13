@@ -1,23 +1,21 @@
 ---
+import { Header } from "@/components/Header";
 import "../styles/global.css";
-import { Button } from "@/components/ui/button";
+
+import { AuthContent } from "@/components/AuthContent.jsx"; // componente React
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Astro + TailwindCSS</title>
-	</head>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Rifas Online</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+  </head>
 
-	<body>
-		<div class="grid place-items-center h-screen content-center">
-			<Button>Button</Button>
-			<a href="/markdown-page" class="p-4 underline"
-				>Markdown is also supported...</a
-			>
-		</div>
-	</body>
+  <body class="text-white">
+    <Header client:load />
+    <!-- Contenido que depende del rol -->
+    <AuthContent client:load />
+  </body>
 </html>

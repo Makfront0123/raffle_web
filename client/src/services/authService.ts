@@ -1,18 +1,18 @@
 export class AuthService {
-    async getUserByGoogle(googleUser: GoogleUserData): Promise<User> {
-        const response = await fetch("/api/auth/google", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(googleUser),
-        });
+  async getUserByGoogle(googleUser: { token: string }): Promise<AuthResponse> {
+    const url = import.meta.env.PUBLIC_BACKEND_URL + "/api/auth/google";
 
-        if (!response.ok) {
-            throw new Error("Error al obtener el usuario");
-        }
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${googleUser.token}`,
+      },
+      body: JSON.stringify({ credential: googleUser.token }),
+    });
 
-        const user = await response.json();
-        return user;
-    }
+    if (!response.ok) throw new Error("Error al obtener el usuario");
+
+    return response.json() as Promise<AuthResponse>;
+  }
 }
