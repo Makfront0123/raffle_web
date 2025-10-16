@@ -9,6 +9,7 @@ const router = express.Router();
 const reservationController = new ReservationController();
 
 router.get('/', authMiddleware, reservationController.getAllReservations.bind(reservationController));
+router.get('/user', authMiddleware, reservationController.getAllReservationsByUser.bind(reservationController));
 router.get('/:id', authMiddleware, reservationController.getReservationById.bind(reservationController));
 router.post('/', authMiddleware, blockAdminMiddleware, reservationController.createReservation.bind(reservationController));
 router.post("/release-expired", authMiddleware, reservationController.releaseExpiredReservations.bind(reservationController));

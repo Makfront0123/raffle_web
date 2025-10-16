@@ -7,7 +7,7 @@ import { Ticket } from '../entities/ticket.entity';
 
 const reservationService = new ReservationService();
 
-cron.schedule('* * * * *', async () => {
+cron.schedule('*/10 * * * * *', async () => {
   try {
     console.log('⏰ Cron job ejecutándose...');
 

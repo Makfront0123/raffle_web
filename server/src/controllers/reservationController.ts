@@ -27,16 +27,19 @@ export class ReservationController {
       res.status(500).json({ message: 'Error creando reserva', error: error.message || error });
     }
   }
-
   async deleteReservation(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const reservation = await reservationService.getReservationById(Number(id));
-      if (!reservation) return res.status(404).json({ message: 'No se encontró la reserva' });
-      await reservationService.deleteReservation(Number(id));
-      res.status(200).json({ message: 'Reserva eliminada correctamente' });
-    } catch (error) {
-      res.status(500).json({ message: 'Error eliminando reserva', error });
+      const deletedReservation = await reservationService.deleteReservation(Number(id));
+
+      res.status(200).json({
+        message: `Reserva #${deletedReservation.reservation.id} eliminada correctamente`,
+        reservation: deletedReservation,
+      });
+
+    } catch (error: any) {
+      console.error("Error eliminando reserva:", error);
+      res.status(500).json({ message: 'Error eliminando reserva', error: error.message || error });
     }
   }
 
@@ -57,6 +60,16 @@ export class ReservationController {
       res.status(200).json(result);
     } catch (error) {
       res.status(500).json({ message: "Error liberando reservas expiradas", error });
+    }
+  }
+
+  async getAllReservationsByUser(req: Request, res: Response) {
+    try {
+      const userId = (req.user as any).id;
+      const reservations = await reservationService.getAllReservationsByUser(Number(userId));
+      res.status(200).json(reservations);
+    } catch (error) {
+      res.status(500).json({ message: 'Error obteniendo reservas', error });
     }
   }
 }

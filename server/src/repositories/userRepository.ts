@@ -52,4 +52,27 @@ export const userRepository = {
       created_at: new Date(),
     } as User;
   },
+
+  async findById(id: number): Promise<User | null> {
+    const [rows]: any = await db.query(
+      `SELECT u.*, r.id AS roleId, r.name AS roleName
+       FROM users u
+       LEFT JOIN roles r ON u.roleId = r.id
+       WHERE u.id = ?`,
+      [id]
+    );
+
+    if (!rows.length) return null;
+
+    const row = rows[0];
+    return {
+      id: row.id,
+      name: row.name,
+      email: row.email,
+      picture: row.picture,
+      role: { id: row.roleId, name: row.roleName },
+      created_at: row.created_at,
+    } as User;
+  }
+
 };

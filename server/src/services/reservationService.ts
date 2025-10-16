@@ -9,6 +9,13 @@ import { Raffle } from "../entities/raffle.entity";
 export class ReservationService {
   private reservationRepo = AppDataSource.getRepository(Reservation);
 
+  async getAllReservationsByUser(userId: number) {
+    return this.reservationRepo.find({
+      where: { user: { id: userId } },
+      relations: ['reservationTickets', 'reservationTickets.ticket'],
+    });
+  }
+
   async createReservation(userId: number, raffleId: number, ticketIds: number[]) {
     console.log(userId, raffleId, ticketIds);
     const queryRunner = AppDataSource.createQueryRunner();
@@ -44,8 +51,10 @@ export class ReservationService {
 
 
       // Calcular expiración (10 minutos)
+
       const expiresAt = new Date();
-      expiresAt.setMinutes(expiresAt.getMinutes() + 10);
+      expiresAt.setSeconds(expiresAt.getSeconds() + 10); // ✅ suma 10 segundos
+
 
       const reservation = queryRunner.manager.create(Reservation, {
         user: { id: userId } as any,
@@ -143,6 +152,58 @@ export class ReservationService {
     });
   }
   async deleteReservation(id: number) {
+    console.log("deleteReservation", id);
+    const queryRunner = AppDataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      // Buscar la reserva con todos los reservationTickets y tickets en un solo paso
+      const reservation = await queryRunner.manager.findOne(Reservation, {
+        where: { id },
+        relations: ['reservationTickets', 'reservationTickets.ticket'],
+      });
+
+      if (!reservation) {
+        throw new Error('Reserva no encontrada');
+      }
+
+      // Validar si alguno de los tickets ya fue comprado
+      const hasPurchased = reservation.reservationTickets.some(
+        rt => rt.ticket.status === 'purchased'
+      );
+      if (hasPurchased) {
+        throw new Error('No se puede eliminar la reserva: uno o más tickets ya fueron comprados.');
+      }
+
+      // Liberar los tickets (cambiar status a available)
+      for (const resTicket of reservation.reservationTickets) {
+        resTicket.ticket.status = 'available';
+        await queryRunner.manager.save(resTicket.ticket);
+      }
+
+      // Eliminar la reserva (reservationTickets se borran en cascada si tu relación está configurada con cascade)
+      await queryRunner.manager.remove(reservation);
+
+      await queryRunner.commitTransaction();
+      return {
+        message: 'Reserva eliminada correctamente',
+        reservation,
+      };
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+
+}
+
+
+/*
+ async deleteReservation(id: number) {
     const queryRunner = AppDataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -186,5 +247,4 @@ export class ReservationService {
       await queryRunner.release();
     }
   }
-
-}
+*/

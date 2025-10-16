@@ -1,4 +1,4 @@
-import { User } from "../entities/user.entity";
+import jwt from "jsonwebtoken";
 import { userRepository } from "../repositories/userRepository";
 
 export class AuthService {
@@ -6,9 +6,8 @@ export class AuthService {
     name: string;
     email: string;
     picture?: string;
-  }): Promise<{ user: User; isNew: boolean }> {
+  }) {
     const USER_ROLE_ID = 2;
-
     let user = await userRepository.findByEmail(googleUser.email);
     let isNew = false;
 
@@ -23,5 +22,18 @@ export class AuthService {
     }
 
     return { user, isNew };
+  }
+
+  async getUserByToken(token: string) {
+    const decoded = this.verifyToken(token);
+    return userRepository.findById(decoded.id);
+  }
+
+  private verifyToken(token: string): any {
+    try {
+      return jwt.verify(token, process.env.JWT_SECRET!);
+    } catch (err) {
+      throw new Error("Token inválido o expirado");
+    }
   }
 }

@@ -2,6 +2,7 @@ export interface AppRoute {
   name: string;
   path: string;
   children?: AppRoute[];
+  protected?: boolean;
 }
 
 // Rutas que se usan en el header del usuario
@@ -11,9 +12,8 @@ export const appRoutes: AppRoute[] = [
     path: "/",
     children: [
       { name: "Inicio", path: "/" },
-      { name: "Rifas", path: "/raffles" },
-      { name: "Mis Reservas", path: "/my-reservations" },
-      { name: "Perfil", path: "/profile" },
+      { name: "Rifas", path: "/raffles", protected: true },
+      { name: "Mis Reservas", path: "/myReservations", protected: true },
     ],
   },
   {

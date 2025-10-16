@@ -10,5 +10,9 @@ const authController = new AuthController();
 
 // 👉 Para el nuevo flujo de Google Identity (frontend envía el token)
 router.post("/google", (req, res) => authController.loginWithGoogle(req, res));
+// routes/auth.routes.ts
+router.get("/persist", (req, res) => authController.persistToken(req, res));
+
+
 
 export default router;

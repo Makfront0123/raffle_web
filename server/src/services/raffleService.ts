@@ -55,7 +55,7 @@ export class RaffleService {
         const raffleRepo = AppDataSource.getRepository(Raffle);
         return await raffleRepo.findOne({
             where: { id },
-            relations: ['tickets']
+            relations: ['tickets','prizes']
         });
     }
 
