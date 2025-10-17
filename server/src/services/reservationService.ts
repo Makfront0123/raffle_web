@@ -53,7 +53,8 @@ export class ReservationService {
       // Calcular expiración (10 minutos)
 
       const expiresAt = new Date();
-      expiresAt.setSeconds(expiresAt.getSeconds() + 10); // ✅ suma 10 segundos
+      expiresAt.setMinutes(expiresAt.getMinutes() + 30); // 30 minutos exactos
+
 
 
       const reservation = queryRunner.manager.create(Reservation, {

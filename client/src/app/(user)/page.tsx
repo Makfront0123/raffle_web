@@ -1,13 +1,19 @@
+"use client";
+ 
+import LoadingScreen from "@/components/LoadingScreen";
 import Hero from "@/components/Hero";
 import RaffleInfo from "@/components/RaffleInfo";
-
-import Image from "next/image";
+import { useLoadingScreen } from "@/hook/useLoadingScreen";
 
 export default function Home() {
-    return (
-        <>
-            <Hero />
-            <RaffleInfo />
-        </>
-    );
+  const loading = useLoadingScreen(1500);  
+
+  if (loading) return <LoadingScreen />;
+
+  return (
+    <>
+      <Hero />
+      <RaffleInfo />
+    </>
+  );
 }
