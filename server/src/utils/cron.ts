@@ -1,67 +1,55 @@
 import cron from 'node-cron';
-import { ReservationService } from '../services/reservationService';
 import { AppDataSource } from '../data-source';
-import { LessThanOrEqual } from 'typeorm';
 import { Raffle } from '../entities/raffle.entity';
 import { Ticket } from '../entities/ticket.entity';
-
-const reservationService = new ReservationService();
+import { LessThanOrEqual } from 'typeorm';
 
 cron.schedule('*/1 * * * *', async () => {
-  try {
-    console.log('⏰ Cron job ejecutándose...');
+  console.log('⏰ Cron job ejecutándose...');
 
-    // 1️⃣ Limpiar reservas expiradas
-    await reservationService.releaseExpiredReservations();
-    console.log('✅ Reservas expiradas liberadas');
+  const raffleRepo = AppDataSource.getRepository(Raffle);
+  const ticketRepo = AppDataSource.getRepository(Ticket);
 
-    // 2️⃣ Revisar rifas activas cuyo tiempo se acabó
-    const raffleRepo = AppDataSource.getRepository(Raffle);
-    const ticketRepo = AppDataSource.getRepository(Ticket);
+  const expiredRaffles = await raffleRepo.find({
+    where: { status: 'active', end_date: LessThanOrEqual(new Date()) },
+    relations: ['tickets'],
+  });
 
-    const rafflesToCheck = await raffleRepo.find({
-      where: { status: 'active', end_date: LessThanOrEqual(new Date()) },
-      relations: ['tickets'],
-    });
+  for (const raffle of expiredRaffles) {
+    const queryRunner = AppDataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-    for (const raffle of rafflesToCheck) {
-      const totalTickets = raffle.tickets.length;
-      const soldTickets = raffle.tickets.filter(t => t.status === 'purchased').length;
-      const soldPercentage = (soldTickets / totalTickets) * 100;
+    try {
+      // 1️⃣ Marcar rifa como 'ended'
+      raffle.status = 'ended';
+      await queryRunner.manager.save(raffle);
 
-      if (soldPercentage >= 70) {
-        // Cerrar rifa
-        raffle.status = 'ended';
-        await raffleRepo.save(raffle);
+      // 2️⃣ Liberar tickets reservados que quedaron pendientes
+      const reservedTickets = raffle.tickets.filter(t => t.status === 'reserved');
 
-        // Liberar tickets reservados
-        const reservedTickets = raffle.tickets.filter(t => t.status === 'reserved');
-        for (const ticket of reservedTickets) {
-          ticket.status = 'available';
-          await ticketRepo.save(ticket);
-        }
-
-        console.log(`🎉 Rifa #${raffle.id} cerrada (${soldPercentage.toFixed(2)}% vendida). Tickets reservados liberados: ${reservedTickets.length}`);
-      } else {
-        console.log(`⚠️ Rifa #${raffle.id} NO cerrada (${soldPercentage.toFixed(2)}% vendida)`);
+      if (reservedTickets.length > 0) {
+        await queryRunner.manager
+          .createQueryBuilder()
+          .update(Ticket)
+          .set({ status: 'available', purchased_at: null })
+          .where('raffleId = :raffleId AND status = :status', {
+            raffleId: raffle.id,
+            status: 'reserved',
+          })
+          .execute();
       }
+
+      await queryRunner.commitTransaction();
+
+      console.log(`🎉 Rifa #${raffle.id} cerrada. Tickets liberados: ${reservedTickets.length}`);
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      console.error(`❌ Error cerrando rifa #${raffle.id}:`, err);
+    } finally {
+      await queryRunner.release();
     }
-  } catch (error) {
-    console.error('❌ Error en cron jobs:', error);
   }
+
+  console.log('✅ Cron job finalizado.');
 });
-
-
-/*
-import cron from 'node-cron';
-import { ReservationService } from '../services/reservationService';
- 
-
- const reservationService = new ReservationService();
-
- // Cada minuto limpiar reservas expiradas
- cron.schedule('* * * * *', async () => {
-   await reservationService.releaseExpiredReservations();
-   });
-   
-*/

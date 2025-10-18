@@ -9,6 +9,7 @@ export interface Raffle {
   description: string;
   end_date: string;
   digits: number;
+  status: string;
   tickets: Ticket[];
   prizes: Prizes[];
 }
