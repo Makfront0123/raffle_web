@@ -1,30 +1,27 @@
+"use client";
+import HeaderAdmin from "@/components/HeaderAdmin";
+import { Sidebar } from "@/components/Sidebar";
+import { useAuth } from "@/hook/useAuth";
+
 import React from "react";
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex min-h-screen">
-      {/* Puedes agregar un sidebar específico del admin si quieres */}
-      <main className="flex-1 p-8">{children}</main>
-    </div>
-  );
-}
-
-
-/*
-"use client";
-import { Sidebar } from "@/components/admin/Sidebar";
-import { Header } from "@/components/admin/Header";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const { logout } = useAuth();
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen bg-gray-100 text-gray-800">
+      {/* Sidebar */}
       <Sidebar />
-      <main className="flex-1 p-6 bg-gray-50">
-        <Header />
-        {children}
-      </main>
+
+      {/* Main Content */}
+      <div className="flex flex-col flex-1">
+        {/* Header */}
+        <HeaderAdmin onLogout={logout} />
+
+
+        {/* Content */}
+        <main className="flex-1 p-6 overflow-y-auto">{children}</main>
+      </div>
     </div>
   );
 }
-
-*/

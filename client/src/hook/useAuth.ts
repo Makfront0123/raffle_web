@@ -102,7 +102,7 @@ export function useAuth() {
   // Redirección según rol
   useEffect(() => {
     if (!user) return;
-    if (user.role === "admin") router.push("/admin/dashboard");
+    if (user.role === "admin") router.push("/dashboard");
     else router.push("/");
   }, [user, router]);
 

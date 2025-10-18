@@ -20,10 +20,12 @@ export const appRoutes: AppRoute[] = [
     name: "Admin",
     path: "/admin",
     children: [
-      { name: "Dashboard", path: "/admin/dashboard" },
+      { name: "Dashboard", path: "/dashboard" },
       { name: "Rifas", path: "/admin/raffles" },
       { name: "Pagos", path: "/admin/payments" },
       { name: "Ganadores", path: "/admin/winners" },
+      { name: "Crear Prizes", path: "/prizes" },
+      { name: "Proveedores", path: "/providers" },
     ],
   },
 ];

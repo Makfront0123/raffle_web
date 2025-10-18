@@ -25,24 +25,31 @@ cron.schedule('*/1 * * * *', async () => {
       raffle.status = 'ended';
       await queryRunner.manager.save(raffle);
 
-      // 2️⃣ Liberar tickets reservados que quedaron pendientes
-      const reservedTickets = raffle.tickets.filter(t => t.status === 'reserved');
+      // 2️⃣ Liberar tickets reservados
+      await queryRunner.manager
+        .createQueryBuilder()
+        .update(Ticket)
+        .set({ status: 'available', purchased_at: null })
+        .where('raffleId = :raffleId AND status = :status', { raffleId: raffle.id, status: 'reserved' })
+        .execute();
 
-      if (reservedTickets.length > 0) {
-        await queryRunner.manager
-          .createQueryBuilder()
-          .update(Ticket)
-          .set({ status: 'available', purchased_at: null })
-          .where('raffleId = :raffleId AND status = :status', {
-            raffleId: raffle.id,
-            status: 'reserved',
-          })
-          .execute();
-      }
+      // 3️⃣ 🔥 Borrar reservas asociadas (activa o vencidas, todas)
+      await queryRunner.manager
+        .createQueryBuilder()
+        .delete()
+        .from('reservation_tickets')
+        .where('reservationId IN (SELECT id FROM reservations WHERE raffleId = :raffleId)', { raffleId: raffle.id })
+        .execute();
+
+      await queryRunner.manager
+        .createQueryBuilder()
+        .delete()
+        .from('reservations')
+        .where('raffleId = :raffleId', { raffleId: raffle.id })
+        .execute();
 
       await queryRunner.commitTransaction();
-
-      console.log(`🎉 Rifa #${raffle.id} cerrada. Tickets liberados: ${reservedTickets.length}`);
+      console.log(`🎉 Rifa #${raffle.id} cerrada. Tickets liberados y reservas eliminadas.`);
     } catch (err) {
       await queryRunner.rollbackTransaction();
       console.error(`❌ Error cerrando rifa #${raffle.id}:`, err);
@@ -50,6 +57,7 @@ cron.schedule('*/1 * * * *', async () => {
       await queryRunner.release();
     }
   }
+
 
   console.log('✅ Cron job finalizado.');
 });
