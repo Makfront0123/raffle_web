@@ -8,9 +8,9 @@ import { Raffle } from "@/type/Raffle";
 export const useRaffleStore = create<RaffleStore>()((set) => ({
     raffles: [],
     setRaffles: (raffles: Raffle[]) => set({ raffles }),
-    getRaffles: async () => {
+    getRaffles: async (token: string) => {
         const raffleService = new RaffleService();
-        const raffles = await raffleService.getAllRaffles();
+        const raffles = await raffleService.getAllRaffles(token);
         set({ raffles });
     },
     getRaffleById: async (id: number, token: string) => {
@@ -23,6 +23,6 @@ export const useRaffleStore = create<RaffleStore>()((set) => ({
 interface RaffleStore {
     raffles: Raffle[];
     setRaffles: (raffles: Raffle[]) => void;
-    getRaffles: () => Promise<void>;
+    getRaffles: (token: string) => Promise<void>;
     getRaffleById: (id: number, token: string) => Promise<void>;
 }

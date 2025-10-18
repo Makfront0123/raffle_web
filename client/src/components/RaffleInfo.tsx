@@ -7,8 +7,6 @@ import { Card, CardHeader, CardContent } from "./ui/card";
 
 
 const RaffleInfo = () => {
-    const { raffles, loading, error } = useRaffles();
-    console.log(raffles);
     return (
 
         <div className="w-full min-h-[120vh] relative">
@@ -33,6 +31,16 @@ const RaffleInfo = () => {
                     }
                 </div>
 
+            </div>
+        </div>
+
+    )
+}
+
+export default RaffleInfo
+
+/*
+
                 <div>
                     <h1 className="mt-20">Participa en alguna rifa</h1>
                     <div className="flex flex-wrap items-center justify-center gap-20 py-3">
@@ -55,10 +63,4 @@ const RaffleInfo = () => {
                         }
                     </div>
                 </div>
-            </div>
-        </div>
-
-    )
-}
-
-export default RaffleInfo
+*/

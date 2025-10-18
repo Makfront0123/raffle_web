@@ -109,10 +109,7 @@ export function useRaffleDetail() {
         )
       );
 
-      toast.success(
-        `Pago realizado con ${action === "nequi" ? "Nequi" : "Daviplata"} 💰`,
-        { duration: 1500 }
-      );
+     
     } catch (err: any) {
       toast.error("Error al procesar la acción", { duration: 1500 });
       console.error(err);

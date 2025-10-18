@@ -36,6 +36,8 @@ export default function Reservations() {
   if (loading) return <LoadingScreen />;
   if (error) return <div className="p-10 text-red-500">{error}</div>;
 
+
+
   return (
     <div className="w-full min-h-[100vh] px-20 py-16">
       <h1 className="text-3xl font-bold mb-8 text-white">🎟️ Tus Reservas</h1>
@@ -160,10 +162,10 @@ function ReservationCard({
             <p className="text-sm text-gray-500">Precio: ${raffle?.price}</p>
           </DialogHeader>
           <div className="flex flex-col gap-2 mt-4">
-            <Button onClick={() => onPay("nequi", raffle?.id!, ticket.id_ticket)}   className="bg-pink-500 hover:bg-pink-600 text-white">
+            <Button onClick={() => onPay("nequi", raffle?.id!, ticket.id_ticket)} className="bg-pink-500 hover:bg-pink-600 text-white">
               Nequi
             </Button>
-            <Button onClick={() => onPay("daviplata", raffle?.id!, ticket.id_ticket)}  className="bg-purple-500 hover:bg-purple-600 text-white">
+            <Button onClick={() => onPay("daviplata", raffle?.id!, ticket.id_ticket)} className="bg-purple-500 hover:bg-purple-600 text-white">
               Daviplata
             </Button>
           </div>

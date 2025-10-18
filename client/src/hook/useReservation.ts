@@ -1,57 +1,48 @@
 import { useEffect, useState } from "react";
 import { useReservationStore } from "@/store/reservationStore";
 import { AuthStore } from "@/store/authStore";
-
+import { Reservation } from "@/type/Reservation";
 export function useReservation() {
-  const { reservations, getReservations, setReservations } = useReservationStore();
-  const { token } = AuthStore();
+  const { reservations, setReservations, getAllReservationsByUser } = useReservationStore();
+  const token = AuthStore((state) => state.token); // suscripción correcta
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!token) return;
+    if (!token) return; // solo ejecuta cuando token existe
 
-    let syncInterval: NodeJS.Timeout;
-    let localInterval: NodeJS.Timeout;
+    let isMounted = true;
 
     const fetchData = async () => {
+      setLoading(true);
       try {
-        const now = new Date().getTime();
-        await getReservations(token);
-        useReservationStore.setState((state) => ({
-          reservations: state.reservations.filter(
-            (r) => new Date(r.expires_at).getTime() > now
-          ),
-        }));
+        await getAllReservationsByUser(token);
 
+        if (!isMounted) return;
+
+        const now = Date.now();
+        setReservations((prev) => prev.filter((r) => new Date(r.expires_at).getTime() > now));
         setLoading(false);
       } catch (err) {
+        if (!isMounted) return;
         setError("Error cargando reservas");
         setLoading(false);
       }
     };
 
- 
     fetchData();
 
-    
-    localInterval = setInterval(() => {
-      const now = new Date().getTime();
-      useReservationStore.setState((state) => ({
-        reservations: state.reservations.filter(
-          (r) => new Date(r.expires_at).getTime() > now
-        ),
-      }));
+    const interval = setInterval(() => {
+      const now = Date.now();
+      setReservations((prev) => prev.filter((r) => new Date(r.expires_at).getTime() > now));
     }, 1000);
 
-   
-    syncInterval = setInterval(fetchData, 5000);
-
     return () => {
-      clearInterval(syncInterval);
-      clearInterval(localInterval);
+      isMounted = false;
+      clearInterval(interval);
     };
-  }, [token]);  
+  }, [token, setReservations]); // el efecto se disparará cuando token cambie
 
   return { reservations, loading, error };
 }

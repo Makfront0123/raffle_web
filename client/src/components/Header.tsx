@@ -4,16 +4,14 @@ import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { appRoutes } from "@/routes/AppRoutes";
-
 import { AuthDialog } from "./AuthDialog";
-import { AuthStore } from "@/store/authStore";
+import { useAuth } from "@/hook/useAuth";
 
 
 const mainRoutes = appRoutes[0]?.children || [];
 
-
 export function Header() {
-  const { user, logout } = AuthStore();
+  const { user, logout } = useAuth();  
   const [openAuth, setOpenAuth] = useState(false);
 
   return (
@@ -33,7 +31,7 @@ export function Header() {
             <div className="flex items-center gap-2">
               <span className="text-slate-200">{user.name}</span>
               <Button
-                onClick={logout}
+                onClick={logout} // ✅ SPA redirect incluido
                 className="text-xs bg-slate-700 hover:bg-slate-800"
               >
                 Cerrar sesión
@@ -59,12 +57,12 @@ export function Header() {
         <h1>ICON</h1>
         <div className="flex items-center gap-x-10">
           {mainRoutes.map((route) => {
-            const isProtected = route.protected;  
+            const isProtected = route.protected;
 
             const handleClick = (e: React.MouseEvent) => {
               if (isProtected && !user) {
-                e.preventDefault();  
-                setOpenAuth(true);  
+                e.preventDefault();
+                setOpenAuth(true);
               }
             };
 

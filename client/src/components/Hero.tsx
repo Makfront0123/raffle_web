@@ -3,7 +3,7 @@ import { Button } from "./ui/button";
 const Hero = () => {
     return (
 
-        <header className="w-full min-h-[120vh] relative">
+        <header className="w-full min-h-[120vh] relative" >
 
 
             <div className="flex items-start px-20">
@@ -33,3 +33,4 @@ const Hero = () => {
 }
 
 export default Hero
+

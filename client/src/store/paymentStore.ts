@@ -27,7 +27,6 @@ export const usePaymentStore = create<PaymentStore>()((set, get) => ({
             set({
                 payments: get().payments.filter((p) => p.id !== id),
             });
-            toast.success("Pago cancelado correctamente");
         } catch (error: any) {
             toast.error(error?.response?.data?.message || "Error cancelando pago");
             throw error;

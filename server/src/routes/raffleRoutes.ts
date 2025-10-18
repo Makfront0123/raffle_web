@@ -8,7 +8,7 @@ import { authMiddleware } from '../middleware/authMiddleware';
 const router = express.Router();
 const raffleController = new RaffleController();
 
-router.get('/', raffleController.getAllRaffles);
+router.get('/', authMiddleware, raffleController.getAllRaffles);
 router.post('/', authMiddleware, adminMiddleware, raffleController.createRaffle);
 router.get('/:id', authMiddleware, raffleController.getRaffleById);
 router.delete('/:id', authMiddleware, adminMiddleware, raffleController.deleteRaffle);

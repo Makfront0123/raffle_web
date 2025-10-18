@@ -16,7 +16,7 @@ export class PaymentService {
 
   async createPayment(payment: any) {
     return await AppDataSource.transaction(async (manager) => {
-      // 1️⃣ Buscar usuario y rifa
+
       const user = await manager.getRepository(User).findOne({
         where: { id: payment.user_id },
       });
@@ -27,13 +27,13 @@ export class PaymentService {
       });
       if (!raffle) throw new Error("No se encontró la rifa");
 
-      // 2️⃣ Obtener tickets seleccionados
+
       const tickets = await manager.getRepository(Ticket).find({
         where: { id_ticket: In(payment.ticket_ids) },
       });
       if (tickets.length === 0) throw new Error("No hay tickets seleccionados");
 
-      // 3️⃣ Obtener reservas del usuario para esos tickets
+
       const userReservations = await manager
         .getRepository(ReservationTicket)
         .createQueryBuilder("resTicket")
@@ -44,7 +44,7 @@ export class PaymentService {
         .andWhere("user.id = :userId", { userId: payment.user_id })
         .getMany();
 
-      // 4️⃣ Validar tickets
+
       for (const ticket of tickets) {
         if (ticket.raffleId !== raffle.id)
           throw new Error(`El ticket ${ticket.id_ticket} no pertenece a esta rifa`);
@@ -60,10 +60,9 @@ export class PaymentService {
           throw new Error(`El ticket ${ticket.id_ticket} está reservado por otro usuario`);
       }
 
-      // 5️⃣ Calcular total
       const totalAmount = tickets.length * Number(raffle.price);
 
-      // 6️⃣ Crear pago
+
       const paymentEntity = manager.getRepository(Payment).create({
         user,
         raffle,
@@ -74,7 +73,7 @@ export class PaymentService {
       });
       await manager.getRepository(Payment).save(paymentEntity);
 
-      // 7️⃣ Crear detalles de pago y actualizar tickets
+
       for (const ticket of tickets) {
         const detail = manager.getRepository(PaymentDetail).create({
           payment: paymentEntity,
@@ -88,7 +87,6 @@ export class PaymentService {
         await manager.getRepository(Ticket).save(ticket);
       }
 
-      // 8️⃣ Eliminar reservas
       const resTicketsToDelete = await manager
         .getRepository(ReservationTicket)
         .createQueryBuilder("resTicket")
@@ -102,7 +100,7 @@ export class PaymentService {
         await manager.getRepository(ReservationTicket).remove(resTicketsToDelete);
       }
 
-      // 9️⃣ Retornar resultado
+
       return {
         message: "Pago registrado correctamente",
         payment_id: paymentEntity.id,

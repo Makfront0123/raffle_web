@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { AuthService } from "@/services/authService";
 import { AuthStore } from "@/store/authStore";
+import { jwtDecode } from "jwt-decode";
+
 
 interface TokenClient {
   requestAccessToken: () => void;
@@ -13,12 +15,39 @@ const authService = new AuthService();
 
 export function useAuth() {
   const router = useRouter();
-  const { user, setUser, logout } = AuthStore();
+  const { user, setUser, logout: storeLogout } = AuthStore();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [client, setClient] = useState<TokenClient | null>(null);
 
-  // 🔹 Restaurar sesión si hay token guardado
+  // ✅ Logout que limpia store y hace SPA redirect
+  const logout = useCallback(() => {
+    storeLogout();
+    router.push("/");
+  }, [storeLogout, router]);
+
+  // Manejo de expiración de token
+  const startTokenWatcher = useCallback((token: string) => {
+    try {
+      const decoded: any = jwtDecode(token);
+      const exp = decoded.exp * 1000;
+      const timeLeft = exp - Date.now();
+
+      if (timeLeft <= 0) {
+        logout();
+        return;
+      }
+
+      setTimeout(() => {
+        logout();
+      }, timeLeft);
+    } catch (err) {
+      console.error("Error decodificando token:", err);
+      logout();
+    }
+  }, [logout]);
+
+  // Inicialización con token en localStorage
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token && !user) {
@@ -27,15 +56,14 @@ export function useAuth() {
         .getUserByToken(token)
         .then((res) => {
           setUser(res.user, token);
+          startTokenWatcher(token);
         })
-        .catch(() => {
-          logout();
-        })
+        .catch(() => logout())
         .finally(() => setLoading(false));
     }
-  }, [user, setUser, logout]);
+  }, [user, setUser, startTokenWatcher, logout]);
 
-  // 🔹 Inicializar cliente OAuth (una sola vez)
+  // Inicialización Google OAuth
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -71,20 +99,21 @@ export function useAuth() {
     }
   }, []);
 
-  // 🔹 Redirigir después de iniciar sesión
+  // Redirección según rol
   useEffect(() => {
     if (!user) return;
     if (user.role === "admin") router.push("/admin/dashboard");
     else router.push("/");
   }, [user, router]);
 
-  // 🔹 Manejar respuesta del login con Google
+  // Manejo del login con Google
   const handleCredentialResponse = async (accessToken: string) => {
     try {
       setLoading(true);
       const userData = await authService.getUserByGoogle({ token: accessToken });
       setUser(userData.user, userData.token);
       localStorage.setItem("token", userData.token);
+      startTokenWatcher(userData.token);
       setError(null);
     } catch (err: any) {
       console.error("Error en login:", err);
@@ -94,7 +123,6 @@ export function useAuth() {
     }
   };
 
-  // 🔹 Acción para iniciar sesión con Google
   const loginWithGoogle = () => {
     if (!client) {
       console.error("Cliente OAuth de Google no inicializado aún");

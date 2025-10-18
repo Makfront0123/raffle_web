@@ -38,8 +38,8 @@ export class ReservationService {
     return res.data;
   }
 
-  async getAllReservationsByUser(userId: number, token: string): Promise<Reservation[]> {
-    const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/reservation/user/${userId}`, {
+  async getAllReservationsByUser( token: string): Promise<Reservation[]> {
+    const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/reservation/user`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     return res.data;
