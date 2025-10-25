@@ -1,6 +1,7 @@
 export interface Providers {
-    id: number;
+    id?: number;  
     name: string;
-    description: string;
-    logo: string;
+    contact_name: string;
+    contact_email: string;
+    contact_phone: string;
 }
