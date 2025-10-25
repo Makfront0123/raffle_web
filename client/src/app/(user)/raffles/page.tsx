@@ -52,11 +52,12 @@ export default function Raffles() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos los premios</SelectItem>
-            <SelectItem value="dinero">Dinero 💵</SelectItem>
-            <SelectItem value="producto">Producto 🎁</SelectItem>
-            <SelectItem value="viaje">Viaje ✈️</SelectItem>
+            <SelectItem value="cash">Dinero 💵</SelectItem>
+            <SelectItem value="product">Producto 🎁</SelectItem>
+            <SelectItem value="trip">Viaje ✈️</SelectItem>
           </SelectContent>
         </Select>
+
 
         <Select onValueChange={setSortBy} value={sortBy}>
           <SelectTrigger className="w-[180px] bg-gray-800 text-white border-gray-600">
@@ -103,14 +104,20 @@ export default function Raffles() {
                     <div className="mb-3">
                       <p className="text-sm text-gray-400 font-semibold">Premios:</p>
                       <ul className="list-disc list-inside text-gray-300 text-sm">
-                        {raffle.prizes.map((prize) => (
-                          <li key={prize.id}>
-                            {prize.name} - ${prize.price}
-                          </li>
-                        ))}
+                        {raffle.prizes.map((prize) => {
+                          const icon =
+                            prize.type === "cash" ? "💵" : prize.type === "trip" ? "✈️" : "🎁";
+
+                          return (
+                            <li key={prize.id}>
+                              {icon} {prize.name} - ${prize.value}
+                            </li>
+                          );
+                        })}
                       </ul>
                     </div>
                   )}
+
 
                   {isExpired ? (
                     <Button

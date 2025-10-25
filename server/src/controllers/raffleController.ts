@@ -16,7 +16,7 @@ export class RaffleController {
 
   async createRaffle(req: Request, res: Response) {
     try {
-      const { title, description, price, endDate, digits } = req.body;
+      const { title, description, price, endDate, digits, type } = req.body;
 
       const result = await raffleService.createRaffle({
         title,
@@ -24,6 +24,7 @@ export class RaffleController {
         price,
         end_date: new Date(endDate),
         digits,
+        type,
       });
 
       res.status(200).json(result);

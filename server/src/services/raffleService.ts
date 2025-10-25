@@ -1,5 +1,6 @@
 // src/services/raffleService.ts
 import { AppDataSource } from '../data-source';
+import { PrizeType } from '../entities/prize.entity';
 import { Raffle } from '../entities/raffle.entity';
 import { Ticket } from '../entities/ticket.entity';
 import { generateAllTicketNumbers } from '../utils/generateRandomNumber';
@@ -16,6 +17,7 @@ export class RaffleService {
         price: number;
         end_date: Date;
         digits: number;
+        type: PrizeType;
     }) {
         const raffleRepo = AppDataSource.getRepository(Raffle);
         const ticketRepo = AppDataSource.getRepository(Ticket);

@@ -12,4 +12,5 @@ export interface Raffle {
   status: string;
   tickets: Ticket[];
   prizes: Prizes[];
+  created_at: string;
 }
