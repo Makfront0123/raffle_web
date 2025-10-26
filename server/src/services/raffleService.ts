@@ -8,9 +8,12 @@ import { generateAllTicketNumbers } from '../utils/generateRandomNumber';
 export class RaffleService {
     async getAllRaffles() {
         const raffleRepo = AppDataSource.getRepository(Raffle);
-        const raffles = await raffleRepo.find();
+        const raffles = await raffleRepo.find({
+            relations: ["prizes"],  
+        });
         return raffles;
     }
+
     async createRaffle(data: {
         title: string;
         description: string;
@@ -57,7 +60,7 @@ export class RaffleService {
         const raffleRepo = AppDataSource.getRepository(Raffle);
         return await raffleRepo.findOne({
             where: { id },
-            relations: ['tickets','prizes']
+            relations: ['tickets', 'prizes']
         });
     }
 

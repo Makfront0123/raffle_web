@@ -3,9 +3,8 @@ import { AuthStore } from "@/store/authStore";
 import { useRaffleStore } from "@/store/raffleStore";
 import { useEffect, useState } from "react";
 
-
 export function useRaffles() {
-    const { raffles, getRaffles } = useRaffleStore();
+    const { raffles, getRaffles, addRaffle } = useRaffleStore();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const { token } = AuthStore();
@@ -21,7 +20,7 @@ export function useRaffles() {
             }
         };
         fetchRaffles();
-    }, [getRaffles]);
+    }, [getRaffles, token]);
 
-    return { raffles, loading, error };
+    return { raffles, addRaffle, loading, error };
 }

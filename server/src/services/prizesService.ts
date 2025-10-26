@@ -11,7 +11,7 @@ export class PrizesService {
     private ticketRepo = AppDataSource.getRepository(Ticket);
 
     async getAllPrizes() {
-        return this.prizeRepo.find({ relations: ['provider'] });
+        return this.prizeRepo.find({ relations: ['provider','raffle'] });
     }
 
     async getPrizeById(id: number) {

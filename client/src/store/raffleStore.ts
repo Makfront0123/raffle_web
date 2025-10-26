@@ -2,6 +2,7 @@ import { create } from "zustand";
 
 import { RaffleService } from "@/services/raffleService";
 import { Raffle } from "@/type/Raffle";
+import { toast } from "sonner";
 
 
 
@@ -18,6 +19,17 @@ export const useRaffleStore = create<RaffleStore>()((set) => ({
         const raffle = await raffleService.getRaffleById(id, token);
         set({ raffles: [raffle] });
     },
+    addRaffle: async (raffle: Raffle, token: string) => {
+        try {
+            const raffleService = new RaffleService();
+            const created = await raffleService.createRaffle(raffle, token);
+            set((state) => ({ raffles: [...state.raffles, created] }));
+            toast.success("Rifa creada correctamente");
+        } catch (err: any) {
+            toast.error("Error creando rifa");
+            console.error(err);
+        }
+    }
 }));
 
 interface RaffleStore {
@@ -25,4 +37,5 @@ interface RaffleStore {
     setRaffles: (raffles: Raffle[]) => void;
     getRaffles: (token: string) => Promise<void>;
     getRaffleById: (id: number, token: string) => Promise<void>;
+    addRaffle: (raffle: Raffle, token: string) => Promise<void>;
 }
