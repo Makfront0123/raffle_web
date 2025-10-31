@@ -33,9 +33,9 @@ export default function Reservations() {
     handlePayment,
   } = useReservationsLogic();
 
-  if (loading) return <LoadingScreen />;
-  if (error) return <div className="p-10 text-red-500">{error}</div>;
+  if (loading || raffles.length === 0) return <LoadingScreen />;
 
+  if (error) return <div className="p-10 text-red-500">{error}</div>;
 
 
   return (
@@ -47,21 +47,22 @@ export default function Reservations() {
       ) : (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {paginatedReservations.map((r) => {
+            {paginatedReservations.map((r: Reservation) => {
               const ticket = r.reservationTickets?.[0]?.ticket;
-              const raffle = raffles.find((rf) => rf.id === ticket?.raffleId);
-              if (!raffle || !ticket) return null;
+              if (!ticket) return null;
+              const raffle = raffles.find((rf) => rf.id === ticket.raffleId);
               return (
                 <ReservationCard
                   key={r.id}
                   reservation={r}
-                  raffle={raffle}
+                  raffle={raffle} 
                   canceling={canceling}
                   onCancel={handleCancel}
                   onPay={handlePayment}
                 />
               );
             })}
+
           </div>
 
           {totalPages > 1 && (

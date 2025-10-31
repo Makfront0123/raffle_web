@@ -9,6 +9,8 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from "next/link";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import LoadingScreen from "@/components/LoadingScreen";
+import { useCountdown } from "@/hook/useCountdown";
+import { RaffleCard } from "@/components/RaffleCard";
 
 export default function Raffles() {
   const {
@@ -26,6 +28,8 @@ export default function Raffles() {
     showExpiredModal,
     setShowExpiredModal,
   } = useFilteredRaffles();
+
+
 
   return (
     <div className="w-full min-h-[120vh] px-10 py-10 flex flex-col items-start">
@@ -84,55 +88,10 @@ export default function Raffles() {
           <p className="text-gray-400 mt-10">No se encontraron rifas con esos criterios 😢</p>
         ) : (
           filteredRaffles.map((raffle) => {
-            const isExpired = new Date(raffle.end_date) <= new Date();
+
+
             return (
-              <Card
-                key={raffle.id}
-                className={`p-5 w-[280px] ${isExpired ? "opacity-50 border-gray-600" : "hover:scale-105 transition-transform"
-                  }`}
-              >
-                <CardHeader>
-                  <span className="text-xl font-semibold text-white">{raffle.title}</span>
-                  <p className="text-sm text-gray-400">${raffle.price}</p>
-                  <p className="text-sm text-gray-400">{raffle.total_numbers} tickets</p>
-                </CardHeader>
-
-                <CardContent>
-                  <p className="text-gray-300 mb-4">{raffle.description}</p>
-
-                  {raffle.prizes?.length > 0 && (
-                    <div className="mb-3">
-                      <p className="text-sm text-gray-400 font-semibold">Premios:</p>
-                      <ul className="list-disc list-inside text-gray-300 text-sm">
-                        {raffle.prizes.map((prize) => {
-                          const icon =
-                            prize.type === "cash" ? "💵" : prize.type === "trip" ? "✈️" : "🎁";
-
-                          return (
-                            <li key={prize.id}>
-                              {icon} {prize.name} - ${prize.value}
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    </div>
-                  )}
-
-
-                  {isExpired ? (
-                    <Button
-                      variant="destructive"
-                      onClick={() => setShowExpiredModal(raffle)}
-                    >
-                      Rifa finalizada
-                    </Button>
-                  ) : (
-                    <Button asChild>
-                      <Link href={`/raffles/${raffle.id}`}>Participar</Link>
-                    </Button>
-                  )}
-                </CardContent>
-              </Card>
+              <RaffleCard raffle={raffle} setShowExpiredModal={setShowExpiredModal} key={raffle.id} />
             );
           })
         )}

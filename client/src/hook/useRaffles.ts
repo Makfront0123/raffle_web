@@ -10,6 +10,7 @@ export function useRaffles() {
     const { token } = AuthStore();
 
     useEffect(() => {
+        if (!token) return;
         const fetchRaffles = async () => {
             try {
                 await getRaffles(token || "");

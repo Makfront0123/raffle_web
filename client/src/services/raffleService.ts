@@ -4,7 +4,6 @@ import axios from "axios";
 
 export class RaffleService {
     async getAllRaffles(token: string): Promise<Raffle[]> {
-        console.log('token', token);
         const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/raffle`, {
             headers: { Authorization: `Bearer ${token}` }
         });

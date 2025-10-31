@@ -5,8 +5,7 @@ import { toast } from "sonner";
 
 export const useReservationStore = create<ReservationStore>()((set, get) => ({
   reservations: [],
-
-  // 👈 ahora acepta array o función
+  
   setReservations: (reservationsOrFn) =>
     set((state) => ({
       reservations:
@@ -42,6 +41,7 @@ export const useReservationStore = create<ReservationStore>()((set, get) => ({
     const service = new ReservationService();
     const reservations = await service.getAllReservationsByUser(token);
     set({ reservations });
+   
   },
 
   cancelReservation: async (id, token) => {

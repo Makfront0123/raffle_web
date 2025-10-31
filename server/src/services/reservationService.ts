@@ -49,9 +49,6 @@ export class ReservationService {
       const maxTicketsPerUser = 5; // ejemplo
       if (ticketIds.length > maxTicketsPerUser) throw new Error(`No puedes reservar más de ${maxTicketsPerUser} tickets.`);
 
-
-      // Calcular expiración (10 minutos)
-
       const expiresAt = new Date();
       expiresAt.setMinutes(expiresAt.getMinutes() + 30); // 30 minutos exactos
 

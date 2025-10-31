@@ -31,6 +31,7 @@ export default function RaffleDetailPage() {
             </div>
         );
 
+
     return (
         <div className="max-w-5xl mx-auto p-10">
 
