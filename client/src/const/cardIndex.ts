@@ -1,24 +1,22 @@
+import { ArrowDown, ShoppingBag, Trophy } from "lucide-react";
+
 export const cardIndex = [
     {
         id: 1,
-        name: "Choose",
-
-        description:
-            "Register to RIFA & Choose your contest",
+        name: "Elige",
+        icon: ArrowDown,
+        description: "Elige una rifa y reserva tus tickets",
     },
     {
         id: 2,
-        name: "buy",
-
-        description:
-            "Pick Your Numbers & Complete your Purchase",
+        name: "Compra",
+        icon: ShoppingBag,
+        description: "Elige tus números y completa tu compra.",
     },
     {
         id: 3,
-        name: "Win",
-
-        description:
-            "Start Dreaming, you're almost there",
+        name: "Gana",
+        icon: Trophy,
+        description: "Empieza a soñar, ya casi lo has conseguido.",
     },
-
-];  
+];

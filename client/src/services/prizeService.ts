@@ -1,4 +1,5 @@
 import { Prizes, CreatePrizeDTO } from "@/type/Prizes";
+import { Winner } from "@/type/Winner";
 import axios from "axios";
 
 export class PrizeService {
@@ -28,5 +29,13 @@ export class PrizeService {
       headers: { Authorization: `Bearer ${token}` },
     });
     return res.data;
+  }
+
+  async getWinners(raffleId: number, token: string): Promise<Winner[]> {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/prizes/${raffleId}/winners`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!response.ok) throw new Error("Error fetching winners");
+    return await response.json();
   }
 }

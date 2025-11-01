@@ -33,6 +33,8 @@ export default function Reservations() {
     handlePayment,
   } = useReservationsLogic();
 
+  console.log(reservations);
+
   if (loading || raffles.length === 0) return <LoadingScreen />;
 
   if (error) return <div className="p-10 text-red-500">{error}</div>;
@@ -40,7 +42,7 @@ export default function Reservations() {
 
   return (
     <div className="w-full min-h-[100vh] px-20 py-16">
-      <h1 className="text-3xl font-bold mb-8 text-white">🎟️ Tus Reservas</h1>
+      <h1 className="text-3xl font-bold mb-8 text-black">🎟️ Tus Reservas</h1>
 
       {reservations.length === 0 ? (
         <div className="text-gray-400">No tienes reservas activas</div>
@@ -55,7 +57,7 @@ export default function Reservations() {
                 <ReservationCard
                   key={r.id}
                   reservation={r}
-                  raffle={raffle} 
+                  raffle={raffle}
                   canceling={canceling}
                   onCancel={handleCancel}
                   onPay={handlePayment}
@@ -127,11 +129,14 @@ function ReservationCard({
 
   return (
     <>
-      <Card className="p-4 bg-gray-800 text-white border border-gray-700">
+      <Card className="p-10 bg-purple-800 text-white border border-gray-700 ">
         <CardHeader>
-          <h3 className="font-semibold text-lg">🎰 Rifa #{raffle?.id}</h3>
+          <h3 className="font-semibold text-lg">{raffle?.title}</h3>
           <p className="text-sm text-gray-400">
             Ticket #{ticket.ticket_number} — {ticket.status}
+          </p>
+          <p className="text-sm text-gray-400">
+            {raffle?.description}
           </p>
         </CardHeader>
 

@@ -12,7 +12,7 @@ export class ReservationService {
   async getAllReservationsByUser(userId: number) {
     return this.reservationRepo.find({
       where: { user: { id: userId } },
-      relations: ['reservationTickets', 'reservationTickets.ticket'],
+      relations: ['reservationTickets', 'reservationTickets.ticket','raffle'],
     });
   }
 

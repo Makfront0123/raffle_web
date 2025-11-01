@@ -12,7 +12,7 @@ export class Payment {
   @ManyToOne(() => User, user => user.payments)
   user!: User;
 
-  @ManyToOne(() => Raffle, raffle => raffle.payments)
+  @ManyToOne(() => Raffle, raffle => raffle.payments,{ onDelete: 'CASCADE' })
   raffle!: Raffle;
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })

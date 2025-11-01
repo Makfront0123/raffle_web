@@ -15,6 +15,8 @@ export function useFilteredRaffles() {
   const filteredRaffles = useMemo(() => {
     return raffles
       ?.filter((r) => {
+        if (r.status === "pending") return false;
+
         // 🔍 Buscar por título o descripción
         const matchesSearch =
           r.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -25,31 +27,20 @@ export function useFilteredRaffles() {
           filterPrize === "all" ||
           r.prizes?.some((p) => p.type === filterPrize);
 
-        // ⏳ Tab activo o finalizado
-        const isExpired = new Date(r.end_date) <= new Date();
-        if (tab === "active" && isExpired) return false;
-        if (tab === "expired" && !isExpired) return false;
+        // ⏳ Filtrar por tab según status
+        const isEnded = r.status === "ended";
+
+        if (tab === "active" && isEnded) return false;
+        if (tab === "ended" && !isEnded) return false;
 
         return matchesSearch && matchesPrize;
       })
       .sort((a, b) => {
-        if (sortBy === "price") {
-          return Number(b.price) - Number(a.price);
-        }
-
-        if (sortBy === "endingSoon") {
-          return (
-            new Date(a.end_date).getTime() - new Date(b.end_date).getTime()
-          );
-        }
-
-        // 🆕 recientes primero
-        if (sortBy === "recent") {
-          return (
-            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-          );
-        }
-
+        if (sortBy === "price") return Number(b.price) - Number(a.price);
+        if (sortBy === "endingSoon")
+          return new Date(a.end_date).getTime() - new Date(b.end_date).getTime();
+        if (sortBy === "recent")
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         return 0;
       });
   }, [raffles, search, filterPrize, sortBy, tab]);

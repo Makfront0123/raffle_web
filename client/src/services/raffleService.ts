@@ -34,5 +34,23 @@ export class RaffleService {
             headers: { Authorization: `Bearer ${token}` }
         });
     }
+    async regenerateTickets(raffleId: number, newDigits: number, token: string): Promise<void> {
+        await axios.put(
+            `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/raffle/${raffleId}/regenerate-tickets/${newDigits}`,
+            {},
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`, 
+                },
+            }
+        );
+
+    }
+
+    async activateRaffle(id: number, token: string): Promise<void> {
+        await axios.put(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/raffle/${id}/activate`, {}, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+    }
 
 }

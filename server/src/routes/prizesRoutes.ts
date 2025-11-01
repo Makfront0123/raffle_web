@@ -12,6 +12,7 @@ router.get('/', authMiddleware, adminMiddleware, prizesController.getAllPrizes);
 router.post('/', authMiddleware, adminMiddleware, prizesController.createPrize);
 router.post('/:id/select-winner', prizesController.selectWinner.bind(prizesController));
 router.post('/:raffleId/close-raffle', authMiddleware, adminMiddleware, prizesController.closeRaffle.bind(prizesController));
+router.get('/:raffleId/winners', authMiddleware, adminMiddleware, prizesController.getWinners.bind(prizesController));
 
 export default router;
 

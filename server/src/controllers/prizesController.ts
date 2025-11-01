@@ -6,6 +6,15 @@ import { Ticket } from '../entities/ticket.entity';
 
 const prizesService = new PrizesService();
 export class PrizesController {
+    async getWinners(req: Request, res: Response) {
+        try {
+            const raffleId = Number(req.params.raffleId);
+            const winners = await prizesService.getWinners(raffleId);
+            res.status(200).json(winners);
+        } catch (error) {
+            res.status(500).json({ message: 'Error obteniendo premios', error });
+        }
+    }
     async getAllPrizes(req: Request, res: Response) {
         try {
             const prizes = await prizesService.getAllPrizes();

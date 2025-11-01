@@ -29,6 +29,8 @@ export default function Raffles() {
     setShowExpiredModal,
   } = useFilteredRaffles();
 
+  console.log(filteredRaffles);
+
 
 
   return (
@@ -39,19 +41,19 @@ export default function Raffles() {
         <div className="flex justify-center items-center h-screen text-red-500">{error}</div>
       ) : null}
 
-      <h1 className="text-3xl font-bold text-white mb-8">🎟️ Explora nuestras rifas</h1>
+      <h1 className="text-3xl font-bold mb-8 text-black">🎟️ Explora nuestras rifas</h1>
 
-      {/* 🔍 Controles de filtro */}
+     
       <div className="flex flex-wrap items-center gap-4 mb-6">
         <Input
           placeholder="Buscar rifa..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-[250px] bg-gray-800 text-white border-gray-600"
+          className="w-[250px] bg-purple-600 text-white border-gray-600"
         />
 
         <Select onValueChange={setFilterPrize} value={filterPrize}>
-          <SelectTrigger className="w-[180px] bg-gray-800 text-white border-gray-600">
+          <SelectTrigger className="w-[180px] bg-purple-600 text-white border-gray-600">
             <SelectValue placeholder="Tipo de premio" />
           </SelectTrigger>
           <SelectContent>
@@ -64,7 +66,7 @@ export default function Raffles() {
 
 
         <Select onValueChange={setSortBy} value={sortBy}>
-          <SelectTrigger className="w-[180px] bg-gray-800 text-white border-gray-600">
+          <SelectTrigger className="w-[180px] bg-purple-600 text-white border-gray-600">
             <SelectValue placeholder="Ordenar por" />
           </SelectTrigger>
           <SelectContent>
@@ -75,9 +77,9 @@ export default function Raffles() {
         </Select>
 
         <Tabs value={tab} onValueChange={setTab}>
-          <TabsList className="bg-gray-800">
+          <TabsList className="bg-purple-600">
             <TabsTrigger value="active">Activas</TabsTrigger>
-            <TabsTrigger value="expired">Finalizadas</TabsTrigger>
+            <TabsTrigger value="ended">Finalizadas</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>

@@ -8,8 +8,11 @@ import Link from "next/link";
 import { Prizes } from "@/type/Prizes";
 
 export function RaffleCard({ raffle, setShowExpiredModal }: { raffle: any; setShowExpiredModal: any }) {
-  const isExpired = new Date(raffle.end_date) <= new Date();
+ 
   const timeLeft = useCountdown(raffle.end_date);
+  const isExpired = new Date(raffle.end_date) <= new Date();
+
+
 
   const prizeType = raffle.prizes?.[0]?.type;
   const typeIcon = prizeType === "cash" ? "💵" : prizeType === "trip" ? "✈️" : "🎁";
@@ -18,7 +21,7 @@ export function RaffleCard({ raffle, setShowExpiredModal }: { raffle: any; setSh
     <Card
       key={raffle.id}
       className={`w-[300px] overflow-hidden rounded-xl border border-gray-700 bg-gradient-to-b 
-      from-gray-800 to-gray-900 shadow-lg transition-all duration-300 
+      from-purple-800 to-purple-900 shadow-lg transition-all duration-300 
       ${isExpired ? "opacity-60 grayscale" : "hover:shadow-2xl hover:scale-[1.03]"}
     `}
     >
@@ -47,9 +50,8 @@ export function RaffleCard({ raffle, setShowExpiredModal }: { raffle: any; setSh
         </div>
 
         <p
-          className={`mt-2 text-sm font-semibold ${
-            isExpired ? "text-red-500" : "text-green-400"
-          }`}
+          className={`mt-2 text-sm font-semibold ${isExpired ? "text-red-500" : "text-green-400"
+            }`}
         >
           ⏳ {timeLeft}
         </p>

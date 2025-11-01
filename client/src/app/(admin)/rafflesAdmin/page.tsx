@@ -9,9 +9,10 @@ import { Label } from "@/components/ui/label";
 import { useRaffles } from "@/hook/useRaffles";
 import { AuthStore } from "@/store/authStore";
 import { Raffle, RaffleForm } from "@/type/Raffle";
+import RegenerateTicketsButton from "@/components/RegenerateTicketsButton";
 
 const RafflesAdmin = () => {
-  const { raffles, addRaffle, loading, error } = useRaffles();
+  const { raffles, addRaffle, loading, error, deleteRaffle, regenerateTickets, activateRaffle } = useRaffles();
   const { token } = AuthStore();
 
   const [form, setForm] = useState<Omit<RaffleForm, "id">>({
@@ -33,38 +34,36 @@ const RafflesAdmin = () => {
       [name]: type === "number" ? value.toString() : value,
     });
   };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!token) return;
 
-    // Validación de fecha
+    const selectedDate = new Date(form.end_date);
+    const minAllowedDate = new Date();
+    minAllowedDate.setDate(minAllowedDate.getDate() + 7);
+
     if (!form.end_date) {
-      alert("Debes seleccionar una fecha de finalización");
+      alert("Debes seleccionar una fecha de finalización.");
+      return;
+    }
+
+    if (selectedDate < minAllowedDate) {
+      alert("La fecha de la rifa debe ser al menos dentro de 7 días.");
       return;
     }
 
     try {
-      if (!form.end_date) {
-        alert("Debes seleccionar una fecha de finalización");
-        return;
-      }
-
-
       const payload = {
         title: form.title,
         description: form.description,
         price: parseFloat(form.price),
-        endDate: new Date(form.end_date + "T23:59:59").toISOString(), // 👈 camelCase
+        endDate: new Date(form.end_date + "T23:59:59").toISOString(),
         digits: form.digits,
-        type: "default"
+        type: "default",
       };
-
 
       await addRaffle(payload as any, token);
 
-
-      // Reset del formulario
       setForm({
         title: "",
         description: "",
@@ -79,6 +78,12 @@ const RafflesAdmin = () => {
       console.error("Error creando rifa:", err);
     }
   };
+
+
+  const today = new Date();
+  const minRaffleDate = new Date();
+  minRaffleDate.setDate(today.getDate() + 7); // mínimo una semana después
+
 
   return (
     <main className="flex-1 p-6 bg-gray-50 overflow-y-auto">
@@ -109,8 +114,17 @@ const RafflesAdmin = () => {
             </div>
             <div>
               <Label htmlFor="end_date">Fecha de Finalización</Label>
-              <Input type="date" id="end_date" name="end_date" value={form.end_date} onChange={handleChange} required />
+              <Input
+                type="date"
+                id="end_date"
+                name="end_date"
+                value={form.end_date}
+                onChange={handleChange}
+                required
+                min={minRaffleDate.toISOString().split("T")[0]} // 👈 bloquea fechas previas
+              />
             </div>
+
             <Button type="submit">Crear Rifa</Button>
           </form>
         </CardContent>
@@ -134,43 +148,63 @@ const RafflesAdmin = () => {
                   <th className="px-4 py-2 text-left">Total Números</th>
                   <th className="px-4 py-2 text-left">Precio</th>
                   <th className="px-4 py-2 text-left">Dígitos</th>
+                  <th className="px-4 py-2 text-left">Estado</th>
                   <th className="px-4 py-2 text-left">Fecha Fin</th>
                   <th className="px-4 py-2 text-left">Acciones</th>
                 </tr>
               </thead>
               <tbody>
-                {raffles.map((r, idx) => (
-                  <tr key={idx} className="border-t">
-                    <td className="px-4 py-2">{r.title}</td>
-                    <td className="px-4 py-2">{r.total_numbers}</td>
-                    <td className="px-4 py-2">{r.price}</td>
-                    <td className="px-4 py-2">{r.digits}</td>
-                    <td className="px-4 py-2">{new Date(r.end_date).toLocaleDateString()}</td>
-                    <Button
-                      variant="destructive"
-                      className="px-4 py-2 m-2"
-                      onClick={() => { }}
-                    >
-                      Eliminar
-                    </Button>
-                    <Button
-                      variant="outline"
-                      className="px-4 py-2 m-2"
-                      onClick={() => { }}
-                    >
-                      Regenerar Tickets
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      className="px-4 py-2 m-2"
-                      onClick={() => { }}
+                {raffles.map((r, idx) => {
+                  const isEnded = r.status === "ended";
 
-                    >
-                      Editar
-                    </Button>
-                  </tr>
-                ))}
+                  return (
+                    <tr key={idx} className="border-t">
+                      <td className="px-4 py-2">{r.title}</td>
+                      <td className="px-4 py-2">{r.total_numbers}</td>
+                      <td className="px-4 py-2">{r.price}</td>
+                      <td className="px-4 py-2">{r.digits}</td>
+                      <td className="px-4 py-2">{r.status}</td>
+                      <td className="px-4 py-2">{new Date(r.end_date).toLocaleDateString()}</td>
+
+                      <td className="px-4 py-2 flex flex-wrap gap-2">
+                        {/* Botón Eliminar siempre permitido */}
+                        <Button
+                          variant="destructive"
+                          onClick={() => deleteRaffle(r.id, token ?? '')}
+                        >
+                          Eliminar
+                        </Button>
+
+                        {/* Solo disponible si la rifa NO está terminada */}
+                        {!isEnded && (
+                          <>
+                            <RegenerateTicketsButton raffleId={r.id} />
+
+                            <Button
+                              variant="secondary"
+                              onClick={() => {
+                                // TODO: implement editRaffle(r)
+                              }}
+                            >
+                              Editar
+                            </Button>
+                            {
+                              r.status === "pending" && <Button
+                                variant="destructive"
+                                onClick={() => activateRaffle(r.id, token ?? '')}
+
+                              >
+                                Activar
+                              </Button>
+                            }
+                          </>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
+
             </table>
           )}
         </CardContent>

@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
- 
+
 
 interface AuthState {
   user: User | null;
@@ -24,7 +24,10 @@ export const AuthStore = create<AuthState>()(
 
       logout: () => {
         set({ user: null, token: null });
+        localStorage.removeItem("token");
+        localStorage.removeItem("auth-store"); // 👈 borra el persist de Zustand
       },
+
     }),
     {
       name: "auth-store",

@@ -6,10 +6,30 @@ import { Ticket } from '../entities/ticket.entity';
 import { generateAllTicketNumbers } from '../utils/generateRandomNumber';
 
 export class RaffleService {
+    async activateRaffle(id: number) {
+        const raffleRepo = AppDataSource.getRepository(Raffle);
+        const raffle = await raffleRepo.findOne({ where: { id }, relations: ['tickets'] });
+        if (!raffle) throw new Error('Rifa no encontrada');
+
+        if (raffle.status === 'active') {
+            throw new Error('La rifa ya está activa');
+        }
+
+        if (raffle.status === 'ended') {
+            throw new Error('No se puede activar una rifa que ya terminó');
+        }
+
+        raffle.status = 'active';
+        await raffleRepo.save(raffle);
+
+        return { message: 'La rifa se ha activado correctamente', raffle };
+    }
+
+
     async getAllRaffles() {
         const raffleRepo = AppDataSource.getRepository(Raffle);
         const raffles = await raffleRepo.find({
-            relations: ["prizes"],  
+            relations: ["prizes"],
         });
         return raffles;
     }
@@ -66,21 +86,23 @@ export class RaffleService {
 
     async deleteRaffle(id: number) {
         const raffleRepo = AppDataSource.getRepository(Raffle);
-        const ticketRepo = AppDataSource.getRepository(Ticket);
-
         const raffle = await raffleRepo.findOne({ where: { id }, relations: ['tickets'] });
-        console.log(raffle);
-        if (!raffle) throw new Error('Raffle no encontrado');
 
-        //VERIFICAR STATUS DE LOS TICKETS
-        const hasReservedOrPurchasedTickets = raffle.tickets.some(t => t.status === 'reserved' || t.status === 'purchased');
-        if (hasReservedOrPurchasedTickets) {
-            throw new Error('No se puede eliminar la rifa porque tiene tickets reservados o comprados');
+        if (!raffle) {
+            throw new Error('Rifa no encontrada');
         }
 
-        return await raffleRepo.delete(id);
+        // 🔹 Solo se puede eliminar si la rifa está terminada
+        if (raffle.status !== 'ended') {
+            throw new Error('Solo se pueden eliminar rifas con estado "ended"');
+        }
+
+        // ✅ Ya no importa si los tickets fueron comprados o reservados
+        await raffleRepo.delete(id);
+
         return { message: `La rifa #${id} se ha eliminado correctamente` };
     }
+
 
     async updateRaffle(id: number, data: Partial<Raffle>) {
         const raffleRepo = AppDataSource.getRepository(Raffle);

@@ -8,7 +8,7 @@ export class Prize {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @ManyToOne(() => Raffle, raffle => raffle.prizes)
+  @ManyToOne(() => Raffle, raffle => raffle.prizes,{ onDelete: 'CASCADE' })
   raffle!: Raffle;
 
   @ManyToOne(() => Provider, provider => provider.prizes, { onDelete: 'CASCADE' })

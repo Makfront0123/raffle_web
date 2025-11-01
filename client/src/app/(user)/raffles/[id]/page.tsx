@@ -22,11 +22,11 @@ export default function RaffleDetailPage() {
     } = useRaffleDetail();
 
     if (!token)
-        return <div className="p-10 text-white">No tienes acceso a esta página</div>;
+        return <div className="p-10 text-black">No tienes acceso a esta página</div>;
 
     if (!raffle)
         return (
-            <div className="flex justify-center items-center h-screen text-white">
+            <div className="flex justify-center items-center h-screen text-black">
                 <p>Cargando rifa...</p>
             </div>
         );
@@ -37,16 +37,16 @@ export default function RaffleDetailPage() {
 
             <div className="flex items-start justify-between">
                 <div className="mb-10">
-                    <h1 className="text-3xl font-bold mb-2 text-white">{raffle.title}</h1>
+                    <h1 className="text-3xl font-bold mb-2 text-black">{raffle.title}</h1>
                     <p className="text-gray-400 mb-4">{raffle.description}</p>
-                    <p className="font-semibold text-white">🎟️ Total tickets: {raffle.total_numbers}</p>
-                    <p className="font-semibold text-white">💰 Precio por ticket: ${raffle.price}</p>
+                    <p className="font-semibold text-black">🎟️ Total tickets: {raffle.total_numbers}</p>
+                    <p className="font-semibold text-black">💰 Precio por ticket: ${raffle.price}</p>
                     <p className="text-sm text-gray-500 mt-2">
                         ⏰ Termina: {new Date(raffle.end_date).toLocaleString()}
                     </p>
                 </div>
                 <div className="mt-6">
-                    <p className="text-white text-sm mb-1">
+                    <p className="text-black text-sm mb-1">
                         🎯 Progreso de venta: {soldPercentage.toFixed(2)}%
                     </p>
                     <div className="w-full bg-gray-800 rounded-full h-3">
@@ -75,7 +75,7 @@ export default function RaffleDetailPage() {
             </div>
 
 
-            <div className="flex gap-6 text-sm text-white items-center justify-center my-6">
+            <div className="flex gap-6 text-sm text-black items-center justify-center my-6">
                 <div className="flex items-center gap-2">
                     <div className="w-4 h-4 rounded bg-green-200 border border-green-400" />
                     <span>Disponible</span>
@@ -100,7 +100,7 @@ export default function RaffleDetailPage() {
                     Anterior
                 </Button>
 
-                <p className="text-white">
+                <p className="text-black">
                     Página {page} de {totalPages}
                 </p>
 

@@ -41,6 +41,97 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
+
+  --animate-bottom-fade-in: bottomFadeIn 0.8s ease-in-out both;
+  --animate-left-fade-in: leftFadeIn 0.8s ease-in-out both;
+  --animate-right-fade-in: rightFadeIn 0.8s ease-in-out both;
+  --animate-blob-bounce: blob-bounce 0.8s ease-in-out both;
+  --animate-pulse-slow: pulse-slow 0.8s ease-in-out both;
+  --animate-spin-border: spin-border 0.8s ease-in-out both;
+
+
+  @keyframes spin-border {
+    0% {
+      background: conic-gradient(from 0deg, transparent 0deg, transparent 340deg, #9810fa 360deg);
+    }
+
+    100% {
+      background: conic-gradient(from 360deg, transparent 0deg, transparent 340deg, #9810fa 360deg);
+    }
+  }
+
+  @keyframes pulse-slow {
+
+    0%,
+    100% {
+      transform: scale(1);
+      opacity: 0.5;
+    }
+
+    50% {
+      transform: scale(1.2);
+      opacity: 0.8;
+    }
+  }
+
+  @keyframes blob-bounce {
+
+    0%,
+    100% {
+      transform: translate(-50%, -50%) translate(0, 0);
+    }
+
+    25% {
+      transform: translate(-50%, -50%) translate(80px, 0);
+    }
+
+    50% {
+      transform: translate(-50%, -50%) translate(80px, 80px);
+    }
+
+    75% {
+      transform: translate(-50%, -50%) translate(0, 80px);
+    }
+  }
+
+
+  @keyframes rightFadeIn {
+    from {
+      opacity: 0;
+      transform: translateX(10px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes leftFadeIn {
+    from {
+      opacity: 0;
+      transform: translateX(-10px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes bottomFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
 }
 
 :root {
@@ -110,13 +201,4 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
-}
-
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
 }

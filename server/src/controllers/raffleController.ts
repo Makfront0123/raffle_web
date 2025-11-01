@@ -88,4 +88,15 @@ export class RaffleController {
       return res.status(500).json({ message: 'Error regenerando tickets', error });
     }
   }
+
+  async activateRaffle(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const raffle = await raffleService.activateRaffle(Number(id));
+      res.status(200).json(raffle);
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: 'Error activando la rifa', error });
+    }
+  }
 }

@@ -6,8 +6,11 @@ import { Reservation } from '../entities/reservation.entity';
 import { ReservationTicket } from '../entities/reservation_ticket.entity';
 import { LessThanOrEqual } from 'typeorm';
 import { ReservationService } from '../services/reservationService';
+import { PrizesService } from '../services/prizesService';
+import { Prize } from '../entities/prize.entity';
 
 const reservationsService = new ReservationService();
+const prizeService = new PrizesService();
 cron.schedule('*/1 * * * *', async () => {
   console.log('⏰ Cron ejecutándose...');
 
@@ -66,32 +69,44 @@ cron.schedule('*/1 * * * *', async () => {
     await queryRunner.startTransaction();
 
     try {
-      // Marcar rifa como finalizada
+      // 1️⃣ Marcar rifa como finalizada
       raffle.status = 'ended';
       await queryRunner.manager.save(raffle);
 
-      // Liberar tickets reservados
+      // 2️⃣ Obtener los premios asociados a la rifa
+      const prizes = await queryRunner.manager.find(Prize, {
+        where: { raffle: { id: raffle.id } },
+        relations: ['raffle', 'raffle.tickets'], // asegúrate que los tickets están cargados
+      });
+
+      // 3️⃣ Asignar ganadores antes de liberar tickets
+      for (const prize of prizes) {
+        const winner = await prizeService.selectWinner(prize.id);
+        console.log(`🏆 Ganador asignado para el premio "${prize.name}":`, winner.winnerTicket.user?.name);
+      }
+
+      // 4️⃣ Liberar tickets reservados
       await queryRunner.manager
         .createQueryBuilder()
         .update(Ticket)
         .set({ status: 'available', purchased_at: null })
         .where('raffleId = :raffleId AND status = :status', {
           raffleId: raffle.id,
-          status: 'reserved'
+          status: 'reserved',
         })
         .execute();
 
-      // Eliminar reserve tickets asociados a esta rifa
+      // 5️⃣ Eliminar reservationTickets
       await queryRunner.manager
         .createQueryBuilder()
         .delete()
         .from(ReservationTicket)
         .where('reservationId IN (SELECT id FROM reservations WHERE raffleId = :raffleId)', {
-          raffleId: raffle.id
+          raffleId: raffle.id,
         })
         .execute();
 
-      // Eliminar reservas de esta rifa
+      // 6️⃣ Eliminar reservas
       await queryRunner.manager
         .createQueryBuilder()
         .delete()
@@ -100,8 +115,7 @@ cron.schedule('*/1 * * * *', async () => {
         .execute();
 
       await queryRunner.commitTransaction();
-
-      console.log(`🎉 Rifa #${raffle.id} cerrada. Tickets liberados y reservas eliminadas.`);
+      console.log(`🎉 Rifa #${raffle.id} cerrada y ganadores asignados.`);
     } catch (err) {
       await queryRunner.rollbackTransaction();
       console.error(`❌ Error cerrando rifa #${raffle.id}:`, err);
@@ -110,5 +124,12 @@ cron.schedule('*/1 * * * *', async () => {
     }
   }
 
+
   console.log('✅ Cron finalizado.');
 });
+
+
+
+/*
+
+*/
