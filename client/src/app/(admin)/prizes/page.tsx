@@ -13,6 +13,7 @@ import { useProviders } from "@/hook/useProviders";
 import { AuthStore } from "@/store/authStore";
 import { Providers } from "@/type/Providers";
 import { usePrizes } from "@/hook/usePrizes";
+import { PrizesTable } from "@/components/PrizeTable";
 
 export interface PrizeForm {
   name: string;
@@ -147,42 +148,8 @@ const PrizesPage = () => {
       </Card>
 
       {/* Lista de premios */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Premios Existentes</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {prizes.length === 0 ? (
-            <p>No hay premios registrados.</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full table-auto border border-gray-200">
-                <thead className="bg-gray-100">
-                  <tr>
-                    <th className="px-4 py-2 text-left">Nombre</th>
-                    <th className="px-4 py-2 text-left">Descripción</th>
-                    <th className="px-4 py-2 text-left">Valor</th>
-                    <th className="px-4 py-2 text-left">Rifa</th>
-                    <th className="px-4 py-2 text-left">Proveedor</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {prizes.map((p, idx) => (
-                    <tr key={idx} className="border-t">
-                      <td className="px-4 py-2">{p.name}</td>
-                      <td className="px-4 py-2">{p.description}</td>
-                      <td className="px-4 py-2">${p.value}</td>
-                      <td className="px-4 py-2">{p.raffle?.title ?? "Sin rifa"}</td>
-                      <td>{p.provider?.name ?? "Sin proveedor"}</td>
+      <PrizesTable prizes={prizes} />
 
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
     </main>
 
   );

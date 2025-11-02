@@ -4,7 +4,7 @@ export interface PaymentDetails {
         id: number;
         name: string;
         description: string;
-        amount: number;
+        total_amount: string;
         currency: string;
     };
     status: string;

@@ -22,8 +22,8 @@ export class RaffleService {
         });
         return res.data;
     }
-    async updateRaffle(id: number, raffle: Raffle, token: string): Promise<Raffle> {
-        const res = await axios.put(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/raffle/${id}`, raffle, {
+    async updateRaffle(id: number, raffle: Partial<Raffle>, token: string): Promise<Raffle> {
+        const res = await axios.patch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/raffle/${id}`, raffle, {
             headers: { Authorization: `Bearer ${token}` }
         });
         return res.data;
@@ -40,7 +40,7 @@ export class RaffleService {
             {},
             {
                 headers: {
-                    Authorization: `Bearer ${token}`, 
+                    Authorization: `Bearer ${token}`,
                 },
             }
         );

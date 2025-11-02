@@ -3,7 +3,7 @@ import { Providers } from "./Providers";
 import { Raffle } from "./Raffle";
 import { Ticket } from "./Ticket";
 
-// src/type/Prizes.ts
+
 export interface Prizes {
   id: number;
   name: string;
@@ -22,6 +22,7 @@ export interface Prizes {
     id: number;
     title: string;
   };
+  winner_ticket?: Ticket | null; // 👈 agregamos esta propiedad opcional
 }
 
 export interface PrizeForm {

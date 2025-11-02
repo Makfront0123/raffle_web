@@ -7,6 +7,7 @@ import { Payment } from "@/type/Payment";
 import { usePayment } from "./usePayment";
 import { usePrizes } from "./usePrizes";
 import { useRaffles } from "./useRaffles";
+import { Winner } from "@/type/Winner";
 
 // 🔹 Definimos un tipo de salida
 interface DashboardStats {
@@ -20,7 +21,7 @@ interface DashboardStats {
  */
 export function useDashboardData(): DashboardStats {
     const { raffles, loading: loadingRaffles } = useRaffles();
-    const { prizes, loading: loadingPrizes } = usePrizes();
+    const { prizes, loading: loadingPrizes, winners } = usePrizes();
     const { payments, loading: loadingPayments } = usePayment();
 
     const { stats, lastRaffles } = useMemo(() => {
@@ -28,12 +29,22 @@ export function useDashboardData(): DashboardStats {
         const safeRaffles: Raffle[] = raffles || [];
         const safePrizes: Prizes[] = prizes || [];
         const safePayments: Payment[] = payments || [];
+        const safeWinners: Winner[] = winners || [];
+
+        console.log('payments', safePayments);
 
         // 🔹 Cálculos principales
         const activeRaffles = safeRaffles.filter((r) => r.status === "active").length;
-        const totalPayments = safePayments.reduce((acc, p) => acc + (p.paymentDetails?.payment.amount || 0), 0);
+        const totalPayments = safePayments.reduce(
+            (acc, p) => acc + (parseFloat(p.total_amount) || 0),
+            0
+        );
+
+        console.log('totalPayments', totalPayments);
+
         const totalPrizes = safePrizes.length;
-        const totalWinners = safePrizes.filter((p) => (p as any).winner_ticket).length;
+        const totalWinners = safeWinners.length;
+
 
         // 🔹 Últimas rifas
         const lastRaffles = safeRaffles

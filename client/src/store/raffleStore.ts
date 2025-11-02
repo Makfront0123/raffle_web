@@ -60,7 +60,22 @@ export const useRaffleStore = create<RaffleStore>()((set) => ({
             toast.error("Error activando la rifa");
             console.error(err);
         }
+    },
+    updateRaffle: async (id: number, raffle: Partial<Raffle>, token: string) => {
+        try {
+            const raffleService = new RaffleService();
+            const updated = await raffleService.updateRaffle(id, raffle, token);
+            // Actualiza estado local mezclando datos nuevos
+            set((state) => ({
+                raffles: state.raffles.map(r => r.id === id ? { ...r, ...updated } : r)
+            }));
+            toast.success('La rifa se ha actualizado correctamente');
+        } catch (err: any) {
+            toast.error("Error actualizando la rifa");
+            console.error(err);
+        }
     }
+
 }));
 
 interface RaffleStore {
@@ -72,4 +87,6 @@ interface RaffleStore {
     deleteRaffle: (id: number, token: string) => Promise<void>;
     regenerateTickets: (id: number, newDigits: number, token: string) => Promise<void>;
     activateRaffle: (id: number, token: string) => Promise<void>;
+    updateRaffle: (id: number, raffle: Partial<Raffle>, token: string) => Promise<void>;
+
 }

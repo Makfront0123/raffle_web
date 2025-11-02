@@ -32,13 +32,17 @@ export const usePaymentStore = create<PaymentStore>()((set, get) => ({
             throw error;
         }
     },
+    getPayments: async (token: string) => {
+        const payments = await PaymentService.getPayments(token);
+      
+        set({ payments });
+    },
 }));
 
 interface PaymentStore {
     payments: Payment[];
     setPayments: (payments: Payment[]) => void;
-
-
     createPayment: (data: PaymentCreateDto, token: string) => Promise<Payment>; // 👈 corregido
     cancelPayment: (id: number, token: string) => Promise<void>;
+    getPayments: (token: string) => Promise<void>;
 }

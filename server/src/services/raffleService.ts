@@ -106,9 +106,27 @@ export class RaffleService {
 
     async updateRaffle(id: number, data: Partial<Raffle>) {
         const raffleRepo = AppDataSource.getRepository(Raffle);
-        await raffleRepo.update(id, data);
-        return await raffleRepo.findOne({ where: { id } });
+
+        // ✅ Filtra campos nulos o undefined
+        const filteredData = Object.fromEntries(
+            Object.entries(data).filter(([_, value]) => value !== undefined && value !== null)
+        );
+
+        // Si no hay campos válidos, no hacemos nada
+        if (Object.keys(filteredData).length === 0) {
+            throw new Error('No se enviaron campos válidos para actualizar');
+        }
+
+        // ✅ Usa save() en lugar de update() para preservar valores existentes
+        const raffle = await raffleRepo.findOne({ where: { id } });
+        if (!raffle) throw new Error('Rifa no encontrada');
+
+        Object.assign(raffle, filteredData);
+        await raffleRepo.save(raffle);
+
+        return raffle;
     }
+
     async regenerateTickets(raffleId: number, newDigits: number) {
         const raffleRepo = AppDataSource.getRepository(Raffle);
         const ticketRepo = AppDataSource.getRepository(Ticket);

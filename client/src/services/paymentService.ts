@@ -17,5 +17,12 @@ export class PaymentService {
       headers: { Authorization: `Bearer ${token}` },
     });
   }
+
+  static async getPayments(token: string): Promise<Payment[]> {
+    const response = await axios.get(`${API_URL}/api/payment`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  }
 }
 

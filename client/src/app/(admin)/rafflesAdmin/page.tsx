@@ -10,9 +10,10 @@ import { useRaffles } from "@/hook/useRaffles";
 import { AuthStore } from "@/store/authStore";
 import { Raffle, RaffleForm } from "@/type/Raffle";
 import RegenerateTicketsButton from "@/components/RegenerateTicketsButton";
+import { EditRaffleDialog } from "@/components/EditRaffleDialog";
 
 const RafflesAdmin = () => {
-  const { raffles, addRaffle, loading, error, deleteRaffle, regenerateTickets, activateRaffle } = useRaffles();
+  const { raffles, addRaffle, loading, error, deleteRaffle, regenerateTickets, activateRaffle, updateRaffle } = useRaffles();
   const { token } = AuthStore();
 
   const [form, setForm] = useState<Omit<RaffleForm, "id">>({
@@ -179,15 +180,24 @@ const RafflesAdmin = () => {
                         {!isEnded && (
                           <>
                             <RegenerateTicketsButton raffleId={r.id} />
+                            <EditRaffleDialog
+                              raffle={r}
+                              onSave={async (updatedRaffle) => {
+                                if (!token) return;
+                                try {
+                                  const payload = {
+                                    ...updatedRaffle,
+                                    end_date: new Date(updatedRaffle.end_date ?? '').toISOString(),  
+                                  };
 
-                            <Button
-                              variant="secondary"
-                              onClick={() => {
-                                // TODO: implement editRaffle(r)
+                                  await updateRaffle(r.id, payload, token);
+                                } catch (err) {
+                                  console.error(err);
+                                }
                               }}
-                            >
-                              Editar
-                            </Button>
+
+                            />
+
                             {
                               r.status === "pending" && <Button
                                 variant="destructive"

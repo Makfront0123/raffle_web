@@ -7,11 +7,14 @@ import { Payment, PaymentCreateDto } from "@/type/Payment";
 import { toast } from "sonner";
 
 export function usePayment() {
-    const { payments,  createPayment, cancelPayment,  } = usePaymentStore();
+    const { payments, createPayment, cancelPayment, getPayments } = usePaymentStore();
+
     const { token, user } = AuthStore();
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+  
 
     // 🔹 Cargar todos los pagos del usuario autenticado
     useEffect(() => {
@@ -20,7 +23,7 @@ export function usePayment() {
         const fetchPayments = async () => {
             try {
                 setLoading(true);
-               
+                await getPayments(token);
             } catch (err) {
                 setError("Error al cargar los pagos.");
                 console.error(err);
