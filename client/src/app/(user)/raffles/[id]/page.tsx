@@ -35,7 +35,7 @@ export default function RaffleDetailPage() {
     return (
         <div className="max-w-5xl mx-auto p-10">
 
-            <div className="flex items-start justify-between">
+            <div className="flex md:flex-row flex-col items-start justify-between">
                 <div className="mb-10">
                     <h1 className="text-3xl font-bold mb-2 text-black">{raffle.title}</h1>
                     <p className="text-gray-400 mb-4">{raffle.description}</p>
@@ -45,7 +45,7 @@ export default function RaffleDetailPage() {
                         ⏰ Termina: {new Date(raffle.end_date).toLocaleString()}
                     </p>
                 </div>
-                <div className="mt-6">
+                <div className="md:mt-6 mt-0 md:mb-0 mb-14">
                     <p className="text-black text-sm mb-1">
                         🎯 Progreso de venta: {soldPercentage.toFixed(2)}%
                     </p>
@@ -60,7 +60,7 @@ export default function RaffleDetailPage() {
 
 
 
-            <div className="grid grid-cols-10 gap-2 mb-6">
+            <div className="grid md:grid-cols-10 grid-cols-5 gap-2 mb-6">
                 {currentTickets.map((ticket) => (
                     <div
                         key={ticket.id_ticket}
@@ -91,7 +91,7 @@ export default function RaffleDetailPage() {
             </div>
 
 
-            <div className="flex justify-between items-center mt-4">
+            <div className="flex md:justify-between justify-center items-center mt-4 md:gap-2 gap-10">
                 <Button
                     disabled={page === 1}
                     onClick={() => setPage((p) => p - 1)}

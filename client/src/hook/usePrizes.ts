@@ -12,16 +12,15 @@ export function usePrizes() {
   const [error, setError] = useState<string | null>(null);
   const [filterRaffle, setFilterRaffle] = useState<number | "all">("all");
   const [filteredWinners, setFilteredWinners] = useState<typeof winners>([]);
+  const [activeRaffleId, setActiveRaffleId] = useState<number | null>(null);
 
-  // Cargar premios y ganadores al inicio
   useEffect(() => {
-    const fetchPrizes = async () => {
+    const fetchInitialData = async () => {
       try {
         if (!token) return;
         setLoading(true);
         await getPrizes(token);
-        await getWinners("all", token); // ✅ Type correcto
-
+        await getWinners("all", token);
       } catch (err) {
         console.error(err);
         setError("Error cargando premios");
@@ -29,11 +28,9 @@ export function usePrizes() {
         setLoading(false);
       }
     };
-
-    fetchPrizes();
+    fetchInitialData();
   }, [getPrizes, getWinners, token]);
 
-  // Filtrar ganadores cuando cambie filterRaffle o winners
   useEffect(() => {
     if (filterRaffle === "all") {
       setFilteredWinners(winners);
@@ -42,25 +39,26 @@ export function usePrizes() {
     }
   }, [filterRaffle, winners]);
 
-  const fetchWinnersByRaffle = async (raffleId: number | "all") => {
-    try {
-      if (!token) return;
-      setLoading(true);
-      await getWinners(raffleId, token); // "all" o número
-      setFilterRaffle(raffleId);
-    } catch (err) {
-      console.error(err);
-      setError("Error cargando ganadores");
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  useEffect(() => {
+    const fetchForRaffle = async () => {
+      if (!token || !activeRaffleId) return;
+      try {
+        setLoading(true);
+        await getWinners(activeRaffleId, token);
+        setFilterRaffle(activeRaffleId);
+      } catch (err) {
+        console.error(err);
+        setError("Error cargando ganadores por rifa");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchForRaffle();
+  }, [activeRaffleId, getWinners, token]);
 
   const createPrize = async (newPrize: PrizeForm) => {
     try {
       if (!token) throw new Error("No hay token disponible");
-
       const payload = {
         name: newPrize.name,
         description: newPrize.description,
@@ -69,7 +67,6 @@ export function usePrizes() {
         raffleId: Number(newPrize.raffle),
         providerId: Number(newPrize.provider),
       };
-
       await addPrize(payload, token);
     } catch (err) {
       console.error(err);
@@ -94,7 +91,7 @@ export function usePrizes() {
     error,
     filterRaffle,
     setFilterRaffle,
-    fetchWinnersByRaffle,
+    setActiveRaffleId,
     createPrize,
     editPrize,
   };

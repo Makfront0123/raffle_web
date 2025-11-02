@@ -9,29 +9,25 @@ import { usePrizes } from "./usePrizes";
 import { useRaffles } from "./useRaffles";
 import { Winner } from "@/type/Winner";
 
-// 🔹 Definimos un tipo de salida
+ 
 interface DashboardStats {
     stats: { title: string; value: string | number }[];
     lastRaffles: Raffle[];
     loading: boolean;
 }
-
-/**
- * Hook para calcular las métricas principales del dashboard
- */
+ 
 export function useDashboardData(): DashboardStats {
     const { raffles, loading: loadingRaffles } = useRaffles();
     const { prizes, loading: loadingPrizes, winners } = usePrizes();
     const { payments, loading: loadingPayments } = usePayment();
 
     const { stats, lastRaffles } = useMemo(() => {
-        // 🔹 Aseguramos que los arrays existan
+ 
         const safeRaffles: Raffle[] = raffles || [];
         const safePrizes: Prizes[] = prizes || [];
         const safePayments: Payment[] = payments || [];
         const safeWinners: Winner[] = winners || [];
-
-        console.log('payments', safePayments);
+ 
 
         // 🔹 Cálculos principales
         const activeRaffles = safeRaffles.filter((r) => r.status === "active").length;
@@ -40,13 +36,12 @@ export function useDashboardData(): DashboardStats {
             0
         );
 
-        console.log('totalPayments', totalPayments);
-
+    
         const totalPrizes = safePrizes.length;
         const totalWinners = safeWinners.length;
 
 
-        // 🔹 Últimas rifas
+        
         const lastRaffles = safeRaffles
             .slice()
             .sort(
@@ -54,8 +49,7 @@ export function useDashboardData(): DashboardStats {
                     new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
             )
             .slice(0, 5);
-
-        // 🔹 Formateamos datos para las tarjetas
+ 
         const stats = [
             { title: "Rifas activas", value: activeRaffles },
             { title: "Pagos recibidos", value: `$${totalPayments.toLocaleString()}` },

@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import { useFilteredRaffles } from "@/hook/useFilteredRaffles";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import LoadingScreen from "@/components/LoadingScreen";
 import { useCountdown } from "@/hook/useCountdown";
 import { RaffleCard } from "@/components/RaffleCard";
+import { usePrizes } from "@/hook/usePrizes";
 
 export default function Raffles() {
   const {
@@ -29,21 +30,27 @@ export default function Raffles() {
     setShowExpiredModal,
   } = useFilteredRaffles();
 
-  console.log(filteredRaffles);
+  const { winners, loading: loadingWinners,setActiveRaffleId } = usePrizes();
+
+  useEffect(() => {
+    if (showExpiredModal?.id) {
+      setActiveRaffleId(showExpiredModal.id);
+    }
+  }, [showExpiredModal, setActiveRaffleId]);
 
 
 
   return (
-    <div className="w-full min-h-[120vh] px-10 py-10 flex flex-col items-start">
+    <div className="w-full min-h-[120vh] px-10 py-10 flex flex-col md:items-start items-center">
       {loading ? (
         <LoadingScreen />
       ) : error ? (
         <div className="flex justify-center items-center h-screen text-red-500">{error}</div>
       ) : null}
 
-      <h1 className="text-3xl font-bold mb-8 text-black">🎟️ Explora nuestras rifas</h1>
+      <h1 className="text-3xl font-bold mb-8 text-black ">🎟️ Explora nuestras rifas</h1>
 
-     
+
       <div className="flex flex-wrap items-center gap-4 mb-6">
         <Input
           placeholder="Buscar rifa..."
@@ -105,15 +112,41 @@ export default function Raffles() {
           <DialogHeader>
             <DialogTitle>Rifa finalizada</DialogTitle>
           </DialogHeader>
+
           <p>
-            La rifa <strong>{showExpiredModal?.title}</strong> ha terminado 🎉.
-            ¡Vuelve pronto para participar en nuevas rifas!
+            La rifa <strong>{showExpiredModal?.title}</strong> ha terminado 🎉
           </p>
-          <div className="flex justify-end mt-4">
+
+          <div className="mt-4">
+            <h3 className="font-semibold mb-2">🏆 Ganadores</h3>
+
+            {loadingWinners ? (
+              <p className="text-gray-500">Cargando ganadores...</p>
+            ) : winners.length === 0 ? (
+              <p className="text-gray-500">Aún no hay ganadores para esta rifa.</p>
+            ) : (
+              winners
+                .filter(w => w.raffle_id === showExpiredModal?.id)
+                .map(w => (
+                  <div
+                    key={w.id}
+                    className="p-3 mb-2 border rounded-lg shadow-sm bg-gray-50"
+                  >
+                    <p className="font-medium">{w.prize_name}</p>
+                    <p>🎟️ Ticket ganador: {w.winner_ticket}</p>
+                    <p>👤 {w.winner_user ?? "Usuario desconocido"}</p>
+                    <p>💰 Valor: ${w.value}</p>
+                  </div>
+                ))
+            )}
+          </div>
+
+          <div className="flex justify-end mt-6">
             <Button onClick={() => setShowExpiredModal(null)}>Cerrar</Button>
           </div>
         </DialogContent>
       </Dialog>
+
     </div>
   );
 }

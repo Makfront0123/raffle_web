@@ -1,17 +1,17 @@
 [
   {
-    "title": "Rifa de Prueba Automática",
-    "description": "Rifa creada para verificar el sistema de selección de ganadores.",
-    "price": 1.00,
+    "title": "Rifa de Prueba 02",
+    "description": "Rifa creada para verificar",
+    "price": 10.00,
     "status": "active",
-    "digits": 1,
-    "end_date": "2025-10-31T18:51:00",
+    "digits": 3,
+    "end_date": "2025-11-1T20:10:00",
     "prizes": [
       {
         "type": "cash",
         "name": "Premio Único",
-        "description": "Ganador de $100 en efectivo",
-        "value": 100.00
+        "description": "Ganador de $1000 en efectivo",
+        "value": 1000.00
       }
     ]
   }

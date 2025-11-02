@@ -33,7 +33,6 @@ export default function Reservations() {
     handlePayment,
   } = useReservationsLogic();
 
-  console.log(reservations);
 
   if (loading || raffles.length === 0) return <LoadingScreen />;
 
@@ -41,7 +40,7 @@ export default function Reservations() {
 
 
   return (
-    <div className="w-full min-h-[100vh] px-20 py-16">
+    <div className="w-full min-h-[100vh] md:px-20 px-0 py-16">
       <h1 className="text-3xl font-bold mb-8 text-black">🎟️ Tus Reservas</h1>
 
       {reservations.length === 0 ? (
@@ -142,22 +141,24 @@ function ReservationCard({
 
         <CardContent>
           <p>⏳ Expira en: <span className="font-semibold">{countdown}</span></p>
-          <Button
-            className="mt-4 bg-red-500 hover:bg-red-600"
-            disabled={canceling === reservation.id}
-            onClick={() => onCancel(reservation.id)}
-          >
-            {canceling === reservation.id ? "Cancelando..." : "Cancelar"}
-          </Button>
-
-          {ticket.status === "reserved" && (
+          <div className="flex mt-5">
             <Button
-              className="mt-2 bg-green-500 hover:bg-green-600 ml-8"
-              onClick={() => setOpen(true)}
+              className="bg-red-500 hover:bg-red-600"
+              disabled={canceling === reservation.id}
+              onClick={() => onCancel(reservation.id)}
             >
-              Comprar
+              {canceling === reservation.id ? "Cancelando..." : "Cancelar"}
             </Button>
-          )}
+
+            {ticket.status === "reserved" && (
+              <Button
+                className="bg-green-500 hover:bg-green-600 ml-8"
+                onClick={() => setOpen(true)}
+              >
+                Comprar
+              </Button>
+            )}
+          </div>
         </CardContent>
       </Card>
 

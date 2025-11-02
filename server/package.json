@@ -8,7 +8,9 @@
     "typeorm": "typeorm-ts-node-commonjs -d src/data-source.ts",
     "migration:generate": "typeorm-ts-node-commonjs -d src/data-source.ts migration:generate",
     "migration:run": "typeorm-ts-node-commonjs -d src/data-source.ts migration:run",
-    "migration:revert": "typeorm-ts-node-commonjs -d src/data-source.ts migration:revert"
+    "migration:revert": "typeorm-ts-node-commonjs -d src/data-source.ts migration:revert",
+    "seed:payments": "ts-node src/seeder/PaymentSeeder.ts",
+    "seed:raffles": "ts-node src/seeder/RaffleSeeder.ts"
   },
   "dependencies": {
     "@types/cors": "^2.8.19",

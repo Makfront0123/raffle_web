@@ -8,11 +8,11 @@ import { PrizesController } from '../controllers/prizesController';
 const router = express.Router();
 const prizesController = new PrizesController();
 
-router.get('/', authMiddleware, adminMiddleware, prizesController.getAllPrizes);
+router.get('/', authMiddleware, prizesController.getAllPrizes);
 router.post('/', authMiddleware, adminMiddleware, prizesController.createPrize);
 router.post('/:id/select-winner', prizesController.selectWinner.bind(prizesController));
 router.post('/:raffleId/close-raffle', authMiddleware, adminMiddleware, prizesController.closeRaffle.bind(prizesController));
-router.get('/:raffleId/winners', authMiddleware, adminMiddleware, prizesController.getWinners.bind(prizesController));
+router.get('/:raffleId/winners', authMiddleware,   prizesController.getWinners.bind(prizesController));
 
 export default router;
 
