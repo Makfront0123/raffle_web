@@ -6,5 +6,6 @@ const router = express.Router();
 const ticketController = new TicketController();
 
 router.get('/:raffleId/sold-percentage', authMiddleware, ticketController.getSoldPercentage);
+router.get('/user', authMiddleware, ticketController.getTicketsByUser);
 
 export default router;

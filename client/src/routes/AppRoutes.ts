@@ -14,6 +14,7 @@ export const appRoutes: AppRoute[] = [
       { name: "Inicio", path: "/" },
       { name: "Rifas", path: "/raffles", protected: true },
       { name: "Mis Reservas", path: "/myReservations", protected: true },
+       { name: "Mis Tickets", path: "/myTickets", protected: true }, // 👈 nueva ruta
     ],
   },
   {

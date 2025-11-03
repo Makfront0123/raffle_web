@@ -6,39 +6,30 @@ export function useReservation() {
   const reservations = useReservationStore((state) => state.reservations);
   const getAllReservationsByUser = useReservationStore((state) => state.getAllReservationsByUser);
   const token = AuthStore((state) => state.token);
-  
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const fetchReservations = async () => {
     if (!token) return;
+    setLoading(true);
+    try {
+      await getAllReservationsByUser(token);
+      setError(null);
+    } catch (err) {
+      setError("Error cargando reservas");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    let isMounted = true;
-
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        await getAllReservationsByUser(token);
-        if (!isMounted) return;
-        setLoading(false);
-      } catch (err) {
-        if (!isMounted) return;
-        setError("Error cargando reservas");
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-
-    return () => {
-      isMounted = false;
-    };
+  useEffect(() => {
+    fetchReservations();
   }, [token, getAllReservationsByUser]);
 
-  return { reservations, loading, error };
+  // 👇 Devolvemos fetchReservations también
+  return { reservations, loading, error, fetchReservations };
 }
-
 
 
 /**+

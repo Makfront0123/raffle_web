@@ -39,6 +39,8 @@ export default function Reservations() {
   if (error) return <div className="p-10 text-red-500">{error}</div>;
 
 
+
+
   return (
     <div className="w-full min-h-[100vh] md:px-20 px-0 py-16">
       <h1 className="text-3xl font-bold mb-8 text-black">🎟️ Tus Reservas</h1>

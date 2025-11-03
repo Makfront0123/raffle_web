@@ -7,6 +7,7 @@ interface TicketStore {
     soldPercentage: number;
     setTickets: (tickets: Ticket[]) => void;
     getSoldPercentage: (raffleId: number, token: string) => Promise<void>;
+    getTickets: (token: string) => Promise<void>;
 }
 
 export const useTicketStore = create<TicketStore>()((set) => ({
@@ -25,4 +26,13 @@ export const useTicketStore = create<TicketStore>()((set) => ({
             console.error("Error al obtener el porcentaje vendido:", error);
         }
     },
+    getTickets: async (token: string) => {
+        try {
+            const tickets = await TicketService.getTickets(token); // no destructures
+            set({ tickets: tickets ?? [] });
+        } catch (error) {
+            console.error("Error al obtener los tickets:", error);
+        }
+    }
+
 }));

@@ -20,7 +20,7 @@ export function usePrizes() {
         if (!token) return;
         setLoading(true);
         await getPrizes(token);
-        await getWinners("all", token);
+        await getWinners("all", token); 
       } catch (err) {
         console.error(err);
         setError("Error cargando premios");
@@ -31,21 +31,31 @@ export function usePrizes() {
     fetchInitialData();
   }, [getPrizes, getWinners, token]);
 
+ 
   useEffect(() => {
     if (filterRaffle === "all") {
       setFilteredWinners(winners);
     } else {
-      setFilteredWinners(winners.filter(w => w.raffle_id === filterRaffle));
+      setFilteredWinners(winners.filter((w) => w.raffle_id === filterRaffle));
     }
   }, [filterRaffle, winners]);
 
+ 
   useEffect(() => {
     const fetchForRaffle = async () => {
-      if (!token || !activeRaffleId) return;
+      if (!token) return;
       try {
         setLoading(true);
-        await getWinners(activeRaffleId, token);
-        setFilterRaffle(activeRaffleId);
+
+        if (activeRaffleId) {
+        
+          await getWinners(activeRaffleId, token);
+        } else {
+          
+          await getWinners("all", token);
+        }
+
+        setFilterRaffle(activeRaffleId ?? "all");
       } catch (err) {
         console.error(err);
         setError("Error cargando ganadores por rifa");
@@ -53,9 +63,11 @@ export function usePrizes() {
         setLoading(false);
       }
     };
+
     fetchForRaffle();
   }, [activeRaffleId, getWinners, token]);
 
+  // 🎁 Crear premio
   const createPrize = async (newPrize: PrizeForm) => {
     try {
       if (!token) throw new Error("No hay token disponible");
@@ -73,6 +85,7 @@ export function usePrizes() {
       setError("Error creando premio");
     }
   };
+
 
   const editPrize = async (id: number, updatedPrize: Prizes) => {
     try {

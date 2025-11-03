@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { PaymentCreateDto } from "@/type/Payment";
 import { useRaffles } from "./useRaffles";
 export function useReservationsLogic() {
-  const { reservations, loading, error } = useReservation(); // solo datos
+  const { reservations, loading, error, fetchReservations } = useReservation(); // solo datos
   const { cancelReservation, } = useReservationStore();
   const { raffles } = useRaffles();
 
@@ -47,6 +47,7 @@ export function useReservationsLogic() {
     if (!token) return;
     setCanceling(id);
     await cancelReservation(id, token);
+    await fetchReservations();
     setCanceling(null);
   };
 
@@ -64,6 +65,7 @@ export function useReservationsLogic() {
 
     try {
       await makePayment(paymentData);
+      await fetchReservations();
       toast.success(`Pago realizado con ${method === "nequi" ? "Nequi" : "Daviplata"} 💰`);
     } catch {
       toast.error("Error al procesar el pago");

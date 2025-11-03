@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useFilteredRaffles } from "@/hook/useFilteredRaffles";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent } from "@/components/ui/card";
@@ -12,6 +12,8 @@ import LoadingScreen from "@/components/LoadingScreen";
 import { useCountdown } from "@/hook/useCountdown";
 import { RaffleCard } from "@/components/RaffleCard";
 import { usePrizes } from "@/hook/usePrizes";
+
+
 
 export default function Raffles() {
   const {
@@ -30,15 +32,24 @@ export default function Raffles() {
     setShowExpiredModal,
   } = useFilteredRaffles();
 
-  const { winners, loading: loadingWinners,setActiveRaffleId } = usePrizes();
+  const { winners, loading: loadingWinners, setActiveRaffleId } = usePrizes();
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const rafflesPerPage = 6;
+
+  // Calcular rifas de la página actual
+  const totalRaffles = filteredRaffles.length;
+  const totalPages = Math.ceil(totalRaffles / rafflesPerPage);
+  const startIndex = (currentPage - 1) * rafflesPerPage;
+  const endIndex = startIndex + rafflesPerPage;
+  const paginatedRaffles = filteredRaffles.slice(startIndex, endIndex);
+
+  // Ajuste modal ganadores
   useEffect(() => {
     if (showExpiredModal?.id) {
       setActiveRaffleId(showExpiredModal.id);
     }
   }, [showExpiredModal, setActiveRaffleId]);
-
-
 
   return (
     <div className="w-full min-h-[120vh] px-10 py-10 flex flex-col md:items-start items-center">
@@ -48,9 +59,9 @@ export default function Raffles() {
         <div className="flex justify-center items-center h-screen text-red-500">{error}</div>
       ) : null}
 
-      <h1 className="text-3xl font-bold mb-8 text-black ">🎟️ Explora nuestras rifas</h1>
+      <h1 className="text-3xl font-bold mb-8 text-black">🎟️ Explora nuestras rifas</h1>
 
-
+      {/* 🔍 Filtros */}
       <div className="flex flex-wrap items-center gap-4 mb-6">
         <Input
           placeholder="Buscar rifa..."
@@ -71,7 +82,6 @@ export default function Raffles() {
           </SelectContent>
         </Select>
 
-
         <Select onValueChange={setSortBy} value={sortBy}>
           <SelectTrigger className="w-[180px] bg-purple-600 text-white border-gray-600">
             <SelectValue placeholder="Ordenar por" />
@@ -89,24 +99,47 @@ export default function Raffles() {
             <TabsTrigger value="ended">Finalizadas</TabsTrigger>
           </TabsList>
         </Tabs>
-      </div>
 
-      {/* 🎟️ Lista de rifas */}
-      <div className="flex flex-wrap justify-center gap-10">
-        {filteredRaffles.length === 0 ? (
-          <p className="text-gray-400 mt-10">No se encontraron rifas con esos criterios 😢</p>
-        ) : (
-          filteredRaffles.map((raffle) => {
+        {/* 📄 Controles de paginación */}
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center gap-4 ml-34">
+            <Button
+              variant="purple"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            >
+              ← Anterior
+            </Button>
 
+            <span className="text-sm text-gray-700">
+              Página {currentPage} de {totalPages}
+            </span>
 
-            return (
-              <RaffleCard raffle={raffle} setShowExpiredModal={setShowExpiredModal} key={raffle.id} />
-            );
-          })
+            <Button
+              variant="purple"
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+            >
+              Siguiente →
+            </Button>
+          </div>
         )}
       </div>
 
-      {/* Modal finalizadas */}
+      {/* 🎟️ Lista de rifas paginada */}
+      <div className="flex flex-wrap justify-start gap-10 mt-10">
+        {paginatedRaffles.length === 0 ? (
+          <p className="text-gray-400 mt-10">No se encontraron rifas con esos criterios 😢</p>
+        ) : (
+          paginatedRaffles.map((raffle) => (
+            <RaffleCard raffle={raffle} setShowExpiredModal={setShowExpiredModal} key={raffle.id} />
+          ))
+        )}
+      </div>
+
+
+
+      {/* 🏁 Modal de rifas finalizadas */}
       <Dialog open={!!showExpiredModal} onOpenChange={() => setShowExpiredModal(null)}>
         <DialogContent>
           <DialogHeader>
@@ -126,12 +159,9 @@ export default function Raffles() {
               <p className="text-gray-500">Aún no hay ganadores para esta rifa.</p>
             ) : (
               winners
-                .filter(w => w.raffle_id === showExpiredModal?.id)
-                .map(w => (
-                  <div
-                    key={w.id}
-                    className="p-3 mb-2 border rounded-lg shadow-sm bg-gray-50"
-                  >
+                .filter((w) => w.raffle_id === showExpiredModal?.id)
+                .map((w) => (
+                  <div key={w.id} className="p-3 mb-2 border rounded-lg shadow-sm bg-gray-50">
                     <p className="font-medium">{w.prize_name}</p>
                     <p>🎟️ Ticket ganador: {w.winner_ticket}</p>
                     <p>👤 {w.winner_user ?? "Usuario desconocido"}</p>
@@ -146,7 +176,6 @@ export default function Raffles() {
           </div>
         </DialogContent>
       </Dialog>
-
     </div>
   );
 }

@@ -8,19 +8,31 @@ import { usePrizes } from "@/hook/usePrizes";
 import { useRaffles } from "@/hook/useRaffles";
 
 const WinnersPage = () => {
-  const { winners, loading, error, filterRaffle, fetchWinnersByRaffle } = usePrizes();
+  const { winners, loading, error, filterRaffle, setFilterRaffle, setActiveRaffleId } = usePrizes();
   const { raffles } = useRaffles();
+
+  // 🧠 Cuando cambia el valor del select, actualizamos los estados del hook
+  const handleFilterChange = (val: string) => {
+    if (val === "all") {
+      setFilterRaffle("all");
+      setActiveRaffleId(null);
+    } else {
+      const raffleId = Number(val);
+      setFilterRaffle(raffleId);
+      setActiveRaffleId(raffleId);
+    }
+  };
 
   return (
     <main className="flex-1 p-6 bg-gray-50 overflow-y-auto">
       <h1 className="text-3xl font-bold mb-6">Ganadores</h1>
 
-      {/* Filtro por rifa */}
+      {/* 🎯 Filtro por rifa */}
       <div className="mb-4 w-64">
         <Label>Filtrar por Rifa</Label>
         <Select
-          value={filterRaffle.toString()}
-          onValueChange={(val) => fetchWinnersByRaffle(val === "all" ? "all" : Number(val))}
+          value={filterRaffle === "all" ? "all" : filterRaffle.toString()}
+          onValueChange={handleFilterChange}
         >
           <SelectTrigger>
             <SelectValue placeholder="Selecciona una rifa" />
@@ -36,7 +48,7 @@ const WinnersPage = () => {
         </Select>
       </div>
 
-      {/* Lista de ganadores */}
+      {/* 🏆 Lista de ganadores */}
       <Card>
         <CardHeader>
           <CardTitle>Ganadores Recientes</CardTitle>
@@ -50,7 +62,7 @@ const WinnersPage = () => {
             <p>No hay ganadores registrados.</p>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full table-auto border border-gray-200">
+              <table className="w-full table-auto border border-gray-200 rounded-lg">
                 <thead className="bg-gray-100">
                   <tr>
                     <th className="px-4 py-2 text-left">Rifa</th>

@@ -1,17 +1,81 @@
-[
+ [
   {
-    "title": "Rifa de Prueba 02",
-    "description": "Rifa creada para verificar",
+    "title": "Rifa Tech 2025",
+    "description": "Participa y gana gadgets de última generación",
+    "price": 5.00,
+    "status": "active",
+    "digits": 2,
+    "end_date": "2025-11-10T20:00:00",
+    "prizes": [
+      {
+        "type": "product",
+        "name": "Smartwatch",
+        "description": "Reloj inteligente de última generación",
+        "value": 200.00
+      }
+    ]
+  },
+  {
+    "title": "Rifa Vacaciones Soñadas",
+    "description": "Gana un viaje inolvidable para dos personas",
+    "price": 15.00,
+    "status": "active",
+    "digits": 3,
+    "end_date": "2025-11-15T18:30:00",
+    "prizes": [
+      {
+        "type": "trip",
+        "name": "Viaje a Cancún",
+        "description": "Paquete completo para dos personas a Cancún",
+        "value": 2500.00
+      }
+    ]
+  },
+  {
+    "title": "Rifa Electrodomésticos",
+    "description": "Renueva tu hogar con nuestros premios",
+    "price": 8.50,
+    "status": "active",
+    "digits": 3,
+    "end_date": "2025-11-20T21:00:00",
+    "prizes": [
+      {
+        "type": "product",
+        "name": "Lavadora Automática",
+        "description": "Lavadora de alta capacidad y eficiencia",
+        "value": 600.00
+      }
+    ]
+  },
+  {
+    "title": "Rifa Súper Efectivo",
+    "description": "Gana dinero en efectivo instantáneo",
     "price": 10.00,
     "status": "active",
     "digits": 3,
-    "end_date": "2025-11-1T20:10:00",
+    "end_date": "2025-12-01T19:00:00",
     "prizes": [
       {
         "type": "cash",
-        "name": "Premio Único",
-        "description": "Ganador de $1000 en efectivo",
+        "name": "Premio Efectivo",
+        "description": "Gana $1000 en efectivo",
         "value": 1000.00
+      }
+    ]
+  },
+  {
+    "title": "Rifa Fiesta y Diversión",
+    "description": "Premios para disfrutar con familia y amigos",
+    "price": 12.00,
+    "status": "active",
+    "digits": 3,
+    "end_date": "2025-12-05T20:30:00",
+    "prizes": [
+      {
+        "type": "trip",
+        "name": "Entrada a parque temático",
+        "description": "Pases VIP para toda la familia",
+        "value": 800.00
       }
     ]
   }

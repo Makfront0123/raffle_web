@@ -2,18 +2,33 @@ import { Request, Response } from "express";
 import { AuthService } from "../services/authService";
 import jwt from "jsonwebtoken";
 import axios from "axios";
+import generateJWT from "../utils/generateJWT";
+import { User } from "../entities/user.entity";
+import { AppDataSource } from "../data-source";
 
 const authService = new AuthService();
 
 export class AuthController {
+  async devLogin(req: Request, res: Response) {
+    const userRepo = AppDataSource.getRepository(User);
+    const { userId } = req.body;
+
+    const user = await userRepo.findOneBy({ id: userId });
+    if (!user) return res.status(404).send("Usuario no encontrado");
+
+    const token = generateJWT({ id: user.id, email: user.email });
+
+    res.json({ token, user });
+  }
+
   async loginWithGoogle(req: Request, res: Response) {
     try {
-      const { token } = req.body; 
+      const { token } = req.body;
 
       if (!token) {
         return res.status(400).json({ message: "Falta el token de Google" });
       }
- 
+
       const googleUserResponse = await axios.get(
         "https://www.googleapis.com/oauth2/v3/userinfo",
         {
@@ -34,7 +49,7 @@ export class AuthController {
         picture,
       });
 
-   
+
       const appToken = jwt.sign(
         { id: user.id, email: user.email, roleId: user.role.id },
         process.env.JWT_SECRET!,
@@ -62,10 +77,10 @@ export class AuthController {
       });
     }
   }
- 
+
   async persistToken(req: Request, res: Response) {
     try {
-       
+
       const authHeader = req.headers.authorization;
       if (!authHeader) {
         return res.status(401).json({ message: "Token no proporcionado" });

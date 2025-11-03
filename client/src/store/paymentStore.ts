@@ -34,8 +34,21 @@ export const usePaymentStore = create<PaymentStore>()((set, get) => ({
     },
     getPayments: async (token: string) => {
         const payments = await PaymentService.getPayments(token);
-      
+
         set({ payments });
+    },
+    completePayment: async (id: number, token: string) => {
+        try {
+            await PaymentService.completePayment(id, token);
+            set({
+                payments: get().payments.map((p) =>
+                    p.id === id ? { ...p, status: "completed" } : p
+                ),
+            });
+        } catch (error: any) {
+            toast.error(error?.response?.data?.message || "Error completando pago");
+            throw error;
+        }
     },
 }));
 
@@ -45,4 +58,5 @@ interface PaymentStore {
     createPayment: (data: PaymentCreateDto, token: string) => Promise<Payment>; // 👈 corregido
     cancelPayment: (id: number, token: string) => Promise<void>;
     getPayments: (token: string) => Promise<void>;
+    completePayment: (id: number, token: string) => Promise<void>;
 }

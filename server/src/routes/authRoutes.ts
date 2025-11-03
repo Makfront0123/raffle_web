@@ -12,6 +12,7 @@ const authController = new AuthController();
 router.post("/google", (req, res) => authController.loginWithGoogle(req, res));
 // routes/auth.routes.ts
 router.get("/persist", (req, res) => authController.persistToken(req, res));
+router.post("/dev-login", (req, res) => authController.devLogin(req, res));
 
 
 

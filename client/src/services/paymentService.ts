@@ -24,5 +24,10 @@ export class PaymentService {
     });
     return response.data;
   }
+  static async completePayment(id: number, token: string): Promise<void> {
+    await axios.put(`${API_URL}/api/payment/${id}/complete`, null, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  }
 }
 

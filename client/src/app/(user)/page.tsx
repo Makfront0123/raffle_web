@@ -6,7 +6,7 @@ import RaffleInfo from "@/components/RaffleInfo";
 import { useLoadingScreen } from "@/hook/useLoadingScreen";
 
 export default function Home() {
-  const loading = useLoadingScreen(1500);  
+  const loading = useLoadingScreen(800);  
 
   if (loading) return <LoadingScreen />;
 

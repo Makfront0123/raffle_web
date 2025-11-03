@@ -1,3 +1,4 @@
+import { AuthService } from "@/services/authService";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
@@ -8,6 +9,14 @@ interface AuthState {
   token: string | null;
   setUser: (user: User | null, token?: string | null) => void;
   logout: () => void;
+  devLogin: (email: string) => Promise<void>;
+}
+const authService = new AuthService();
+
+async function loginDev() {
+  const { user, token } = await authService.devLogin("user1@test.com");
+  localStorage.setItem("token", token);
+  console.log("Usuario de prueba logueado:", user);
 }
 
 export const AuthStore = create<AuthState>()(
@@ -26,6 +35,15 @@ export const AuthStore = create<AuthState>()(
         set({ user: null, token: null });
         localStorage.removeItem("token");
         localStorage.removeItem("auth-store"); // 👈 borra el persist de Zustand
+      },
+
+      devLogin: async (email: string) => {
+        try {
+          const { user, token } = await authService.devLogin(email);
+          set({ user, token });
+        } catch (err) {
+          console.error("Error al iniciar sesión en modo dev:", err);
+        }
       },
 
     }),
