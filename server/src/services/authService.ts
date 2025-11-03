@@ -24,6 +24,11 @@ export class AuthService {
     return { user, isNew };
   }
 
+  async getUserById(id: number) {
+    return userRepository.findById(id);
+  }
+
+
   async getUserByToken(token: string) {
     const decoded = this.verifyToken(token);
     return userRepository.findById(decoded.id);
@@ -34,6 +39,15 @@ export class AuthService {
       return jwt.verify(token, process.env.JWT_SECRET!);
     } catch (err) {
       throw new Error("Token inválido o expirado");
+    }
+  }
+
+  async verifyRefreshToken(token: string): Promise<boolean> {
+    try {
+      jwt.verify(token, process.env.JWT_REFRESH_SECRET!);
+      return true;
+    } catch (err) {
+      return false;
     }
   }
 }

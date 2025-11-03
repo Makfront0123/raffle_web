@@ -28,4 +28,12 @@ export class AuthService {
         );
         return res.data; // { user, token }
     }
+
+    async refreshToken(refreshToken: string) {
+        const res = await axios.post(
+            `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/refresh`,
+            { refreshToken }
+        );
+        return res.data;
+    }
 }

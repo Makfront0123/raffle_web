@@ -59,12 +59,7 @@ export function Header() {
 
         {/* 🔹 Right Side (desktop) */}
         <div className="hidden md:flex items-center gap-x-6">
-          <img
-            src="/icons/mdi--light--cart.png"
-            className="cursor-pointer hover:scale-110 transition-all w-8 h-8 p-1"
-            alt="cart"
-          />
-
+         
           {user ? (
             <div className="flex items-center gap-2">
               <Badge className="text-white bg-blue-500">Hola {user.name}</Badge>

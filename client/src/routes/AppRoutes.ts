@@ -3,7 +3,9 @@ export interface AppRoute {
   path: string;
   children?: AppRoute[];
   protected?: boolean;
+  roles?: ("user" | "admin")[]; // 👈 roles permitidos
 }
+
 
 // Rutas que se usan en el header del usuario
 export const appRoutes: AppRoute[] = [
@@ -14,7 +16,7 @@ export const appRoutes: AppRoute[] = [
       { name: "Inicio", path: "/" },
       { name: "Rifas", path: "/raffles", protected: true },
       { name: "Mis Reservas", path: "/myReservations", protected: true },
-       { name: "Mis Tickets", path: "/myTickets", protected: true }, // 👈 nueva ruta
+      { name: "Mis Tickets", path: "/myTickets", protected: true }, // 👈 nueva ruta
     ],
   },
   {

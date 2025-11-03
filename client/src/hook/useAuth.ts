@@ -6,7 +6,94 @@ import { AuthService } from "@/services/authService";
 import { AuthStore } from "@/store/authStore";
 import { jwtDecode } from "jwt-decode";
 
+interface DecodedJWT {
+  exp: number;
+}
 
+const authService = new AuthService();
+
+export function useAuth() {
+  const router = useRouter();
+  const { user, token, refreshToken, setUser, logout: storeLogout, updateToken } = AuthStore();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const logout = useCallback(() => {
+    storeLogout();
+    router.push("/");
+  }, [storeLogout, router]);
+ 
+  const tryRefreshToken = useCallback(async () => {
+    if (!refreshToken) {
+      logout();
+      return;
+    }
+    try {
+      const { token: newToken } = await authService.refreshToken(refreshToken);
+      updateToken(newToken);
+      localStorage.setItem("token", newToken);
+      startTokenWatcher(newToken);  
+      console.log("🔄 Token actualizado automáticamente");
+    } catch (err) {
+      console.error("Error al refrescar token:", err);
+      logout();
+    }
+  }, [refreshToken, logout, updateToken]);
+
+ 
+  const startTokenWatcher = useCallback(
+    (token: string) => {
+      try {
+        const decoded = jwtDecode<DecodedJWT>(token);
+        const exp = decoded.exp * 1000;
+        const timeLeft = exp - Date.now();
+ 
+        const refreshBefore = timeLeft - 60_000;
+
+        if (refreshBefore <= 0) {
+          tryRefreshToken();
+          return;
+        }
+
+        setTimeout(() => {
+          tryRefreshToken();
+        }, refreshBefore);
+      } catch (err) {
+        console.error("Error decodificando token:", err);
+        logout();
+      }
+    },
+    [logout, tryRefreshToken]
+  );
+ 
+  useEffect(() => {
+    if (!token || user) return;
+    setLoading(true);
+    authService
+      .getUserByToken(token)
+      .then((res) => {
+        setUser(res.user, token, refreshToken);
+        startTokenWatcher(token);
+      })
+      .catch(() => logout())
+      .finally(() => setLoading(false));
+  }, [token, user, setUser, startTokenWatcher, logout, refreshToken]);
+
+  return {
+    user,
+    token,
+    loading,
+    error,
+    logout,
+  };
+}
+
+
+
+
+
+
+/*
 interface TokenClient {
   requestAccessToken: () => void;
 }
@@ -139,3 +226,5 @@ export function useAuth() {
     logout,
   };
 }
+
+*/
