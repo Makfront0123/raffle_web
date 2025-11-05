@@ -51,13 +51,14 @@ export class RaffleController {
       const raffle = await raffleService.getRaffleById(Number(id));
       if (!raffle) return res.status(404).json({ message: 'No se encontró la rifa' });
 
-      await raffleService.deleteRaffle(Number(id));
-      res.status(200).json({ message: 'La rifa se ha eliminado correctamente' });
-    } catch (error) {
+      const result = await raffleService.deleteRaffle(Number(id));
+      res.status(200).json(result);
+    } catch (error: any) {
       console.error(error);
-      return res.status(500).json({ message: 'Error eliminando la rifa', error });
+      return res.status(400).json({ message: error.message || 'Error eliminando la rifa' });
     }
   }
+
 
   async updateRaffle(req: Request, res: Response) {
     try {
@@ -83,9 +84,9 @@ export class RaffleController {
       const { raffleId, digits } = req.params;
       const raffle = await raffleService.regenerateTickets(Number(raffleId), Number(digits));
       res.status(200).json(raffle);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      return res.status(500).json({ message: 'Error regenerando tickets', error });
+      return res.status(400).json({ message: error.message || 'Error eliminando la rifa' });
     }
   }
 

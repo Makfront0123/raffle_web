@@ -1,21 +1,19 @@
- 
 import { AppDataSource } from "../data-source";
 import { User } from "../entities/user.entity";
+
 
 export class UserService {
   private userRepo = AppDataSource.getRepository(User);
 
   async getAllUsers() {
-    return await this.userRepo.find({
-      relations: ["role"], // si quieres incluir el rol
-    });
+    const users = await this.userRepo.find({ relations: ["role"] });
+    return { message: "Usuarios obtenidos correctamente", users };
   }
 
   async getUserById(id: number) {
-    return await this.userRepo.findOne({
-      where: { id },
-      relations: ["role"],
-    });
+    const user = await this.userRepo.findOne({ where: { id }, relations: ["role"] });
+    if (!user) throw new Error("Usuario no encontrado");
+    return { message: "Usuario obtenido correctamente", user };
   }
 
   async updateUser(id: number, data: Partial<User>) {
@@ -23,11 +21,13 @@ export class UserService {
     if (!user) throw new Error("Usuario no encontrado");
 
     Object.assign(user, data);
-    return await this.userRepo.save(user);
+    await this.userRepo.save(user);
+    return { message: "Usuario actualizado correctamente", user };
   }
 
   async deleteUser(id: number) {
     const result = await this.userRepo.delete(id);
     if (result.affected === 0) throw new Error("Usuario no encontrado");
+    return { message: `Usuario #${id} eliminado correctamente` };
   }
 }

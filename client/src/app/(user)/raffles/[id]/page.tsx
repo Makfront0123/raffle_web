@@ -20,6 +20,7 @@ export default function RaffleDetailPage() {
         handleAction,
         soldPercentage,
     } = useRaffleDetail();
+ 
 
     if (!token)
         return <div className="p-10 text-black">No tienes acceso a esta página</div>;

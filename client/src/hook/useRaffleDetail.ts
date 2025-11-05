@@ -1,45 +1,63 @@
 "use client";
+
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import { toast } from "sonner";
+import { AuthStore } from "@/store/authStore";
 import { useRaffleStore } from "@/store/raffleStore";
 import { useReservationStore } from "@/store/reservationStore";
-import { AuthStore } from "@/store/authStore";
+import { useTicketStore } from "@/store/ticketStore";
 import { usePayment } from "@/hook/usePayment";
-import { toast } from "sonner";
 import { Ticket } from "@/type/Ticket";
 import { PaymentCreateDto } from "@/type/Payment";
-import { useTicketStore } from "@/store/ticketStore";
 
 export function useRaffleDetail() {
   const params = useParams<{ id: string }>();
-  const id = params?.id;
+  const id = Number(params?.id);
+
+  const { token } = AuthStore();
   const { raffles, getRaffleById } = useRaffleStore();
   const { createReservation } = useReservationStore();
-  const { token } = AuthStore();
   const { makePayment } = usePayment();
+  const { soldPercentage, getSoldPercentage } = useTicketStore();
 
-  const raffle = raffles[0];
+  const [raffle, setRaffle] = useState<any>(null);
   const [localTickets, setLocalTickets] = useState<Ticket[]>([]);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [open, setOpen] = useState(false);
   const [page, setPage] = useState(1);
   const perPage = 50;
 
-  const { soldPercentage, getSoldPercentage } = useTicketStore();
-
-
-
-
+  // ✅ Cuando cambia el ID o se monta el hook, carga la rifa actualizada
   useEffect(() => {
-    if (id) getRaffleById(Number(id), token || "");
-  }, [id, getRaffleById]);
+    if (!id || !token) return;
 
+    const fetchRaffle = async () => {
+      try {
+        const data = await getRaffleById(id, token);
+        setRaffle(data);
+      } catch (error) {
+        console.error("Error cargando rifa:", error);
+      }
+    };
+
+    fetchRaffle();
+  }, [id, token, getRaffleById]);
+
+  // ✅ Si cambia la lista global de rifas (por edición o eliminación), actualiza la actual
+  useEffect(() => {
+    if (!id) return;
+    const found = raffles.find((r) => r.id === id);
+    if (found) setRaffle(found);
+  }, [raffles, id]);
+
+  // ✅ Cargar tickets y porcentaje vendidos
   useEffect(() => {
     if (raffle?.tickets) {
       setLocalTickets(raffle.tickets);
-      getSoldPercentage(raffle.id, token!);  
+      getSoldPercentage(raffle.id, token!);
     }
-  }, [raffle, getSoldPercentage]);
+  }, [raffle, getSoldPercentage, token]);
 
   const totalPages = Math.ceil(localTickets.length / perPage);
   const start = (page - 1) * perPage;
@@ -73,7 +91,7 @@ export function useRaffleDetail() {
   };
 
   const handleAction = async (action: string) => {
-    if (!selectedTicket) return;
+    if (!selectedTicket || !raffle) return;
     setOpen(false);
 
     try {
@@ -81,15 +99,12 @@ export function useRaffleDetail() {
         await createReservation(selectedTicket.id_ticket, raffle.id, token || "");
         setLocalTickets((prev) =>
           prev.map((t) =>
-            t.id_ticket === selectedTicket.id_ticket
-              ? { ...t, status: "reserved" }
-              : t
+            t.id_ticket === selectedTicket.id_ticket ? { ...t, status: "reserved" } : t
           )
         );
-        toast.success(
-          `Ticket #${selectedTicket.ticket_number} reservado exitosamente ✅`,
-          { duration: 1500 }
-        );
+        toast.success(`Ticket #${selectedTicket.ticket_number} reservado ✅`, {
+          duration: 1500,
+        });
         return;
       }
 
@@ -103,16 +118,13 @@ export function useRaffleDetail() {
 
       setLocalTickets((prev) =>
         prev.map((t) =>
-          t.id_ticket === selectedTicket.id_ticket
-            ? { ...t, status: "purchased" }
-            : t
+          t.id_ticket === selectedTicket.id_ticket ? { ...t, status: "purchased" } : t
         )
       );
-
-     
-    } catch (err: any) {
-      toast.error("Error al procesar la acción", { duration: 1500 });
+      toast.success(`Pago realizado con ${action} 💳`, { duration: 1500 });
+    } catch (err) {
       console.error(err);
+      toast.error("Error al procesar la acción ❌");
     } finally {
       setSelectedTicket(null);
     }

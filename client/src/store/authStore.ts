@@ -1,62 +1,73 @@
-import { AuthService } from "@/services/authService";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { toast } from "sonner";
+import { AuthService } from "@/services/authService";
 
 
 interface AuthState {
   user: User | null;
-  token: string | null; // access token
-  refreshToken: string | null;
-  setUser: (user: User | null, token?: string | null, refreshToken?: string | null) => void;
+  token: string | null;
+  refreshToken?: string | null;
+  setUser: (user: User | null, token?: string | null) => void;
   logout: () => void;
   devLogin: (email: string) => Promise<void>;
-  updateToken: (token: string) => void;
+  refreshTokenFn: (refreshToken: string) => Promise<void>;
 }
-
-const authService = new AuthService();
 
 export const AuthStore = create<AuthState>()(
   persist(
     (set) => ({
       user: null,
       token: null,
-      refreshToken: null,
 
-      setUser: (user, token, refreshToken) =>
-        set((state) => ({
-          user,
-          token: token ?? state.token,
-          refreshToken: refreshToken ?? state.refreshToken,
-        })),
-
-      updateToken: (token) => set({ token }),
+      setUser: (user, token) => {
+        set({ user, token });
+        if (user) {
+          toast.success(`¡Bienvenido ${user.name || ""}! Has iniciado sesión correctamente.`);
+        } else {
+          toast.info("Sesión cerrada correctamente.");
+        }
+      },
 
       logout: () => {
-        set({ user: null, token: null, refreshToken: null });
+        set({ user: null, token: null });
         localStorage.removeItem("token");
-        localStorage.removeItem("auth-store");
+        toast.info("Sesión cerrada.");
       },
 
       devLogin: async (email: string) => {
         try {
-          const { user, token, refreshToken } = await authService.devLogin(email);
-          set({ user, token, refreshToken });
+          const authService = new AuthService();
+          const { user, token } = await authService.devLogin(email);
+
+          set({ user, token });
           localStorage.setItem("token", token);
-        } catch (err) {
-          console.error("Error en login dev:", err);
+          toast.success(`Has iniciado sesión como ${user.name || email}`);
+        } catch (error: any) {
+          console.error("Error en devLogin:", error);
+          toast.error("Error iniciando sesión en modo desarrollador");
+        }
+      },
+
+      refreshTokenFn: async (refreshToken: string) => {
+        try {
+          const authService = new AuthService();
+          const { token } = await authService.refreshToken(refreshToken);
+          set({ token });
+          toast.success("Token actualizado correctamente.");
+        } catch (error) {
+          console.error("Error refrescando token:", error);
+          toast.error("Error actualizando el token.");
         }
       },
     }),
     {
-      name: "auth-store",
-      partialize: (state) => ({
-        token: state.token,
-        refreshToken: state.refreshToken,
-        user: state.user,
-      }),
+      name: "auth-storage",
+      partialize: (state) => ({ user: state.user, token: state.token }),
     }
   )
 );
+
 
 
 /*

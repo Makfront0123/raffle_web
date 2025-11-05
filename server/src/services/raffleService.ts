@@ -73,7 +73,11 @@ export class RaffleService {
         );
         await ticketRepo.save(tickets);
 
-        return { raffle, tickets: tickets.length };
+        return {
+            message: "Rifa creada correctamente",
+            raffle,
+            totalTickets: tickets.length,
+        };
     }
 
     async getRaffleById(id: number) {
@@ -83,7 +87,6 @@ export class RaffleService {
             relations: ['tickets', 'prizes']
         });
     }
-
     async deleteRaffle(id: number) {
         const raffleRepo = AppDataSource.getRepository(Raffle);
         const raffle = await raffleRepo.findOne({ where: { id }, relations: ['tickets'] });
@@ -92,15 +95,21 @@ export class RaffleService {
             throw new Error('Rifa no encontrada');
         }
 
-        // 🔹 Solo se puede eliminar si la rifa está terminada
-        if (raffle.status !== 'ended') {
-            throw new Error('Solo se pueden eliminar rifas con estado "ended"');
+        const hasTickets = raffle.tickets && raffle.tickets.length > 0;
+
+        if (raffle.status === 'ended' && hasTickets) {
+            throw new Error('Solo se pueden eliminar rifas con estado "ended" si no tienen tickets reservados o comprados');
         }
 
-        // ✅ Ya no importa si los tickets fueron comprados o reservados
-        await raffleRepo.delete(id);
-
-        return { message: `La rifa #${id} se ha eliminado correctamente` };
+        try {
+            await raffleRepo.delete(id);
+            return { message: `La rifa #${id} se ha eliminado correctamente` };
+        } catch (error: any) {
+            if (error.code === 'ER_ROW_IS_REFERENCED_2') {
+                throw new Error('No se puede eliminar esta rifa porque tiene pagos o registros asociados.');
+            }
+            throw error;
+        }
     }
 
 
@@ -122,24 +131,25 @@ export class RaffleService {
         if (!raffle) throw new Error('Rifa no encontrada');
 
         Object.assign(raffle, filteredData);
-        await raffleRepo.save(raffle);
+        const saved = await raffleRepo.save(raffle);
 
-        return raffle;
+        return {
+            message: 'Rifa actualizada correctamente',
+            raffle: saved
+        }
     }
 
     async regenerateTickets(raffleId: number, newDigits: number) {
         const raffleRepo = AppDataSource.getRepository(Raffle);
         const ticketRepo = AppDataSource.getRepository(Ticket);
 
-        // Buscar la rifa y sus tickets
+        // Buscar la rifa
         const raffle = await raffleRepo.findOne({ where: { id: raffleId } });
         if (!raffle) throw new Error('Rifa no encontrada');
-
 
         // Verificar que no haya tickets reservados o comprados
         const tickets = await ticketRepo.find({ where: { raffle: { id: raffleId } } });
         const hasActiveTickets = tickets.some(t => t.status !== 'available');
-
 
         if (hasActiveTickets) {
             throw new Error('No se pueden regenerar los tickets porque hay reservas o compras activas.');
@@ -154,36 +164,45 @@ export class RaffleService {
             // Eliminar tickets actuales
             await queryRunner.manager.delete(Ticket, { raffle: { id: raffleId } });
 
-            // Generar nuevos tickets con newDigits
+            // Generar nuevos tickets
             const totalTickets = Math.pow(10, newDigits);
             const ticketNumbers = generateAllTicketNumbers(newDigits);
 
-            // Insertar tickets en bloques de 200
             const chunkSize = 200;
             for (let i = 0; i < ticketNumbers.length; i += chunkSize) {
                 const chunk = ticketNumbers.slice(i, i + chunkSize);
                 const ticketsChunk = chunk.map(num =>
                     queryRunner.manager.create(Ticket, {
                         ticket_number: num,
-                        raffleId: raffle.id, // 🔹 importante
+                        raffleId: raffle.id,
                         status: 'available',
                         purchased_at: null,
                     })
                 );
-
                 await queryRunner.manager.save(ticketsChunk);
             }
 
             raffle.digits = newDigits;
-            raffle.total_numbers = Math.pow(10, newDigits);
+            raffle.total_numbers = totalTickets;
             await queryRunner.manager.save(raffle);
 
             await queryRunner.commitTransaction();
 
             return { message: 'Tickets regenerados correctamente', total: totalTickets };
-        } catch (error) {
+
+        } catch (error: any) {
             await queryRunner.rollbackTransaction();
-            throw error;
+
+            // 🔹 Captura errores de integridad referencial o SQL
+            if (error.code === 'ER_ROW_IS_REFERENCED_2') {
+                throw new Error('No se pueden regenerar los tickets porque existen registros relacionados (pagos o reservas activas).');
+            }
+
+            if (error.message?.includes('Duplicate entry')) {
+                throw new Error('Error generando tickets: se detectaron números duplicados.');
+            }
+
+            throw new Error('Error regenerando los tickets. Intenta nuevamente o contacta al administrador.');
         } finally {
             await queryRunner.release();
         }

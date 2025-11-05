@@ -38,7 +38,12 @@ export class PrizesService {
         }
 
         const prize = this.prizeRepo.create(data);
-        return this.prizeRepo.save(prize);
+        const saved = this.prizeRepo.save(prize);
+
+        return {
+            message: 'Premio creado correctamente',
+            data: saved
+        }
     }
 
     async updatePrize(id: number, data: Partial<Prize>) {
@@ -53,7 +58,11 @@ export class PrizesService {
         }
 
         Object.assign(prize, data);
-        return await this.prizeRepo.save(prize);
+        const saved = await this.prizeRepo.save(prize);
+        return {
+            message: 'Premio actualizado correctamente',
+            data: saved
+        }
     }
 
     async deletePrize(id: number) {
@@ -69,7 +78,7 @@ export class PrizesService {
         return { message: `Premio #${id} eliminado correctamente` };
     }
 
- 
+
     async selectWinner(prizeId: number) {
         const prize = await this.prizeRepo.findOne({
             where: { id: prizeId },
@@ -83,16 +92,16 @@ export class PrizesService {
             throw new Error('No hay tickets comprados para esta rifa');
         }
 
-     
+
         const winnerTicket = purchasedTickets[Math.floor(Math.random() * purchasedTickets.length)];
 
-         
+
         const paymentDetail = await this.paymentDetailRepo.findOne({
             where: { ticket: { id_ticket: winnerTicket.id_ticket } },
             relations: ['payment', 'payment.user'],
         });
 
- 
+
         prize.winner_ticket = winnerTicket;
         await this.prizeRepo.save(prize);
 

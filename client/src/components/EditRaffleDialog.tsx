@@ -13,12 +13,13 @@ interface EditRaffleDialogProps {
 export const EditRaffleDialog: React.FC<EditRaffleDialogProps> = ({ raffle, onSave }) => {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
-    title: raffle.title,
-    description: raffle.description,
-    price: raffle.price.toString(),
-    digits: raffle.digits,
-    end_date: raffle.end_date.split("T")[0], // mantener el nombre exacto
+    title: raffle?.title || "",
+    description: raffle?.description || "",
+    price: raffle?.price?.toString() || "",
+    digits: raffle?.digits || 0,
+    end_date: raffle?.end_date?.split("T")[0] || "",
   });
+
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;

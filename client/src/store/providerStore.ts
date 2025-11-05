@@ -11,7 +11,7 @@ interface ProviderStore {
     addProvider: (provider: Providers, token: string) => Promise<void>;
     getProviderById: (id: number, token: string) => Promise<void>;
     updateProvider: (id: number, provider: Providers, token: string) => Promise<void>;
-    deleteProvider: (id: number, token: string) => Promise<void>;
+    deleteProvider: (id: number, token: string) => Promise<boolean>;
 }
 
 export const useProviderStore = create<ProviderStore>((set) => ({
@@ -65,8 +65,11 @@ export const useProviderStore = create<ProviderStore>((set) => ({
             await service.deleteProvider(id, token);
             set((state) => ({ providers: state.providers.filter(p => p.id !== id) }));
             toast.success("Proveedor eliminado correctamente");
+            return true;
         } catch (err: any) {
-            toast.error("Error al eliminar proveedor");
+            set({ error: err.message });
+            toast.error(err.message || "Error al eliminar proveedor");
+            return false;
         }
     },
 

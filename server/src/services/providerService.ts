@@ -16,12 +16,19 @@ export class ProviderService {
 
   async createProvider(data: Partial<Provider>) {
     const provider = this.providerRepo.create(data);
-    return this.providerRepo.save(provider);
+    const saved = await this.providerRepo.save(provider);
+    return {
+      message: 'Proveedor creado correctamente',
+      data: saved
+    }
   }
 
   async updateProvider(id: number, data: Partial<Provider>) {
     await this.providerRepo.update(id, data);
-    return this.getProviderById(id);
+    return {
+      message: 'Proveedor actualizado correctamente',
+      data: await this.providerRepo.findOne({ where: { id } })
+    }
   }
 
   async deleteProvider(id: number) {
@@ -37,7 +44,15 @@ export class ProviderService {
       throw new Error('No se puede eliminar el proveedor porque tiene premios asociados');
     }
 
-    await this.providerRepo.delete(id);
-    return { message: `Proveedor #${id} eliminado correctamente` };
+    try {
+      await this.providerRepo.delete(id);
+      return { message: `Proveedor #${id} eliminado correctamente` };
+    } catch (error: any) {
+      if (error.code === 'ER_ROW_IS_REFERENCED_2') {
+        throw new Error('No se puede eliminar el proveedor porque tiene premios asociados');
+      }
+      throw error;
+    }
+
   }
 }

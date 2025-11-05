@@ -26,11 +26,7 @@ export class ProviderController {
       await providerService.deleteProvider(Number(req.params.id));
       res.status(200).json({ message: 'Proveedor eliminado correctamente' });
     } catch (error: any) {
-        // Error genérico
-      res.status(500).json({
-        message: 'Error eliminando proveedor',
-        error: error.message || error.toString(),
-      });
+      res.status(500).json({ message: error.message || 'Error eliminando proveedor' });
     }
   }
 

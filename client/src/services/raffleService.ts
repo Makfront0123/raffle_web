@@ -30,20 +30,39 @@ export class RaffleService {
     }
 
     async deleteRaffle(id: number, token: string): Promise<void> {
-        await axios.delete(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/raffle/${id}`, {
-            headers: { Authorization: `Bearer ${token}` }
-        });
+        try {
+            const res = await axios.delete(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/raffle/${id}`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            return res.data;
+        } catch (error: any) {
+
+            const backendMessage =
+                error.response?.data?.message ||
+                "Error eliminando la rifa";
+
+            throw new Error(backendMessage);
+        }
     }
+
+
     async regenerateTickets(raffleId: number, newDigits: number, token: string): Promise<void> {
-        await axios.put(
-            `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/raffle/${raffleId}/regenerate-tickets/${newDigits}`,
-            {},
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            }
-        );
+        try {
+            await axios.put(
+                `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/raffle/${raffleId}/regenerate-tickets/${newDigits}`,
+                {},
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+        } catch (error: any) {
+            const backendMessage =
+                error.response?.data?.message ||
+                "Error regenerando los tickets";
+            throw new Error(backendMessage);
+        }
 
     }
 

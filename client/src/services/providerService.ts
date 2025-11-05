@@ -29,8 +29,21 @@ export class ProviderService {
         return res.data;
     }
     async deleteProvider(id: number, token: string): Promise<void> {
-        await axios.delete(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/providers/${id}`, {
-            headers: { Authorization: `Bearer ${token}` }
-        });
+        try {
+            const res = await axios.delete(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/providers/${id}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+
+
+            return res.data;
+        } catch (error: any) {
+
+            const backendMessage =
+                error.response?.data?.message ||
+                "Error eliminando el proveedor";
+
+            throw new Error(backendMessage);
+
+        }
     }
 }
