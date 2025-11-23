@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import e, { Request, Response } from 'express';
 import { PrizesService } from '../services/prizesService';
 import { AppDataSource } from '../data-source';
 import { Prize } from '../entities/prize.entity';
@@ -47,8 +47,8 @@ export class PrizesController {
         try {
             await prizesService.deletePrize(Number(req.params.id));
             res.status(200).json({ message: 'Premio eliminado' });
-        } catch (error) {
-            res.status(500).json({ message: 'Error eliminando premio', error });
+        } catch (error: any) {
+            res.status(500).json({ message: error.message || error, error });
         }
     }
 

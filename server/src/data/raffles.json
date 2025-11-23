@@ -3,7 +3,7 @@
     "title": "Rifa Tech 2025",
     "description": "Participa y gana gadgets de última generación",
     "price": 5.00,
-    "status": "active",
+    "status": "pending",
     "digits": 2,
     "end_date": "2025-11-10T20:00:00",
     "prizes": [
@@ -21,7 +21,7 @@
     "price": 15.00,
     "status": "active",
     "digits": 3,
-    "end_date": "2025-11-15T18:30:00",
+    "end_date": "2025-12-15T18:30:00",
     "prizes": [
       {
         "type": "trip",
@@ -37,7 +37,7 @@
     "price": 8.50,
     "status": "active",
     "digits": 3,
-    "end_date": "2025-11-20T21:00:00",
+    "end_date": "2025-12-20T21:00:00",
     "prizes": [
       {
         "type": "product",

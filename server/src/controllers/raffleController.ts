@@ -9,7 +9,6 @@ export class RaffleController {
       const raffles = await raffleService.getAllRaffles();
       res.status(200).json(raffles);
     } catch (error) {
-      console.error(error);
       return res.status(500).json({ message: 'Error obteniendo las rifas', error });
     }
   }
@@ -29,7 +28,6 @@ export class RaffleController {
 
       res.status(200).json(result);
     } catch (error) {
-      console.error(error);
       return res.status(500).json({ message: 'Error creando la rifa', error });
     }
   }
@@ -40,7 +38,7 @@ export class RaffleController {
       if (!raffle) return res.status(404).json({ message: 'No se encontró la rifa' });
       res.status(200).json(raffle);
     } catch (error) {
-      console.error(error);
+
       return res.status(500).json({ message: 'Error obteniendo la rifa', error });
     }
   }
@@ -54,7 +52,6 @@ export class RaffleController {
       const result = await raffleService.deleteRaffle(Number(id));
       res.status(200).json(result);
     } catch (error: any) {
-      console.error(error);
       return res.status(400).json({ message: error.message || 'Error eliminando la rifa' });
     }
   }
@@ -74,7 +71,6 @@ export class RaffleController {
 
       res.status(200).json(raffle);
     } catch (error) {
-      console.error(error);
       return res.status(500).json({ message: 'Error actualizando la rifa', error });
     }
   }
@@ -85,7 +81,7 @@ export class RaffleController {
       const raffle = await raffleService.regenerateTickets(Number(raffleId), Number(digits));
       res.status(200).json(raffle);
     } catch (error: any) {
-      console.error(error);
+
       return res.status(400).json({ message: error.message || 'Error eliminando la rifa' });
     }
   }
@@ -93,11 +89,25 @@ export class RaffleController {
   async activateRaffle(req: Request, res: Response) {
     try {
       const { id } = req.params;
-      const raffle = await raffleService.activateRaffle(Number(id));
+      const result = await raffleService.activateRaffle(Number(id));
+      return res.status(200).json(result);
+    } catch (error: any) {
+      const message = error.message || "Error activando la rifa";
+      return res.status(400).json({ message });
+    }
+  }
+
+
+
+
+  async deactivateRaffle(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      const raffle = await raffleService.deactivateRaffle(Number(id));
       res.status(200).json(raffle);
     } catch (error) {
       console.error(error);
-      return res.status(500).json({ message: 'Error activando la rifa', error });
+      return res.status(500).json({ message: 'Error desactivando la rifa', error });
     }
   }
 }

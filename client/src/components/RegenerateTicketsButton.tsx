@@ -15,7 +15,7 @@ const RegenerateTicketsButton = ({ raffleId }: { raffleId: number }) => {
   const handleRegenerate = async () => {
     if (!token) return;
     setLoading(true);
-    await regenerateTickets(raffleId, digits, token);
+    await regenerateTickets(raffleId, digits);
     setOpen(false);
 
   };

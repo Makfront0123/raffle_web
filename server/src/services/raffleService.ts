@@ -8,7 +8,7 @@ import { generateAllTicketNumbers } from '../utils/generateRandomNumber';
 export class RaffleService {
     async activateRaffle(id: number) {
         const raffleRepo = AppDataSource.getRepository(Raffle);
-        const raffle = await raffleRepo.findOne({ where: { id }, relations: ['tickets'] });
+        const raffle = await raffleRepo.findOne({ where: { id }, relations: ['tickets', 'prizes'] });
         if (!raffle) throw new Error('Rifa no encontrada');
 
         if (raffle.status === 'active') {
@@ -19,10 +19,28 @@ export class RaffleService {
             throw new Error('No se puede activar una rifa que ya terminó');
         }
 
+        if (raffle.prizes.length === 0 || !raffle.prizes) throw new Error('No hay premios para activar la rifa');
+
+        if (raffle.end_date && raffle.end_date < new Date()) {
+            throw new Error('La fecha de finalización de la rifa ya ha pasado');
+        }
+
         raffle.status = 'active';
         await raffleRepo.save(raffle);
 
         return { message: 'La rifa se ha activado correctamente', raffle };
+    }
+
+    async deactivateRaffle(id: number) {
+        const raffleRepo = AppDataSource.getRepository(Raffle);
+        const raffle = await raffleRepo.findOne({ where: { id }, relations: ['tickets'] });
+        if (!raffle) throw new Error('Rifa no encontrada');
+        if (raffle.status !== 'active') {
+            throw new Error('La rifa no está activa');
+        }
+        raffle.status = 'pending';
+        await raffleRepo.save(raffle);
+        return { message: 'La rifa se ha desactivado correctamente', raffle };
     }
 
 
@@ -33,12 +51,11 @@ export class RaffleService {
         });
         return raffles;
     }
-
     async createRaffle(data: {
         title: string;
         description: string;
         price: number;
-        end_date: Date;
+        end_date: string | Date;   
         digits: number;
         type: PrizeType;
     }) {
@@ -46,31 +63,73 @@ export class RaffleService {
         const ticketRepo = AppDataSource.getRepository(Ticket);
         const total_numbers = Math.pow(10, data.digits);
 
+  
+        let endDate: Date | null = null;
 
+        if (data.end_date) {
+            if (data.end_date instanceof Date) {
+                endDate = data.end_date;
+            } else if (typeof data.end_date === "string") {
+             
+                const isOnlyDate = data.end_date.length === 10; 
+
+                const dateStr = isOnlyDate
+                    ? `${data.end_date}T23:59:59`
+                    : data.end_date;
+
+                const parsed = new Date(dateStr);
+
+                if (isNaN(parsed.getTime())) {
+                    throw new Error("La fecha de finalización no es válida.");
+                }
+
+                endDate = parsed;
+            }
+        }
+
+  
+        if (!endDate) {
+            throw new Error("Debes proporcionar una fecha de finalización.");
+        }
+
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+
+        const minAllowedDate = new Date();
+        minAllowedDate.setDate(now.getDate() + 7); 
+        minAllowedDate.setHours(0, 0, 0, 0);
+
+        // Comparamos solo por día
+        const endDateCopy = new Date(endDate);
+        endDateCopy.setHours(0, 0, 0, 0);
+
+        if (endDateCopy < minAllowedDate) {
+            throw new Error("La fecha de finalización debe ser al menos dentro de 7 días.");
+        }
 
         const raffle = raffleRepo.create({
             title: data.title,
             description: data.description,
             price: data.price,
-            status: 'active',
-            end_date: data.end_date,
+            status: "pending",
+            end_date: endDate,        
             digits: data.digits,
-            total_numbers, // ahora sí existe
+            total_numbers,
         });
 
         await raffleRepo.save(raffle);
 
         const ticketNumbers = generateAllTicketNumbers(data.digits);
 
-        const tickets = ticketNumbers.map(number =>
+        const tickets = ticketNumbers.map((number) =>
             ticketRepo.create({
                 ticket_number: number,
                 raffle: raffle,
-                status: 'available',
+                status: "available",
                 purchased_at: null,
-
             })
         );
+
         await ticketRepo.save(tickets);
 
         return {
@@ -79,6 +138,7 @@ export class RaffleService {
             totalTickets: tickets.length,
         };
     }
+
 
     async getRaffleById(id: number) {
         const raffleRepo = AppDataSource.getRepository(Raffle);
@@ -112,32 +172,84 @@ export class RaffleService {
         }
     }
 
-
     async updateRaffle(id: number, data: Partial<Raffle>) {
         const raffleRepo = AppDataSource.getRepository(Raffle);
 
-        // ✅ Filtra campos nulos o undefined
-        const filteredData = Object.fromEntries(
-            Object.entries(data).filter(([_, value]) => value !== undefined && value !== null)
-        );
+        const raffle = await raffleRepo.findOne({ where: { id } });
+        if (!raffle) throw new Error("Rifa no encontrada");
 
-        // Si no hay campos válidos, no hacemos nada
-        if (Object.keys(filteredData).length === 0) {
-            throw new Error('No se enviaron campos válidos para actualizar');
+
+        let endDate: Date | null = raffle.end_date ?? null;
+
+
+        if (data.end_date !== undefined && data.end_date !== null) {
+            let incoming = data.end_date as any;
+
+            if (incoming instanceof Date) {
+                endDate = incoming;
+            } else if (typeof incoming === "string") {
+
+                const isOnlyDate = incoming.length === 10;
+                const dateStr = isOnlyDate ? `${incoming}T23:59:59` : incoming;
+
+                const parsed = new Date(dateStr);
+                if (isNaN(parsed.getTime())) {
+                    throw new Error("La fecha de finalización no es válida.");
+                }
+
+                endDate = parsed;
+            } else {
+                throw new Error("Formato de fecha no soportado para end_date.");
+            }
+
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const endDateCopy = new Date(endDate);
+            endDateCopy.setHours(0, 0, 0, 0);
+
+            if (endDateCopy < today) {
+                throw new Error("La fecha de finalización no puede ser anterior a hoy.");
+            }
         }
 
-        // ✅ Usa save() en lugar de update() para preservar valores existentes
-        const raffle = await raffleRepo.findOne({ where: { id } });
-        if (!raffle) throw new Error('Rifa no encontrada');
+        const filteredData: Partial<Raffle> = {};
 
-        Object.assign(raffle, filteredData);
-        const saved = await raffleRepo.save(raffle);
+        if (typeof data.title === "string" && data.title.trim() !== "") {
+            filteredData.title = data.title.trim();
+        }
+
+        if (typeof data.description === "string" && data.description.trim() !== "") {
+            filteredData.description = data.description.trim();
+        }
+
+        if (typeof data.price === "number" && !Number.isNaN(data.price)) {
+            filteredData.price = data.price;
+        }
+
+        if (typeof data.digits === "number" && !Number.isNaN(data.digits)) {
+            filteredData.digits = data.digits;
+        }
+
+
+        if (data.end_date !== undefined && data.end_date !== null) {
+            filteredData.end_date = endDate!;
+        }
+
+        if (Object.keys(filteredData).length === 0) {
+            throw new Error("No se enviaron campos válidos para actualizar");
+        }
+
+        await raffleRepo.update(id, filteredData);
+        const updated = await raffleRepo.findOne({ where: { id } });
 
         return {
-            message: 'Rifa actualizada correctamente',
-            raffle: saved
-        }
+            message: "Rifa actualizada correctamente",
+            raffle: updated,
+        };
     }
+
 
     async regenerateTickets(raffleId: number, newDigits: number) {
         const raffleRepo = AppDataSource.getRepository(Raffle);

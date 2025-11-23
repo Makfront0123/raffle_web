@@ -34,11 +34,12 @@ export const useRaffleStore = create<RaffleStore>()((set, get) => ({
             toast.success("Rifa creada correctamente");
             return created;
         } catch (err: any) {
-            toast.error("Error creando rifa");
+            toast.error(err.message || "Error creando rifa");
             console.error(err);
             throw err;
         }
     },
+
 
     deleteRaffle: async (id: number, token: string) => {
         try {
@@ -77,12 +78,14 @@ export const useRaffleStore = create<RaffleStore>()((set, get) => ({
             await raffleService.activateRaffle(id, token);
             toast.success("La rifa se ha activado correctamente");
         } catch (err: any) {
-            toast.error("Error activando la rifa");
+            toast.error(err.message || "Error activando la rifa"); // 👈 muestra mensaje del backend
             console.error(err);
         }
     },
 
+
     updateRaffle: async (id: number, raffle: Partial<Raffle>, token: string) => {
+       
         try {
             const raffleService = new RaffleService();
             const updated = await raffleService.updateRaffle(id, raffle, token);
@@ -99,6 +102,16 @@ export const useRaffleStore = create<RaffleStore>()((set, get) => ({
             throw err;
         }
     },
+    deactivateRaffle: async (id: number, token: string) => {
+        try {
+            const raffleService = new RaffleService();
+            await raffleService.deactivateRaffle(id, token);
+            toast.success("La rifa se ha desactivado correctamente");
+        } catch (err: any) {
+            toast.error("Error desactivando la rifa");
+            console.error(err);
+        }
+    },
 }));
 
 interface RaffleStore {
@@ -111,4 +124,5 @@ interface RaffleStore {
     regenerateTickets: (id: number, newDigits: number, token: string) => Promise<boolean>;
     activateRaffle: (id: number, token: string) => Promise<void>;
     updateRaffle: (id: number, raffle: Partial<Raffle>, token: string) => Promise<Raffle>;
+    deactivateRaffle: (id: number, token: string) => Promise<void>;
 }

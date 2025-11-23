@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Raffle } from "@/type/Raffle";
+import { toLocalDateInput } from "@/app/utils/toLocalDateInput";
 
 interface EditRaffleDialogProps {
   raffle: Raffle;
@@ -11,14 +12,21 @@ interface EditRaffleDialogProps {
 }
 
 export const EditRaffleDialog: React.FC<EditRaffleDialogProps> = ({ raffle, onSave }) => {
+
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
-    title: raffle?.title || "",
-    description: raffle?.description || "",
-    price: raffle?.price?.toString() || "",
-    digits: raffle?.digits || 0,
-    end_date: raffle?.end_date?.split("T")[0] || "",
+    title: raffle.title,
+    description: raffle.description,
+    price: raffle.price.toString(),
+    end_date: toLocalDateInput(raffle.end_date),  
   });
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const minEditableDate = today.toISOString().split("T")[0];  
+
+
+
 
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -27,15 +35,19 @@ export const EditRaffleDialog: React.FC<EditRaffleDialogProps> = ({ raffle, onSa
   };
 
   const handleSave = () => {
-    onSave({
-      title: form.title,
-      description: form.description,
-      price: parseFloat(form.price),
-      digits: Number(form.digits),
-      end_date: form.end_date + "T23:59:59", // mantener end_date
-    });
+    const updatedFields: Partial<Raffle> = {};
+
+    if (form.title.trim() && form.title !== raffle.title) updatedFields.title = form.title;
+    if (form.description.trim() && form.description !== raffle.description) updatedFields.description = form.description;
+    if (form.price.trim() && parseFloat(form.price) !== raffle.price) updatedFields.price = parseFloat(form.price);
+    if (form.end_date.trim() && form.end_date !== raffle.end_date) updatedFields.end_date = form.end_date;
+
+
+    onSave(updatedFields);
     setOpen(false);
   };
+
+
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -59,13 +71,18 @@ export const EditRaffleDialog: React.FC<EditRaffleDialogProps> = ({ raffle, onSa
             <Label htmlFor="price">Precio</Label>
             <Input type="number" id="price" name="price" value={form.price} onChange={handleChange} />
           </div>
-          <div>
-            <Label htmlFor="digits">Dígitos</Label>
-            <Input type="number" id="digits" name="digits" value={form.digits} onChange={handleChange} />
-          </div>
+
           <div>
             <Label htmlFor="end_date">Fecha Fin</Label>
-            <Input type="date" id="end_date" name="end_date" value={form.end_date} onChange={handleChange} />
+            <Input
+              type="date"
+              id="end_date"
+              name="end_date"
+              value={form.end_date}
+              onChange={handleChange}
+              min={minEditableDate}
+            />
+
           </div>
         </div>
         <DialogFooter>

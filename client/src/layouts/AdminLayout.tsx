@@ -7,6 +7,9 @@ import HeaderAdmin from "@/components/HeaderAdmin";
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Sidebar } from "@/components/Sidebar";
@@ -26,9 +29,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Sheet (sidebar móvil) */}
       <Sheet open={openSidebar} onOpenChange={setOpenSidebar}>
         <SheetContent side="left" className="p-0 w-64">
+          <SheetHeader className="p-4 border-b">
+            <SheetTitle className="text-lg font-bold">Menú</SheetTitle>
+            <SheetDescription>Accede a las secciones del panel de administración</SheetDescription>
+          </SheetHeader>
           <Sidebar />
         </SheetContent>
       </Sheet>
+
 
       {/* Main Content */}
       <div className="flex flex-col flex-1">

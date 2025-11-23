@@ -64,19 +64,34 @@ export class PrizesService {
             data: saved
         }
     }
-
     async deletePrize(id: number) {
         if (!id) throw new Error('ID requerido');
-        const prize = await this.prizeRepo.findOne({ where: { id }, relations: ['raffle', 'winner_ticket'] });
+
+        // Cargar relación anidada 'raffle.tickets'
+        const prize = await this.prizeRepo.findOne({
+            where: { id },
+            relations: ['raffle', 'raffle.tickets', 'winner_ticket'],
+        });
+
         if (!prize) throw new Error('Premio no encontrado');
+
+        if (prize.raffle.status === 'active') {
+            throw new Error('No se puede eliminar el premio porque la rifa está activa');
+        }
 
         if (prize.winner_ticket) {
             throw new Error('No se puede eliminar el premio porque tiene un ticket ganador asociado');
         }
 
+        // ⚠️ Ahora prize.raffle.tickets siempre está definido, aunque sea []
+        if (prize.raffle && prize.raffle.tickets.length > 0 && prize.raffle.tickets.some(t => t.status === 'purchased')) {
+            throw new Error('No se puede eliminar el premio porque tiene tickets comprados asociados');
+        }
+
         await this.prizeRepo.delete(id);
         return { message: `Premio #${id} eliminado correctamente` };
     }
+
 
 
     async selectWinner(prizeId: number) {

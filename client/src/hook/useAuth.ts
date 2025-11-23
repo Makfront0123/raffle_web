@@ -6,6 +6,7 @@ import { AuthService } from "@/services/authService";
 
 import { jwtDecode } from "jwt-decode";
 import { AuthStore } from "@/store/authStore";
+import { toast } from "sonner";
 
 
 interface TokenClient {
@@ -21,13 +22,13 @@ export function useAuth() {
   const [error, setError] = useState<string | null>(null);
   const [client, setClient] = useState<TokenClient | null>(null);
 
- 
+
   const logout = useCallback(() => {
     storeLogout();
     router.push("/");
   }, [storeLogout, router]);
 
- 
+
   const startTokenWatcher = useCallback((token: string) => {
     try {
       const decoded: any = jwtDecode(token);
@@ -48,7 +49,7 @@ export function useAuth() {
     }
   }, [logout]);
 
-  
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token && !user) {
@@ -64,7 +65,7 @@ export function useAuth() {
     }
   }, [user, setUser, startTokenWatcher, logout]);
 
- 
+
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -99,7 +100,7 @@ export function useAuth() {
       return () => clearInterval(interval);
     }
   }, []);
- 
+
   const handleCredentialResponse = async (accessToken: string) => {
     try {
       setLoading(true);
@@ -108,10 +109,11 @@ export function useAuth() {
       localStorage.setItem("token", userData.token);
       startTokenWatcher(userData.token);
       setError(null);
- 
+
+      toast.success(`¡Bienvenido ${userData.user.name || ""}! Has iniciado sesión correctamente.`);
+
       if (userData.user.role === "admin") router.push("/dashboard");
       else router.push("/");
-
     } catch (err: any) {
       console.error("Error en login:", err);
       setError(err.message);
@@ -119,6 +121,7 @@ export function useAuth() {
       setLoading(false);
     }
   };
+
 
 
   const loginWithGoogle = () => {

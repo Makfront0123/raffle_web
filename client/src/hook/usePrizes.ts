@@ -4,23 +4,26 @@ import { usePrizeStore } from "@/store/prizeStore";
 import { AuthStore } from "@/store/authStore";
 import { useEffect, useState } from "react";
 import { PrizeForm, Prizes } from "@/type/Prizes";
+import { Winner } from "@/type/Winner";
 
 export function usePrizes() {
-  const { prizes, winners, getPrizes, addPrize, updatePrize, getWinners } = usePrizeStore();
+  const { prizes = [], winners = [], getPrizes, addPrize, updatePrize, getWinners, deletePrize } = usePrizeStore();
   const { token } = AuthStore();
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filterRaffle, setFilterRaffle] = useState<number | "all">("all");
-  const [filteredWinners, setFilteredWinners] = useState<typeof winners>([]);
+  const [filteredWinners, setFilteredWinners] = useState<Winner[]>([]);
   const [activeRaffleId, setActiveRaffleId] = useState<number | null>(null);
 
+  // Cargar premios y ganadores iniciales
   useEffect(() => {
-    const fetchInitialData = async () => {
+    const fetchData = async () => {
+      if (!token) return;
+      setLoading(true);
       try {
-        if (!token) return;
-        setLoading(true);
         await getPrizes(token);
-        await getWinners("all", token); 
+        await getWinners("all", token);
       } catch (err) {
         console.error(err);
         setError("Error cargando premios");
@@ -28,33 +31,29 @@ export function usePrizes() {
         setLoading(false);
       }
     };
-    fetchInitialData();
+    fetchData();
   }, [getPrizes, getWinners, token]);
 
- 
+  // Filtrar ganadores por rifa
   useEffect(() => {
     if (filterRaffle === "all") {
-      setFilteredWinners(winners);
+      setFilteredWinners(winners || []);
     } else {
-      setFilteredWinners(winners.filter((w) => w.raffle_id === filterRaffle));
+      setFilteredWinners(winners?.filter((w) => w.raffle_id === filterRaffle) || []);
     }
   }, [filterRaffle, winners]);
 
- 
+  // Filtrar ganadores cuando cambia la rifa activa
   useEffect(() => {
-    const fetchForRaffle = async () => {
+    const fetchWinnersForRaffle = async () => {
       if (!token) return;
+      setLoading(true);
       try {
-        setLoading(true);
-
         if (activeRaffleId) {
-        
           await getWinners(activeRaffleId, token);
         } else {
-          
           await getWinners("all", token);
         }
-
         setFilterRaffle(activeRaffleId ?? "all");
       } catch (err) {
         console.error(err);
@@ -63,42 +62,57 @@ export function usePrizes() {
         setLoading(false);
       }
     };
-
-    fetchForRaffle();
+    fetchWinnersForRaffle();
   }, [activeRaffleId, getWinners, token]);
 
-  // 🎁 Crear premio
+  // Crear premio
   const createPrize = async (newPrize: PrizeForm) => {
+    if (!token) return setError("No hay token disponible");
     try {
-      if (!token) throw new Error("No hay token disponible");
-      const payload = {
-        name: newPrize.name,
-        description: newPrize.description,
-        value: newPrize.value,
-        type: newPrize.type ?? "product",
-        raffleId: Number(newPrize.raffle),
-        providerId: Number(newPrize.provider),
-      };
-      await addPrize(payload, token);
+      await addPrize(
+        {
+          name: newPrize.name,
+          description: newPrize.description,
+          value: newPrize.value,
+          type: newPrize.type ?? "product",
+          raffleId: Number(newPrize.raffle),
+          providerId: Number(newPrize.provider),
+        },
+        token
+      );
+      await getPrizes(token);
     } catch (err) {
       console.error(err);
       setError("Error creando premio");
     }
   };
 
-
+  // Editar premio
   const editPrize = async (id: number, updatedPrize: Prizes) => {
+    if (!token) return setError("No hay token disponible");
     try {
-      if (!token) throw new Error("No hay token disponible");
       await updatePrize(id, updatedPrize, token);
+      await getPrizes(token);
     } catch (err) {
       console.error(err);
       setError("Error actualizando premio");
     }
   };
 
+  // Eliminar premio
+  const handleDeletePrize = async (id: number) => {
+    if (!token) return setError("No hay token disponible");
+    try {
+      await deletePrize(id, token);
+      await getPrizes(token);
+    } catch (err) {
+      console.error(err);
+      setError("Error eliminando premio");
+    }
+  };
+
   return {
-    prizes,
+    prizes: prizes || [],
     winners: filteredWinners,
     loading,
     error,
@@ -107,5 +121,7 @@ export function usePrizes() {
     setActiveRaffleId,
     createPrize,
     editPrize,
+    deletePrize: handleDeletePrize,
+    updatePrize,
   };
 }

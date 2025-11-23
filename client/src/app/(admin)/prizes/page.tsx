@@ -43,6 +43,8 @@ const PrizesPage = () => {
 
   const { prizes, loading, createPrize } = usePrizes();
 
+  console.log("Prizes:", prizes);
+
 
 
 

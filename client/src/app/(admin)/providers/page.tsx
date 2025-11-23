@@ -10,9 +10,8 @@ import { useProviders } from "@/hook/useProviders";
 import { useAuth } from "@/hook/useAuth";
 import { AuthStore } from "@/store/authStore";
 import { Providers } from "@/type/Providers";
-import { AuthDialog } from "@/components/AuthDialog";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-
+import { DialogHeader } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@radix-ui/react-dialog";
 
 
 
@@ -38,7 +37,7 @@ const ProvidersPage = () => {
             const { id, name, contact_name, contact_email, contact_phone } = form;
             const data = { name, contact_name, contact_email, contact_phone };
             await updateProvider(id, data, token ?? "");
-        }else {
+        } else {
             await addProvider(form, token ?? "");
         }
 
@@ -94,7 +93,7 @@ const ProvidersPage = () => {
                 </CardContent>
             </Card>
 
-            
+
             <Card>
                 <CardHeader>
                     <CardTitle>Proveedores Existentes</CardTitle>
@@ -123,15 +122,14 @@ const ProvidersPage = () => {
                                             <td className="px-4 py-2">{p.contact_name}</td>
                                             <td className="px-4 py-2">{p.contact_email}</td>
                                             <td className="px-4 py-2">{p.contact_phone}</td>
-                                            <div className="flex items-center gap-3 p-3">
-                                                <td className="px-4 py-2">
-                                                    <div className="flex items-center gap-3">
-                                                        <Button className="p-3 bg-red-500" onClick={() => handleDelete(p.id!)}>Eliminar</Button>
-                                                        <Button className="p-3 bg-green-500" onClick={() => handleEdit(p.id!)}>Editar</Button>
-                                                    </div>
-                                                </td>
 
-                                            </div>
+                                            <td className="px-4 py-2 flex items-center gap-3 p-3">
+                                                <div className="flex items-center gap-3">
+                                                    <Button className="p-3 bg-red-500" onClick={() => handleDelete(p.id!)}>Eliminar</Button>
+                                                    <Button className="p-3 bg-green-500" onClick={() => handleEdit(p.id!)}>Editar</Button>
+                                                </div>
+                                            </td>
+
                                         </tr>
                                     ))}
 
@@ -142,12 +140,19 @@ const ProvidersPage = () => {
                     )}
                 </CardContent>
             </Card>
+            ;
 
             <Dialog open={open} onOpenChange={setOpen}>
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>{form.id ? "Editar Proveedor" : "Agregar Proveedor"}</DialogTitle>
+                        <DialogDescription>
+                            {form.id
+                                ? "Modifica la información del proveedor existente."
+                                : "Completa los datos para registrar un nuevo proveedor."}
+                        </DialogDescription>
                     </DialogHeader>
+
                     <form onSubmit={handleSubmit} className="grid gap-4 mt-4">
                         <div>
                             <Label htmlFor="name">Nombre del Proveedor</Label>
@@ -165,14 +170,16 @@ const ProvidersPage = () => {
                             <Label htmlFor="contact_phone">Teléfono de Contacto</Label>
                             <Input id="contact_phone" name="contact_phone" value={form.contact_phone} onChange={handleChange} required />
                         </div>
+
                         <div className="flex justify-end gap-2 mt-4">
-                            <Button variant="ghost" onClick={() => setOpen(false)}>Cancelar</Button>
+                            <Button variant="ghost" onClick={() => setOpen(false)}>
+                                Cancelar
+                            </Button>
                             <Button type="submit">{form.id ? "Actualizar" : "Agregar"}</Button>
                         </div>
                     </form>
                 </DialogContent>
             </Dialog>
-
 
         </main>
     );

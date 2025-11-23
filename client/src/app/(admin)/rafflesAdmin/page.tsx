@@ -20,9 +20,10 @@ import { RaffleForm } from "@/type/Raffle";
 import { EditRaffleDialog } from "@/components/EditRaffleDialog";
 import RegenerateTicketsButton from "@/components/RegenerateTicketsButton";
 import { DeleteRaffleDialog } from "@/components/DeleteRaffleDialog";
+import { ConfirmDialog } from "@/components/ConfirmActionDialog";
 
 const RafflesAdmin = () => {
-  const { raffles, addRaffle, loading, error, deleteRaffle, regenerateTickets, activateRaffle, updateRaffle } = useRaffles();
+  const { raffles, addRaffle, loading, error, deleteRaffle, activateRaffle, updateRaffle, deactivateRaffle } = useRaffles();
   const { token } = AuthStore();
 
   const [form, setForm] = useState<Omit<RaffleForm, "id">>({
@@ -52,18 +53,23 @@ const RafflesAdmin = () => {
     if (!form.end_date) return alert("Debes seleccionar una fecha de finalización.");
     if (selectedDate < minAllowedDate) return alert("La fecha de la rifa debe ser al menos dentro de 7 días.");
 
+
+
+
+
     try {
       await addRaffle(
         {
           title: form.title,
           description: form.description,
           price: parseFloat(form.price),
-          endDate: new Date(form.end_date + "T23:59:59").toISOString(),
+          end_date: form.end_date ? new Date(form.end_date + "T23:59:59") : null,
           digits: form.digits,
           type: "default",
         } as any,
         token
       );
+
       setForm({ title: "", description: "", price: "8", end_date: "", digits: 3, status: "active", tickets: [], prizes: [] });
     } catch (err) {
       console.error("Error creando rifa:", err);
@@ -168,6 +174,8 @@ const RafflesAdmin = () => {
                   <tbody>
                     {currentRaffles.map((r, idx) => {
                       const isEnded = r.status === "ended";
+                      const hasExpiredByDate = new Date(r.end_date) < new Date();
+
                       return (
                         <tr key={idx} className="border-t hover:bg-gray-50">
                           <td className="px-3 sm:px-4 py-2">{r.title}</td>
@@ -175,35 +183,61 @@ const RafflesAdmin = () => {
                           <td className="px-3 sm:px-4 py-2">{r.price}</td>
                           <td className="px-3 sm:px-4 py-2">{r.digits}</td>
                           <td className="px-3 sm:px-4 py-2">{r.status}</td>
-                          <td className="px-3 sm:px-4 py-2">{new Date(r.end_date).toLocaleDateString()}</td>
-                          <td className="px-3 sm:px-4 py-2 flex flex-wrap gap-2">
-                            <DeleteRaffleDialog
-                              raffle={r}
-                              onConfirm={(raffleId) => deleteRaffle(raffleId)}
+                          <td className="px-3 sm:px-4 py-2">
+                            {new Date(r.end_date).toLocaleDateString()}
+                          </td>
+                          <td className="px-3 sm:px-5 py-2 flex flex-wrap gap-2">
+                            <ConfirmDialog
+                              title="Eliminar rifa"
+                              description={
+                                <>
+                                  Esta acción no se puede deshacer. Se eliminará la rifa{" "}
+                                  <strong>{r.title}</strong> y todos sus boletos asociados.
+                                </>
+                              }
+                              triggerLabel="Eliminar"
+                              variant="destructive"
+                              confirmLabel="Confirmar eliminación"
+                              onConfirm={() => deleteRaffle(r.id)}
                             />
-
 
                             {!isEnded && (
                               <>
                                 <RegenerateTicketsButton raffleId={r.id} />
+
                                 <EditRaffleDialog
                                   raffle={r}
                                   onSave={async (updatedRaffle) => {
-                                    if (!token) return;
-                                    try {
-                                      await updateRaffle(r.id, {
-                                        ...updatedRaffle,
-                                        end_date: new Date(updatedRaffle.end_date ?? "").toISOString(),
-                                      });
-                                    } catch (err) {
-                                      console.error(err);
-                                    }
+                                    await updateRaffle(r.id, updatedRaffle);
                                   }}
                                 />
-                                {r.status === "pending" && (
-                                  <Button variant="secondary" size="sm" onClick={() => activateRaffle(r.id, token ?? "")}>
-                                    Activar
-                                  </Button>
+
+                                {/* 👉 Solo mostrar "Activar" si está pending y NO vencida */}
+                                {r.status === "pending" && !hasExpiredByDate && (
+                                  <ConfirmDialog
+                                    title="Activar rifa"
+                                    description={`¿Estás seguro de que deseas activar la rifa "${r.title}"? Una vez activa, será visible para los usuarios.`}
+                                    triggerLabel="Activar"
+                                    variant="secondary"
+                                    onConfirm={() => activateRaffle(r.id)}
+                                  />
+                                )}
+
+                                {/* Opcional: mostrar un texto si está pending pero vencida */}
+                                {r.status === "pending" && hasExpiredByDate && (
+                                  <span className="text-xs text-red-500">
+                                    Fecha vencida. Edita la rifa para actualizar la fecha antes de activarla.
+                                  </span>
+                                )}
+
+                                {r.status === "active" && (
+                                  <ConfirmDialog
+                                    title="Desactivar rifa"
+                                    description={`¿Deseas desactivar la rifa "${r.title}"? Dejará de mostrarse a los usuarios.`}
+                                    triggerLabel="Desactivar"
+                                    variant="outline"
+                                    onConfirm={() => deactivateRaffle(r.id)}
+                                  />
                                 )}
                               </>
                             )}
@@ -212,6 +246,8 @@ const RafflesAdmin = () => {
                       );
                     })}
                   </tbody>
+
+
                 </table>
               </div>
 

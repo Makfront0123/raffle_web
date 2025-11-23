@@ -19,15 +19,10 @@ export const AuthStore = create<AuthState>()(
     (set) => ({
       user: null,
       token: null,
-
       setUser: (user, token) => {
         set({ user, token });
-        if (user) {
-          toast.success(`¡Bienvenido ${user.name || ""}! Has iniciado sesión correctamente.`);
-        } else {
-          toast.info("Sesión cerrada correctamente.");
-        }
       },
+
 
       logout: () => {
         set({ user: null, token: null });
