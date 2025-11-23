@@ -57,13 +57,22 @@ export class PrizesService {
             prize.provider = provider;
         }
 
-        Object.assign(prize, data);
+        if (typeof data.name === "string" && data.name.trim() !== "") {
+            prize.name = data.name.trim();
+        }
+
+        if (data.value !== undefined && data.value !== null && !Number.isNaN(Number(data.value))) {
+            prize.value = Number(data.value);
+        }
+ 
+
         const saved = await this.prizeRepo.save(prize);
         return {
             message: 'Premio actualizado correctamente',
             data: saved
         }
     }
+
     async deletePrize(id: number) {
         if (!id) throw new Error('ID requerido');
 

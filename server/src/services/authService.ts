@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import { userRepository } from "../repositories/userRepository";
-
+import { JwtPayload } from "../types/jwtPayload";
+import { env } from "../config/env";
 export class AuthService {
   async findOrCreateUser(googleUser: {
     name: string;
@@ -36,7 +37,7 @@ export class AuthService {
 
   private verifyToken(token: string): any {
     try {
-      return jwt.verify(token, process.env.JWT_SECRET!);
+      return jwt.verify(token, env.JWT_SECRET) as JwtPayload
     } catch (err) {
       throw new Error("Token inválido o expirado");
     }
@@ -44,7 +45,7 @@ export class AuthService {
 
   async verifyRefreshToken(token: string): Promise<boolean> {
     try {
-      jwt.verify(token, process.env.JWT_REFRESH_SECRET!);
+      jwt.verify(token, env.JWT_REFRESH_SECRET);
       return true;
     } catch (err) {
       return false;

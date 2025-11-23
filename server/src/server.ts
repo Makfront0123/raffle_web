@@ -4,6 +4,7 @@ import path from 'path';
 import cors from 'cors';
 import "reflect-metadata";
 import { AppDataSource } from './data-source';
+import helmet from 'helmet';
 import "./utils/cron";
 import dotenv from 'dotenv';
 dotenv.config();
@@ -27,10 +28,10 @@ app.use((req, res, next) => {
   }
   next();
 });
- 
 
 
-app.use(express.json());
+
+app.use(helmet());
 
 
 const routesPath = path.join(__dirname, 'routes');

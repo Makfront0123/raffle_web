@@ -19,6 +19,7 @@ export class RaffleService {
             throw new Error('No se puede activar una rifa que ya terminó');
         }
 
+
         if (raffle.prizes.length === 0 || !raffle.prizes) throw new Error('No hay premios para activar la rifa');
 
         if (raffle.end_date && raffle.end_date < new Date()) {
@@ -55,7 +56,7 @@ export class RaffleService {
         title: string;
         description: string;
         price: number;
-        end_date: string | Date;   
+        end_date: string | Date;
         digits: number;
         type: PrizeType;
     }) {
@@ -63,15 +64,15 @@ export class RaffleService {
         const ticketRepo = AppDataSource.getRepository(Ticket);
         const total_numbers = Math.pow(10, data.digits);
 
-  
+
         let endDate: Date | null = null;
 
         if (data.end_date) {
             if (data.end_date instanceof Date) {
                 endDate = data.end_date;
             } else if (typeof data.end_date === "string") {
-             
-                const isOnlyDate = data.end_date.length === 10; 
+
+                const isOnlyDate = data.end_date.length === 10;
 
                 const dateStr = isOnlyDate
                     ? `${data.end_date}T23:59:59`
@@ -87,7 +88,7 @@ export class RaffleService {
             }
         }
 
-  
+
         if (!endDate) {
             throw new Error("Debes proporcionar una fecha de finalización.");
         }
@@ -96,7 +97,7 @@ export class RaffleService {
         now.setHours(0, 0, 0, 0);
 
         const minAllowedDate = new Date();
-        minAllowedDate.setDate(now.getDate() + 7); 
+        minAllowedDate.setDate(now.getDate() + 7);
         minAllowedDate.setHours(0, 0, 0, 0);
 
         // Comparamos solo por día
@@ -112,7 +113,7 @@ export class RaffleService {
             description: data.description,
             price: data.price,
             status: "pending",
-            end_date: endDate,        
+            end_date: endDate,
             digits: data.digits,
             total_numbers,
         });
@@ -159,6 +160,11 @@ export class RaffleService {
 
         if (raffle.status === 'ended' && hasTickets) {
             throw new Error('Solo se pueden eliminar rifas con estado "ended" si no tienen tickets reservados o comprados');
+        }
+
+        const hasActiveTickets = raffle.tickets.some(t => t.status === 'available');
+        if (hasActiveTickets) {
+            throw new Error('No se puede eliminar la reserva: uno o más tickets ya fueron comprados.');
         }
 
         try {
