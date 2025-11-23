@@ -8,7 +8,7 @@ import Link from "next/link";
 import { Prizes } from "@/type/Prizes";
 
 export function RaffleCard({ raffle, setShowExpiredModal }: { raffle: any; setShowExpiredModal: any }) {
- 
+
   const timeLeft = useCountdown(raffle.end_date);
   const isExpired = new Date(raffle.end_date) <= new Date();
 
@@ -89,7 +89,9 @@ export function RaffleCard({ raffle, setShowExpiredModal }: { raffle: any; setSh
           </Button>
         ) : (
           <Button className="w-full" asChild>
-            <Link href={`/raffles/${raffle.id}`}>Participar 🎟️</Link>
+            <Link
+              prefetch
+              href={`/raffles/${raffle.id}`}>Participar 🎟️</Link>
           </Button>
         )}
       </CardFooter>

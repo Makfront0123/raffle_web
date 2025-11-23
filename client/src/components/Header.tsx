@@ -46,6 +46,7 @@ export function Header() {
 
             return (
               <Link
+                prefetch
                 key={route.path}
                 href={isProtected && !user ? "#" : route.path}
                 onClick={handleClick}
@@ -53,13 +54,14 @@ export function Header() {
               >
                 {route.name}
               </Link>
+
             );
           })}
         </div>
 
         {/* 🔹 Right Side (desktop) */}
         <div className="hidden md:flex items-center gap-x-6">
-         
+
           {user ? (
             <div className="flex items-center gap-2">
               <Badge className="text-white bg-blue-500">Hola {user.name}</Badge>

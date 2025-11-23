@@ -52,16 +52,29 @@ export function useAuth() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (token && !user) {
-      setLoading(true);
+    if (!token || user) return;
+
+    try {
+      const decoded: any = jwtDecode(token);
+      // user mínimo
+      const tempUser = {
+        id: decoded.id,
+        email: decoded.email,
+        role: decoded.role, // si lo metes en el payload
+        name: decoded.name, // opcional
+      };
+      setUser(tempUser as any, token);
+      startTokenWatcher(token);
+
+      // Validación en background
       authService
         .getUserByToken(token)
         .then((res) => {
-          setUser(res.user, token);
-          startTokenWatcher(token);
+          setUser(res.user, token); // ya con datos reales
         })
-        .catch(() => logout())
-        .finally(() => setLoading(false));
+        .catch(() => logout());
+    } catch {
+      logout();
     }
   }, [user, setUser, startTokenWatcher, logout]);
 

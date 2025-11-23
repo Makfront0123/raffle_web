@@ -4,7 +4,7 @@ import { cardIndex } from "@/const/cardIndex";
 
 const RaffleInfo = () => {
   return (
-    <div className="w-full min-h-[120vh] relative md:mt-0 mt-20">
+    <div className="w-full min-h-[70vh] relative md:mt-0 mt-20">
       <div className="flex flex-col items-start md:px-20 px-0">
         <div className="flex flex-col md:items-start items-center text-center md:text-start">
           <span className="text-5xl text-black font-extrabold">Cómo Participar</span>
