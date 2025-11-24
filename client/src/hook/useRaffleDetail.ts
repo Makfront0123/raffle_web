@@ -28,7 +28,7 @@ export function useRaffleDetail() {
   const [page, setPage] = useState(1);
   const perPage = 50;
 
-  // ✅ Cuando cambia el ID o se monta el hook, carga la rifa actualizada
+
   useEffect(() => {
     if (!id || !token) return;
 
@@ -44,14 +44,14 @@ export function useRaffleDetail() {
     fetchRaffle();
   }, [id, token, getRaffleById]);
 
-  // ✅ Si cambia la lista global de rifas (por edición o eliminación), actualiza la actual
+
   useEffect(() => {
     if (!id) return;
     const found = raffles.find((r) => r.id === id);
     if (found) setRaffle(found);
   }, [raffles, id]);
 
-  // ✅ Cargar tickets y porcentaje vendidos
+
   useEffect(() => {
     if (raffle?.tickets) {
       setLocalTickets(raffle.tickets);

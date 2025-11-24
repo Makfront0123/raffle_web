@@ -26,10 +26,23 @@ export const useRaffleStore = create<RaffleStore>()((set, get) => ({
         return raffle; // ✅ <- Devuelve la rifa obtenida
     },
 
-    addRaffle: async (raffle: Raffle, token: string) => {
+    addRaffle: async (raffle: Partial<Raffle>, token: string) => {
         try {
             const raffleService = new RaffleService();
-            const created = await raffleService.createRaffle(raffle, token);
+
+            // 🔹 Normaliza end_date -> endDate
+            const payload: any = { ...raffle };
+            if ('end_date' in raffle && raffle.end_date) {
+                // si viene "YYYY-MM-DD"
+                if (raffle.end_date.length === 10) {
+                    payload.endDate = new Date(raffle.end_date + "T23:59:59").toISOString();
+                } else {
+                    payload.endDate = raffle.end_date;  
+                }
+                delete payload.end_date;
+            }
+
+            const created = await raffleService.createRaffle(payload, token);
             set((state) => ({ raffles: [...state.raffles, created] }));
             toast.success("Rifa creada correctamente");
             return created;
@@ -38,7 +51,8 @@ export const useRaffleStore = create<RaffleStore>()((set, get) => ({
             console.error(err);
             throw err;
         }
-    },
+    }
+    ,
 
 
     deleteRaffle: async (id: number, token: string) => {
@@ -85,7 +99,7 @@ export const useRaffleStore = create<RaffleStore>()((set, get) => ({
 
 
     updateRaffle: async (id: number, raffle: Partial<Raffle>, token: string) => {
-       
+
         try {
             const raffleService = new RaffleService();
             const updated = await raffleService.updateRaffle(id, raffle, token);
@@ -119,7 +133,7 @@ interface RaffleStore {
     setRaffles: (raffles: Raffle[]) => void;
     getRaffles: (token: string) => Promise<void>;
     getRaffleById: (id: number, token: string) => Promise<Raffle>;
-    addRaffle: (raffle: Raffle, token: string) => Promise<Raffle>;
+    addRaffle: (raffle:Partial<Raffle>, token: string) => Promise<Raffle>;
     deleteRaffle: (id: number, token: string) => Promise<boolean>;
     regenerateTickets: (id: number, newDigits: number, token: string) => Promise<boolean>;
     activateRaffle: (id: number, token: string) => Promise<void>;

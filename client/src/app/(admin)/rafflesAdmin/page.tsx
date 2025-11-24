@@ -23,7 +23,7 @@ import { DeleteRaffleDialog } from "@/components/DeleteRaffleDialog";
 import { ConfirmDialog } from "@/components/ConfirmActionDialog";
 
 const RafflesAdmin = () => {
-  const { raffles, addRaffle, loading, error, deleteRaffle, activateRaffle, updateRaffle, deactivateRaffle } = useRaffles();
+  const { raffles, addRaffle, loading, error, deleteRaffle, activateRaffle, updateRaffle, deactivateRaffle, } = useRaffles();
   const { token } = AuthStore();
 
   const [form, setForm] = useState<Omit<RaffleForm, "id">>({
@@ -58,17 +58,23 @@ const RafflesAdmin = () => {
 
 
     try {
-      await addRaffle(
-        {
+      try {
+        await addRaffle({
           title: form.title,
           description: form.description,
           price: parseFloat(form.price),
-          end_date: form.end_date ? new Date(form.end_date + "T23:59:59") : null,
+          end_date: form.end_date
+            ? new Date(form.end_date + "T23:59:59").toISOString()
+            : undefined,  // <- aquí cambiamos null por undefined
           digits: form.digits,
-          type: "default",
-        } as any,
-        token
-      );
+        });
+
+
+        setForm({ title: "", description: "", price: "8", end_date: "", digits: 3, status: "active", tickets: [], prizes: [] });
+      } catch (err) {
+        console.error("Error creando rifa:", err);
+      }
+
 
       setForm({ title: "", description: "", price: "8", end_date: "", digits: 3, status: "active", tickets: [], prizes: [] });
     } catch (err) {
@@ -89,6 +95,8 @@ const RafflesAdmin = () => {
   const today = new Date();
   const minRaffleDate = new Date();
   minRaffleDate.setDate(today.getDate() + 7);
+
+  console.log(raffles)
 
   return (
     <main className="flex-1 p-4 sm:p-6 bg-gray-50 overflow-y-auto">

@@ -7,15 +7,8 @@ import { AuthService } from "@/services/authService";
 import { jwtDecode } from "jwt-decode";
 import { AuthStore } from "@/store/authStore";
 import { toast } from "sonner";
-
-
-interface TokenClient {
-  requestAccessToken: () => void;
-}
-
-const authService = new AuthService();
-
 export function useAuth() {
+  const authService = new AuthService();
   const router = useRouter();
   const { user, setUser, logout: storeLogout } = AuthStore();
   const [loading, setLoading] = useState(false);
@@ -56,21 +49,21 @@ export function useAuth() {
 
     try {
       const decoded: any = jwtDecode(token);
-      // user mínimo
+    
       const tempUser = {
         id: decoded.id,
         email: decoded.email,
-        role: decoded.role, // si lo metes en el payload
-        name: decoded.name, // opcional
+        role: decoded.role,
+        name: decoded.name, 
       };
       setUser(tempUser as any, token);
       startTokenWatcher(token);
 
-      // Validación en background
+ 
       authService
         .getUserByToken(token)
         .then((res) => {
-          setUser(res.user, token); // ya con datos reales
+          setUser(res.user, token); 
         })
         .catch(() => logout());
     } catch {
@@ -153,88 +146,3 @@ export function useAuth() {
     logout,
   };
 }
-
-
-/*
-interface DecodedJWT {
-exp: number;
-}
-
-const authService = new AuthService();
-
-export function useAuth() {
-const router = useRouter();
-const { user, token, refreshToken, setUser, logout: storeLogout, updateToken } = AuthStore();
-const [loading, setLoading] = useState(false);
-const [error, setError] = useState<string | null>(null);
-
-const logout = useCallback(() => {
- storeLogout();
- router.push("/");
-}, [storeLogout, router]);
- 
-const tryRefreshToken = useCallback(async () => {
- if (!refreshToken) {
-   logout();
-   return;
- }
- try {
-   const { token: newToken } = await authService.refreshToken(refreshToken);
-   updateToken(newToken);
-   localStorage.setItem("token", newToken);
-   startTokenWatcher(newToken);  
-   console.log("🔄 Token actualizado automáticamente");
- } catch (err) {
-   console.error("Error al refrescar token:", err);
-   logout();
- }
-}, [refreshToken, logout, updateToken]);
-
- 
-const startTokenWatcher = useCallback(
- (token: string) => {
-   try {
-     const decoded = jwtDecode<DecodedJWT>(token);
-     const exp = decoded.exp * 1000;
-     const timeLeft = exp - Date.now();
- 
-     const refreshBefore = timeLeft - 60_000;
-
-     if (refreshBefore <= 0) {
-       tryRefreshToken();
-       return;
-     }
-
-     setTimeout(() => {
-       tryRefreshToken();
-     }, refreshBefore);
-   } catch (err) {
-     console.error("Error decodificando token:", err);
-     logout();
-   }
- },
- [logout, tryRefreshToken]
-);
- 
-useEffect(() => {
- if (!token || user) return;
- setLoading(true);
- authService
-   .getUserByToken(token)
-   .then((res) => {
-     setUser(res.user, token, refreshToken);
-     startTokenWatcher(token);
-   })
-   .catch(() => logout())
-   .finally(() => setLoading(false));
-}, [token, user, setUser, startTokenWatcher, logout, refreshToken]);
-
-return {
- user,
- token,
- loading,
- error,
- logout,
-};
-}
-*/

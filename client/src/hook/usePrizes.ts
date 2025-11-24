@@ -16,7 +16,6 @@ export function usePrizes() {
   const [filteredWinners, setFilteredWinners] = useState<Winner[]>([]);
   const [activeRaffleId, setActiveRaffleId] = useState<number | null>(null);
 
-  // Cargar premios y ganadores iniciales
   useEffect(() => {
     const fetchData = async () => {
       if (!token) return;
@@ -34,7 +33,6 @@ export function usePrizes() {
     fetchData();
   }, [getPrizes, getWinners, token]);
 
-  // Filtrar ganadores por rifa
   useEffect(() => {
     if (filterRaffle === "all") {
       setFilteredWinners(winners || []);
@@ -43,7 +41,6 @@ export function usePrizes() {
     }
   }, [filterRaffle, winners]);
 
-  // Filtrar ganadores cuando cambia la rifa activa
   useEffect(() => {
     const fetchWinnersForRaffle = async () => {
       if (!token) return;
@@ -65,7 +62,7 @@ export function usePrizes() {
     fetchWinnersForRaffle();
   }, [activeRaffleId, getWinners, token]);
 
-  // Crear premio
+
   const createPrize = async (newPrize: PrizeForm) => {
     if (!token) return setError("No hay token disponible");
     try {
@@ -87,7 +84,7 @@ export function usePrizes() {
     }
   };
 
-  // Editar premio
+
   const editPrize = async (id: number, updatedPrize: Prizes) => {
     if (!token) return setError("No hay token disponible");
     try {
@@ -99,7 +96,7 @@ export function usePrizes() {
     }
   };
 
-  // Eliminar premio
+  
   const handleDeletePrize = async (id: number) => {
     if (!token) return setError("No hay token disponible");
     try {

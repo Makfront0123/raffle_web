@@ -44,6 +44,7 @@ export class RaffleService {
             const res = await axios.post(`${API_URL}`, raffle, {
                 headers: { Authorization: `Bearer ${token}` },
             });
+            console
             return res.data;
         } catch (error: any) {
             return this.handleError(error, "Error creando la rifa");

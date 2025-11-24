@@ -15,6 +15,8 @@ export class RaffleService {
             throw new Error('La rifa ya está activa');
         }
 
+        if (raffle.prizes.length === 0 || !raffle.prizes) throw new Error('No hay premios para activar la rifa');
+
         if (raffle.status === 'ended') {
             throw new Error('No se puede activar una rifa que ya terminó');
         }
@@ -156,13 +158,17 @@ export class RaffleService {
             throw new Error('Rifa no encontrada');
         }
 
+        if (raffle.status === 'active') {
+            throw new Error('La rifa no se puede eliminar porque está activa');
+        }
+
         const hasTickets = raffle.tickets && raffle.tickets.length > 0;
 
         if (raffle.status === 'ended' && hasTickets) {
             throw new Error('Solo se pueden eliminar rifas con estado "ended" si no tienen tickets reservados o comprados');
         }
 
-        const hasActiveTickets = raffle.tickets.some(t => t.status === 'available');
+        const hasActiveTickets = raffle.tickets.some(t => t.status === 'purchased');
         if (hasActiveTickets) {
             throw new Error('No se puede eliminar la reserva: uno o más tickets ya fueron comprados.');
         }
@@ -183,6 +189,10 @@ export class RaffleService {
 
         const raffle = await raffleRepo.findOne({ where: { id } });
         if (!raffle) throw new Error("Rifa no encontrada");
+
+        if (raffle.status === 'active') {
+            throw new Error('La rifa no se puede actualizar porque está activa');
+        }
 
 
         let endDate: Date | null = raffle.end_date ?? null;
@@ -265,6 +275,11 @@ export class RaffleService {
         const raffle = await raffleRepo.findOne({ where: { id: raffleId } });
         if (!raffle) throw new Error('Rifa no encontrada');
 
+        if (raffle.status == 'active') {
+            throw new Error('No se pueden regenerar los tickets porque la rifa ya está activa');
+        }
+
+
         // Verificar que no haya tickets reservados o comprados
         const tickets = await ticketRepo.find({ where: { raffle: { id: raffleId } } });
         const hasActiveTickets = tickets.some(t => t.status !== 'available');
@@ -272,6 +287,7 @@ export class RaffleService {
         if (hasActiveTickets) {
             throw new Error('No se pueden regenerar los tickets porque hay reservas o compras activas.');
         }
+
 
         // Crear queryRunner para manejar transacción
         const queryRunner = AppDataSource.createQueryRunner();

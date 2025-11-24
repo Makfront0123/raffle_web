@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { usePaymentStore } from "@/store/paymentStore";
 import { AuthStore } from "@/store/authStore";
-import { Payment, PaymentCreateDto } from "@/type/Payment";
+import {  PaymentCreateDto } from "@/type/Payment";
 import { toast } from "sonner";
 
 export function usePayment() {
@@ -15,8 +15,6 @@ export function usePayment() {
     const [error, setError] = useState<string | null>(null);
 
 
-
-    // 🔹 Cargar todos los pagos del usuario autenticado
     useEffect(() => {
         if (!token || !user?.id) return;
 
@@ -35,7 +33,7 @@ export function usePayment() {
         fetchPayments();
     }, [token, user?.id]);
 
-    // 🔹 Crear un nuevo pago (Nequi, Daviplata, etc.)
+
     const makePayment = async (data: PaymentCreateDto) => {
         if (!token) {
             toast.error("Debes iniciar sesión para pagar.");
@@ -55,7 +53,6 @@ export function usePayment() {
         }
     };
 
-    // 🔹 Cancelar un pago (si aplica)
     const cancel = async (id: number) => {
         if (!token) return;
         try {

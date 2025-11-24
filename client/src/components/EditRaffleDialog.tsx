@@ -15,15 +15,16 @@ export const EditRaffleDialog: React.FC<EditRaffleDialogProps> = ({ raffle, onSa
 
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
-    title: raffle.title,
-    description: raffle.description,
-    price: raffle.price.toString(),
-    end_date: toLocalDateInput(raffle.end_date),  
+    title: raffle.title ?? "",
+    description: raffle.description ?? "",
+    price: raffle.price != null ? raffle.price.toString() : "",
+    end_date: raffle.end_date ? toLocalDateInput(raffle.end_date) : "",
   });
+
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const minEditableDate = today.toISOString().split("T")[0];  
+  const minEditableDate = today.toISOString().split("T")[0];
 
 
 

@@ -17,17 +17,17 @@ export function useFilteredRaffles() {
       ?.filter((r) => {
         if (r.status === "pending") return false;
 
-        // 🔍 Buscar por título o descripción
+
         const matchesSearch =
           r.title.toLowerCase().includes(search.toLowerCase()) ||
           r.description.toLowerCase().includes(search.toLowerCase());
 
-        // 🏆 Filtrar por tipo de premio
+
         const matchesPrize =
           filterPrize === "all" ||
           r.prizes?.some((p) => p.type === filterPrize);
 
-        // ⏳ Filtrar por tab según status
+
         const isEnded = r.status === "ended";
 
         if (tab === "active" && isEnded) return false;

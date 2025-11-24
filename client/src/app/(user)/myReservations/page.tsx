@@ -188,35 +188,4 @@ function ReservationCard({
     </>
   );
 }
-
-/*
-<Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Ticket #{ticketNumber}</DialogTitle>
-            <p className="text-sm text-gray-500">Precio: ${raffle.price}</p>
-          </DialogHeader>
-
-          <div className="flex flex-col gap-2 mt-4">
-            <Button
-              onClick={() => handlePayment("nequi")}
-              className="bg-pink-500 hover:bg-pink-600 text-white"
-            >
-              Pagar con Nequi
-            </Button>
-            <Button
-              onClick={() => handlePayment("daviplata")}
-              className="bg-purple-500 hover:bg-purple-600 text-white"
-            >
-              Pagar con Daviplata
-            </Button>
-          </div>
-
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setOpen(false)}>
-              Cancelar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-*/
+ 

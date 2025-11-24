@@ -4,3 +4,7 @@ interface GoogleUserData {
   picture?: string;
   token: string;
 }
+
+interface TokenClient {
+  requestAccessToken: () => void;
+}

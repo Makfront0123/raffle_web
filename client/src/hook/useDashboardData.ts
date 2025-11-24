@@ -28,8 +28,6 @@ export function useDashboardData(): DashboardStats {
         const safePayments: Payment[] = payments || [];
         const safeWinners: Winner[] = winners || [];
  
-
-        // 🔹 Cálculos principales
         const activeRaffles = safeRaffles.filter((r) => r.status === "active").length;
         const totalPayments = safePayments.reduce(
             (acc, p) => acc + (parseFloat(p.total_amount) || 0),

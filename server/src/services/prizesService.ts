@@ -64,7 +64,7 @@ export class PrizesService {
         if (data.value !== undefined && data.value !== null && !Number.isNaN(Number(data.value))) {
             prize.value = Number(data.value);
         }
- 
+
 
         const saved = await this.prizeRepo.save(prize);
         return {
@@ -76,7 +76,7 @@ export class PrizesService {
     async deletePrize(id: number) {
         if (!id) throw new Error('ID requerido');
 
-        // Cargar relación anidada 'raffle.tickets'
+
         const prize = await this.prizeRepo.findOne({
             where: { id },
             relations: ['raffle', 'raffle.tickets', 'winner_ticket'],
@@ -92,9 +92,13 @@ export class PrizesService {
             throw new Error('No se puede eliminar el premio porque tiene un ticket ganador asociado');
         }
 
-        // ⚠️ Ahora prize.raffle.tickets siempre está definido, aunque sea []
+
         if (prize.raffle && prize.raffle.tickets.length > 0 && prize.raffle.tickets.some(t => t.status === 'purchased')) {
             throw new Error('No se puede eliminar el premio porque tiene tickets comprados asociados');
+        }
+
+        if (prize.raffle && prize.raffle.tickets.length > 0 && prize.raffle.tickets.some(t => t.status === 'reserved')) {
+            throw new Error('No se puede eliminar el premio porque tiene tickets reservados asociados');
         }
 
         await this.prizeRepo.delete(id);
