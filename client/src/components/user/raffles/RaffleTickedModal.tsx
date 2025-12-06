@@ -1,6 +1,6 @@
 "use client";
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
 interface Props {
@@ -21,6 +21,9 @@ export default function RaffleTicketModal({ open, setOpen, ticket, raffle, handl
           <DialogTitle>Ticket #{ticket.ticket_number}</DialogTitle>
           <p className="text-sm text-gray-500">Precio: ${raffle.price}</p>
         </DialogHeader>
+
+        <DialogDescription>Selecciona cuántos números deseas comprar</DialogDescription>
+
 
         <div className="flex flex-col gap-2 mt-4">
           <Button onClick={() => handleAction("nequi")} className="bg-pink-500 hover:bg-pink-600 text-white">

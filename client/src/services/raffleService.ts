@@ -59,7 +59,6 @@ export class RaffleService {
             const res = await axios.patch(`${API_URL}/${id}`, raffle, {
                 headers: { Authorization: `Bearer ${token}` },
             });
-            console.log("🔍 backend response:", res.data);
             return res.data;
         } catch (error: any) {
             return this.handleError(error, "Error actualizando la rifa");

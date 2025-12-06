@@ -22,8 +22,8 @@ import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
 import { useFilteredRaffles } from "@/hook/useFilteredRaffles";
 import { usePrizes } from "@/hook/usePrizes";
-import Raffles from "@/components/user/raffles/RafflesContainer";
-
+import Raffles from "@/app/(user)/raffles/page";
+ 
 /** Tipado estricto de mocks */
 const mockUseFilteredRaffles = useFilteredRaffles as jest.MockedFunction<
   typeof useFilteredRaffles

@@ -13,7 +13,6 @@ export function usePaymentsPageLogic() {
 
   const { payments, loading, completePayment } = usePaymentStore();
 
-  // obtener token desde AuthStore (el correcto)
   const token = AuthStore.getState().token;
 
   const filteredPayments = applyFilters({
@@ -28,12 +27,8 @@ export function usePaymentsPageLogic() {
     completePayment,
     token,
     filteredPayments,
-
-    // Pagination
     currentPage,
     setCurrentPage,
-
-    // Filters
     statusFilter,
     setStatusFilter,
     dateFrom,
