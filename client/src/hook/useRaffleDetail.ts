@@ -42,7 +42,7 @@ export function useRaffleDetail() {
     };
 
     fetchRaffle();
-  }, [id, token, getRaffleById]);
+  }, [id, token]);
 
 
   useEffect(() => {

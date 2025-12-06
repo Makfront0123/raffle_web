@@ -7,10 +7,9 @@ export const usePaymentStore = create<PaymentStore>()((set, get) => ({
     payments: [],
     setPayments: (payments: Payment[]) => set({ payments }),
 
+    loading: false,
+    setLoading: (loading: boolean) => set({ loading }),
 
-
-
-    // ✅ Cambiado a PaymentCreateDto
     createPayment: async (data: PaymentCreateDto, token: string) => {
         const newPayment = await PaymentService.createPayment(data, token);
         set((state) => ({
@@ -18,8 +17,6 @@ export const usePaymentStore = create<PaymentStore>()((set, get) => ({
         }));
         return newPayment;
     },
-
-
 
     cancelPayment: async (id: number, token: string) => {
         try {
@@ -32,11 +29,17 @@ export const usePaymentStore = create<PaymentStore>()((set, get) => ({
             throw error;
         }
     },
-    getPayments: async (token: string) => {
-        const payments = await PaymentService.getPayments(token);
 
-        set({ payments });
+    getPayments: async (token: string) => {
+        set({ loading: true });
+        try {
+            const payments = await PaymentService.getPayments(token);
+            set({ payments });
+        } finally {
+            set({ loading: false });
+        }
     },
+
     completePayment: async (id: number, token: string) => {
         try {
             await PaymentService.completePayment(id, token);
@@ -55,7 +58,11 @@ export const usePaymentStore = create<PaymentStore>()((set, get) => ({
 interface PaymentStore {
     payments: Payment[];
     setPayments: (payments: Payment[]) => void;
-    createPayment: (data: PaymentCreateDto, token: string) => Promise<Payment>; // 👈 corregido
+
+    loading: boolean;            // 👈 faltaba
+    setLoading: (loading: boolean) => void; // 👈 faltaba
+
+    createPayment: (data: PaymentCreateDto, token: string) => Promise<Payment>;
     cancelPayment: (id: number, token: string) => Promise<void>;
     getPayments: (token: string) => Promise<void>;
     completePayment: (id: number, token: string) => Promise<void>;

@@ -9,7 +9,10 @@ export function useFilteredRaffles() {
   const [search, setSearch] = useState("");
   const [filterPrize, setFilterPrize] = useState("all");
   const [sortBy, setSortBy] = useState("recent");
-  const [tab, setTab] = useState("active");
+
+  // 🔥 Ahora soporta: active | ended | all
+  const [tab, setTab] = useState<"active" | "ended" | "all">("active");
+
   const [showExpiredModal, setShowExpiredModal] = useState<Raffle | null>(null);
 
   const filteredRaffles = useMemo(() => {
@@ -17,30 +20,38 @@ export function useFilteredRaffles() {
       ?.filter((r) => {
         if (r.status === "pending") return false;
 
-
         const matchesSearch =
           r.title.toLowerCase().includes(search.toLowerCase()) ||
           r.description.toLowerCase().includes(search.toLowerCase());
-
 
         const matchesPrize =
           filterPrize === "all" ||
           r.prizes?.some((p) => p.type === filterPrize);
 
-
         const isEnded = r.status === "ended";
 
+        // 🔥 NUEVA LÓGICA DE TABS
         if (tab === "active" && isEnded) return false;
         if (tab === "ended" && !isEnded) return false;
+        // tab === "all" → deja pasar todo
 
         return matchesSearch && matchesPrize;
       })
       .sort((a, b) => {
         if (sortBy === "price") return Number(b.price) - Number(a.price);
+
         if (sortBy === "endingSoon")
-          return new Date(a.end_date).getTime() - new Date(b.end_date).getTime();
+          return (
+            new Date(a.end_date).getTime() -
+            new Date(b.end_date).getTime()
+          );
+
         if (sortBy === "recent")
-          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+          return (
+            new Date(b.created_at).getTime() -
+            new Date(a.created_at).getTime()
+          );
+
         return 0;
       });
   }, [raffles, search, filterPrize, sortBy, tab]);

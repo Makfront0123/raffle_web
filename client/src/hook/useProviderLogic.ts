@@ -4,6 +4,14 @@ import { useState } from "react";
 import { AuthStore } from "@/store/authStore";
 import { Providers } from "@/type/Providers";
 import { useProviders } from "./useProviders";
+// 👇 Añade esto al inicio del archivo
+export interface ProviderFormState {
+  id?: number;
+  name: string;
+  contact_name: string;
+  contact_email: string;
+  contact_phone: string;
+}
 
 export const useProvidersLogic = () => {
   const { token } = AuthStore();
@@ -24,7 +32,7 @@ export const useProvidersLogic = () => {
     contact_email: "",
     contact_phone: "",
   });
- 
+
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [providerToDelete, setProviderToDelete] = useState<Providers | null>(null);
 
@@ -70,13 +78,13 @@ export const useProvidersLogic = () => {
     setOpen(true);
   };
 
-  
+
   const requestDeleteProvider = (id: number) => {
     const provider = providers.find((p) => p.id === id) || null;
     setProviderToDelete(provider);
     setDeleteDialogOpen(true);
   };
- 
+
   const confirmDeleteProvider = async () => {
     if (!token || !providerToDelete?.id) return;
     try {

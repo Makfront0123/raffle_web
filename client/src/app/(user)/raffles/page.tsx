@@ -1,18 +1,13 @@
 "use client";
-import React, { useEffect, useState } from "react";
-import { useFilteredRaffles } from "@/hook/useFilteredRaffles";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import LoadingScreen from "@/components/LoadingScreen";
+
 import { RaffleCard } from "@/components/RaffleCard";
+import LoadingScreen from "@/components/LoadingScreen";
+import { useFilteredRaffles } from "@/hook/useFilteredRaffles";
 import { usePrizes } from "@/hook/usePrizes";
-import { Raffle } from "@/type/Raffle";
-
-
-
+import RaffleExpiredModal from "@/components/user/raffles/RaffleExpiredModal";
+import { useState, useEffect } from "react";
+import RaffleFilters from "@/components/user/raffles/RafflesFilters";
+import RafflePagination from "@/components/user/raffles/RafflesPagination";
 export default function Raffles() {
   const {
     filteredRaffles,
@@ -35,141 +30,62 @@ export default function Raffles() {
   const [currentPage, setCurrentPage] = useState(1);
   const rafflesPerPage = 6;
 
-
-  const totalRaffles = filteredRaffles.length;
-  const totalPages = Math.ceil(totalRaffles / rafflesPerPage);
-  const startIndex = (currentPage - 1) * rafflesPerPage;
-  const endIndex = startIndex + rafflesPerPage;
-  const paginatedRaffles = filteredRaffles.slice(startIndex, endIndex);
+  const totalPages = Math.ceil(filteredRaffles.length / rafflesPerPage);
+  const paginatedRaffles = filteredRaffles.slice(
+    (currentPage - 1) * rafflesPerPage,
+    currentPage * rafflesPerPage
+  );
 
   useEffect(() => {
-    if (showExpiredModal?.id) {
-      setActiveRaffleId(showExpiredModal.id);
-    }
-  }, [showExpiredModal, setActiveRaffleId]);
+    if (showExpiredModal?.id) setActiveRaffleId(showExpiredModal.id);
+  }, [showExpiredModal]);
 
   return (
     <div className="w-full min-h-[120vh] px-10 py-10 flex flex-col md:items-start items-center">
-      {loading ? (
-        <LoadingScreen />
-      ) : error ? (
-        <div className="flex justify-center items-center h-screen text-red-500">{error}</div>
-      ) : null}
+      {loading && <LoadingScreen />}
+      {error && <div className="text-red-500">{error}</div>}
 
-      <h1 className="text-3xl font-bold mb-8 text-black">🎟️ Explora nuestras rifas</h1>
+      <h1 className="text-3xl font-bold mb-8 text-black">
+        🎟️ Explora nuestras rifas
+      </h1>
 
-      <div className="flex flex-wrap items-center gap-4 mb-6">
-        <Input
-          placeholder="Buscar rifa..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-[250px] bg-purple-600 text-white border-gray-600"
-        />
+      <RaffleFilters
+        search={search}
+        setSearch={setSearch}
+        filterPrize={filterPrize}
+        setFilterPrize={setFilterPrize}
+        sortBy={sortBy}
+        setSortBy={setSortBy}
+        tab={tab}
+        setTab={setTab}
+      />
 
-        <Select onValueChange={setFilterPrize} value={filterPrize}>
-          <SelectTrigger className="w-[180px] bg-purple-600 text-white border-gray-600">
-            <SelectValue placeholder="Tipo de premio" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos los premios</SelectItem>
-            <SelectItem value="cash">Dinero 💵</SelectItem>
-            <SelectItem value="product">Producto 🎁</SelectItem>
-            <SelectItem value="trip">Viaje ✈️</SelectItem>
-          </SelectContent>
-        </Select>
+      <RafflePagination
+        currentPage={currentPage}
+        setCurrentPage={setCurrentPage}
+        totalPages={totalPages}
+      />
 
-        <Select onValueChange={setSortBy} value={sortBy}>
-          <SelectTrigger className="w-[180px] bg-purple-600 text-white border-gray-600">
-            <SelectValue placeholder="Ordenar por" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="recent">Más recientes</SelectItem>
-            <SelectItem value="price">Precio mayor</SelectItem>
-            <SelectItem value="endingSoon">Próximas a finalizar</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Tabs value={tab} onValueChange={setTab}>
-          <TabsList className="bg-purple-600">
-            <TabsTrigger value="active">Activas</TabsTrigger>
-            <TabsTrigger value="ended">Finalizadas</TabsTrigger>
-          </TabsList>
-        </Tabs>
-
-        {totalPages > 1 && (
-          <div className="flex justify-center items-center gap-4 ml-34">
-            <Button
-              variant="purple"
-              disabled={currentPage === 1}
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-            >
-              ← Anterior
-            </Button>
-
-            <span className="text-sm text-gray-700">
-              Página {currentPage} de {totalPages}
-            </span>
-
-            <Button
-              variant="purple"
-              disabled={currentPage === totalPages}
-              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-            >
-              Siguiente →
-            </Button>
-          </div>
-        )}
-      </div>
-
-      <div className="flex flex-wrap justify-start gap-10 mt-10">
+      <div className="flex flex-wrap gap-10 mt-10">
         {paginatedRaffles.length === 0 ? (
-          <p className="text-gray-400 mt-10">No se encontraron rifas con esos criterios 😢</p>
+          <p>No se encontraron rifas 😢</p>
         ) : (
-          paginatedRaffles.map((raffle: Raffle) => (
-            <RaffleCard raffle={raffle} setShowExpiredModal={setShowExpiredModal} key={raffle.id} />
+          paginatedRaffles.map((raffle) => (
+            <RaffleCard
+              key={raffle.id}
+              raffle={raffle}
+              setShowExpiredModal={setShowExpiredModal}
+            />
           ))
         )}
       </div>
 
-
-
-
-      <Dialog open={!!showExpiredModal} onOpenChange={() => setShowExpiredModal(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Rifa finalizada</DialogTitle>
-          </DialogHeader>
-
-          <p>
-            La rifa <strong>{showExpiredModal?.title}</strong> ha terminado 🎉
-          </p>
-
-          <div className="mt-4">
-            <h3 className="font-semibold mb-2">🏆 Ganadores</h3>
-
-            {loadingWinners ? (
-              <p className="text-gray-500">Cargando ganadores...</p>
-            ) : winners.length === 0 ? (
-              <p className="text-gray-500">Aún no hay ganadores para esta rifa.</p>
-            ) : (
-              winners
-                .filter((w) => w.raffle_id === showExpiredModal?.id)
-                .map((w) => (
-                  <div key={w.id} className="p-3 mb-2 border rounded-lg shadow-sm bg-gray-50">
-                    <p className="font-medium">{w.prize_name}</p>
-                    <p>🎟️ Ticket ganador: {w.winner_ticket}</p>
-                    <p>👤 {w.winner_user ?? "Usuario desconocido"}</p>
-                    <p>💰 Valor: ${w.value}</p>
-                  </div>
-                ))
-            )}
-          </div>
-
-          <div className="flex justify-end mt-6">
-            <Button onClick={() => setShowExpiredModal(null)}>Cerrar</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <RaffleExpiredModal
+        showExpiredModal={showExpiredModal}
+        setShowExpiredModal={setShowExpiredModal}
+        winners={winners}
+        loadingWinners={loadingWinners}
+      />
     </div>
   );
 }

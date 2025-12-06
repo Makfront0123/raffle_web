@@ -18,7 +18,12 @@ export function usePrizes() {
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!token) return;
+      // 🔥 si no hay token, dejar loading en false
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
       try {
         await getPrizes(token);
@@ -30,8 +35,10 @@ export function usePrizes() {
         setLoading(false);
       }
     };
+
     fetchData();
   }, [getPrizes, getWinners, token]);
+
 
   useEffect(() => {
     if (filterRaffle === "all") {
@@ -43,7 +50,11 @@ export function usePrizes() {
 
   useEffect(() => {
     const fetchWinnersForRaffle = async () => {
-      if (!token) return;
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
       try {
         if (activeRaffleId) {
@@ -59,6 +70,7 @@ export function usePrizes() {
         setLoading(false);
       }
     };
+
     fetchWinnersForRaffle();
   }, [activeRaffleId, getWinners, token]);
 
@@ -96,7 +108,7 @@ export function usePrizes() {
     }
   };
 
-  
+
   const handleDeletePrize = async (id: number) => {
     if (!token) return setError("No hay token disponible");
     try {

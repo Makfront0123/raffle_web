@@ -2,12 +2,13 @@
   "name": "client",
   "version": "0.1.0",
   "private": true,
+   "type": "module",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint",
-    "test": "jest",
+    "test": "jest --runInBand --logHeapUsage",
     "test:watch": "jest --watch"
   },
   "dependencies": {
@@ -31,6 +32,10 @@
     "zustand": "^5.0.8"
   },
   "devDependencies": {
+    "@babel/core": "^7.28.5",
+    "@babel/preset-env": "^7.28.5",
+    "@babel/preset-react": "^7.28.5",
+    "@babel/preset-typescript": "^7.28.5",
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^6.9.1",
@@ -43,9 +48,11 @@
     "@vitejs/plugin-react": "^5.1.1",
     "@vitest/coverage-v8": "^4.0.13",
     "@vitest/ui": "^4.0.13",
+    "babel-jest": "^30.2.0",
     "eslint": "^9",
     "eslint-config-next": "15.5.5",
     "jest": "^30.2.0",
+    "jest-environment-jsdom": "^30.2.0",
     "jsdom": "^27.2.0",
     "tailwindcss": "^4",
     "ts-jest": "^29.4.5",

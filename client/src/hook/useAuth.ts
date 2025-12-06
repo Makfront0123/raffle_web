@@ -8,7 +8,7 @@ import { jwtDecode } from "jwt-decode";
 import { AuthStore } from "@/store/authStore";
 import { toast } from "sonner";
 export function useAuth() {
-  const authService = new AuthService();
+  const getAuthService = () => new AuthService();
   const router = useRouter();
   const { user, setUser, logout: storeLogout } = AuthStore();
   const [loading, setLoading] = useState(false);
@@ -49,21 +49,21 @@ export function useAuth() {
 
     try {
       const decoded: any = jwtDecode(token);
-    
+
       const tempUser = {
         id: decoded.id,
         email: decoded.email,
         role: decoded.role,
-        name: decoded.name, 
+        name: decoded.name,
       };
       setUser(tempUser as any, token);
       startTokenWatcher(token);
 
- 
-      authService
+
+      getAuthService()
         .getUserByToken(token)
         .then((res) => {
-          setUser(res.user, token); 
+          setUser(res.user, token);
         })
         .catch(() => logout());
     } catch {
@@ -110,7 +110,7 @@ export function useAuth() {
   const handleCredentialResponse = async (accessToken: string) => {
     try {
       setLoading(true);
-      const userData = await authService.getUserByGoogle({ token: accessToken });
+      const userData = await getAuthService().getUserByGoogle({ token: accessToken });
       setUser(userData.user, userData.token);
       localStorage.setItem("token", userData.token);
       startTokenWatcher(userData.token);
