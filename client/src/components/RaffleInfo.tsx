@@ -13,7 +13,7 @@ const RaffleInfo = ({ raffle, soldPercentage }: RaffleInfoProps) => {
   if (!raffle) return null; // ⛑️ Evita el crash inicial
 
   return (
-    <div className="w-full min-h-[70vh] relative md:mt-0 mt-20">
+    <div className="w-full min-h-[30vh] relative md:mt-0 mt-20">
       <div className="flex md:flex-row flex-col items-start justify-between">
         <div className="mb-10">
           <h1 className="text-3xl font-bold mb-2 text-black">{raffle.title}</h1>

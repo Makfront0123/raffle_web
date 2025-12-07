@@ -7,8 +7,10 @@ import { PrizeForm, Prizes } from "@/type/Prizes";
 import { Winner } from "@/type/Winner";
 
 export function usePrizes() {
+   const { token } = AuthStore();
+ 
   const { prizes = [], winners = [], getPrizes, addPrize, updatePrize, getWinners, deletePrize } = usePrizeStore();
-  const { token } = AuthStore();
+  
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

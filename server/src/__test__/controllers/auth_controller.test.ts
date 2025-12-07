@@ -20,8 +20,10 @@ const mockResponse = () => {
 
 
 const mockUserRepo = {
+  findById: jest.fn(),
   findOneBy: jest.fn(),
 };
+
 
 const mockAuthService = {
   findOrCreateUser: jest.fn(),
@@ -38,35 +40,8 @@ describe("AuthController", () => {
     controller = new AuthController(mockAuthService as any, mockUserRepo as any);
   });
 
-  test("devLogin retorna token y usuario", async () => {
-    const user = { id: 1, email: "test@test.com" };
-    mockUserRepo.findOneBy.mockResolvedValue(user);
-
-    const req = mockRequest({ body: { userId: 1 } });
-    const res = mockResponse();
-
-    jwt.sign = jest.fn().mockReturnValue("FAKE_JWT");
-
-    await controller.devLogin(req, res);
-
-    expect(mockUserRepo.findOneBy).toHaveBeenCalledWith({ id: 1 });
-    expect(res.json).toHaveBeenCalledWith({
-      token: "FAKE_JWT",
-      user,
-    });
-  });
-
-  test("devLogin retorna 404 si no existe el usuario", async () => {
-    mockUserRepo.findOneBy.mockResolvedValue(null);
-
-    const req = mockRequest({ body: { userId: 99 } });
-    const res = mockResponse();
-
-    await controller.devLogin(req, res);
-
-    expect(res.status).toHaveBeenCalledWith(404);
-    expect(res.send).toHaveBeenCalledWith("Usuario no encontrado");
-  });
+ 
+ 
 
   test("loginWithGoogle retorna datos del usuario y tokens", async () => {
     (axios.get as jest.Mock).mockResolvedValue({

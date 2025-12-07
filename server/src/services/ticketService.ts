@@ -34,11 +34,17 @@ export class TicketService {
     async getTicketsByUser(userId: number, raffleId?: number) {
         const payments = await this.paymentRepo.find({
             where: raffleId
-                ? { userId, raffleId }
-                : { userId },
-            relations: ["details", "details.ticket", "raffle"],
+                ? {
+                    user: { id: userId },
+                    raffle: { id: raffleId },
+                }
+                : {
+                    user: { id: userId },
+                },
+            relations: ["details", "details.ticket", "raffle", "user"],
             order: { created_at: "DESC" },
         });
+
 
         return payments.flatMap((p: any) =>
             p.details.map((d: any) => ({

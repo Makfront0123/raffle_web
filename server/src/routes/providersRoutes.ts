@@ -4,9 +4,11 @@ import express from 'express';
 import { adminMiddleware } from '../middleware/adminMiddleware';
 import { authMiddleware } from '../middleware/authMiddleware';
 import { ProviderController } from '../controllers/providersController';
+import { ProviderService } from '../services/providerService';
 
 const router = express.Router();
-const providersController = new ProviderController();
+const providersService = new ProviderService();
+const providersController = new ProviderController(providersService);
 
 router.get('/', authMiddleware, providersController.getAll);
 router.post('/', authMiddleware, adminMiddleware, providersController.create);

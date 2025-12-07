@@ -40,11 +40,10 @@ export class PaymentService {
         .innerJoinAndSelect("resTicket.reservation", "reservation")
         .innerJoinAndSelect("reservation.user", "user")
         .innerJoinAndSelect("resTicket.ticket", "ticket")
-        .where("ticket.id_ticket IN (:...ticketIds)", {
-          ticketIds: payment.ticket_ids,
-        })
+        .where("ticket.id_ticket IN (:...ticketIds)", { ticketIds: payment.ticket_ids })
         .andWhere("user.id = :userId", { userId: payment.user_id })
         .getMany();
+
 
       for (const ticket of tickets) {
         if (ticket.raffleId !== raffle.id)
@@ -56,8 +55,9 @@ export class PaymentService {
           throw new Error(`El ticket ${ticket.id_ticket} ya fue comprado`);
 
         const isReservedByUser = userReservations.some(
-          (r) => r.ticket.id_ticket === ticket.id_ticket
+          (r) => r.ticket && r.ticket.id_ticket === ticket.id_ticket
         );
+
 
         if (ticket.status === "reserved" && !isReservedByUser)
           throw new Error(
@@ -186,4 +186,3 @@ export class PaymentService {
   }
 }
 
- 

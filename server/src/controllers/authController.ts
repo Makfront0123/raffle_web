@@ -5,28 +5,21 @@ import axios from "axios";
 import generateJWT from "../utils/generateJWT";
 import { User } from "../entities/user.entity";
 import { AppDataSource } from "../data-source";
+import { UserRepository } from "../repositories/userRepository";
 
 export class AuthController {
-  private authService;
-  private userRepo;
+  private authService: AuthService;
+  private userRepo: UserRepository;
 
-  constructor(authService?: AuthService, userRepo?: any) {
-    this.authService = authService ?? new AuthService(
-      AppDataSource.getRepository(User)
-    );
-    this.userRepo = userRepo ?? AppDataSource.getRepository(User);
+  constructor(authService?: AuthService, userRepo?: UserRepository) {
+    const typeOrmRepo = AppDataSource.getRepository(User);
+
+    this.userRepo = userRepo ?? new UserRepository(typeOrmRepo);
+
+    this.authService =
+      authService ?? new AuthService(new UserRepository(typeOrmRepo));
   }
 
-  async devLogin(req: Request, res: Response) {
-    const { userId } = req.body;
-
-    const user = await this.userRepo.findOneBy({ id: userId });
-    if (!user) return res.status(404).send("Usuario no encontrado");
-
-    const token = generateJWT({ id: user.id, email: user.email });
-
-    return res.json({ token, user });
-  }
 
   async loginWithGoogle(req: Request, res: Response) {
     try {
@@ -144,4 +137,3 @@ export class AuthController {
     }
   }
 }
-

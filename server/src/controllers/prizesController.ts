@@ -18,10 +18,12 @@ export class PrizesController {
         try {
             const prizes = await this.prizesService.getAllPrizes();
             res.status(200).json(prizes);
-        } catch (error) {
-            res.status(500).json({ message: 'Error obteniendo premios', error });
+        } catch (error: any) {
+            
+            res.status(500).json({ message: 'Error obteniendo premios', error: error.message || error });
         }
     }
+
 
     async createPrize(req: Request, res: Response) {
         try {

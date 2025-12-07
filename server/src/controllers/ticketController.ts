@@ -28,9 +28,9 @@ export class TicketController {
             );
 
             res.status(200).json(tickets);
-        } catch (error) {
+        } catch (error:any) {
             res.status(500).json({
-                message: "Error obteniendo tickets del usuario",
+                message: error.message || "Error obteniendo tickets del usuario",
                 error,
             });
         }
