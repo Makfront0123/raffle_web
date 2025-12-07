@@ -208,4 +208,45 @@ export class PrizesService {
         }));
 
     }
+
+    async closeRaffle(raffleId: number) {
+        if (!raffleId) throw new Error("Raffle ID requerido");
+
+        // Repos
+        const prizeRepo = this.prizeRepo;
+        const ticketRepo = this.ticketRepo;
+
+        // 1️⃣ Marcar todos los tickets como comprados
+        await ticketRepo.update(
+            { raffle: { id: raffleId } },
+            { status: 'purchased' }
+        );
+
+        // 2️⃣ Obtener todos los premios de la rifa
+        const prizes = await prizeRepo.find({
+            where: { raffle: { id: raffleId } },
+            relations: ['raffle', 'raffle.tickets', 'raffle.tickets.user'],
+        });
+
+        if (!prizes.length) {
+            return {
+                message: 'Rifa cerrada pero no hay premios registrados',
+                winners: []
+            };
+        }
+
+        const winners = [];
+
+        // 3️⃣ Seleccionar ganador para cada premio
+        for (const prize of prizes) {
+            const result = await this.selectWinner(prize.id);
+            winners.push(result);
+        }
+
+        return {
+            message: 'Rifa cerrada y ganadores seleccionados',
+            winners
+        };
+    }
+
 }

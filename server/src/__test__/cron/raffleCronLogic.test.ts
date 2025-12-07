@@ -7,9 +7,6 @@ import { Prize } from "../../entities/prize.entity";
 import { PrizesService } from "../../services/prizesService";
 import { cleanupExpiredReservations, closeExpiredRaffles } from "../../cron/raffleCronLogic";
 
-// ===============================
-// 🧪 Mock globales
-// ===============================
 jest.mock("../../data-source", () => ({
     AppDataSource: {
         getRepository: jest.fn(),
@@ -72,7 +69,7 @@ const mockQueryRunner = {
     },
 };
 
-// Asignar mocks a AppDataSource
+
 (AppDataSource.getRepository as jest.Mock).mockImplementation((entity) => {
     if (entity === Reservation) return mockReservationRepo;
     if (entity === Ticket) return mockTicketRepo;
@@ -88,9 +85,6 @@ beforeEach(() => {
     jest.clearAllMocks();
 });
 
-// ======================================================================
-// 1️⃣ TEST: cleanupExpiredReservations
-// ======================================================================
 describe("cleanupExpiredReservations", () => {
     it("libera tickets y elimina reservas expiradas", async () => {
         mockReservationRepo.find.mockResolvedValue([
@@ -113,23 +107,17 @@ describe("cleanupExpiredReservations", () => {
     });
 });
 
-// ======================================================================
-// 2️⃣ TEST: closeExpiredRaffles
-// ======================================================================
 describe("closeExpiredRaffles", () => {
     it("cierra rifas expiradas y asigna ganadores", async () => {
-        // 1 → la rifa encontrada
         mockRaffleRepo.find.mockResolvedValue([
             { id: 1, status: "active", tickets: [] },
         ]);
 
-        // 2 → premios del queryRunner
         mockQueryRunner.manager.find.mockResolvedValue([
             { id: 50, name: "Premio 1" },
             { id: 51, name: "Premio 2" },
         ]);
 
-        // 3 → selectWinner mocked
         prizeServiceMock.selectWinner.mockResolvedValue(true);
 
         const res = await closeExpiredRaffles(prizeServiceMock);
