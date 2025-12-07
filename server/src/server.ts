@@ -5,7 +5,7 @@ import cors from 'cors';
 import "reflect-metadata";
 import { AppDataSource } from './data-source';
 import helmet from 'helmet';
-import "./utils/cron";
+import "./cron/cron";
 import dotenv from 'dotenv';
 dotenv.config();
 const app = express();

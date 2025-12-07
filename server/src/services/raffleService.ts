@@ -1,59 +1,80 @@
-// src/services/raffleService.ts
-import { AppDataSource } from '../data-source';
-import { PrizeType } from '../entities/prize.entity';
-import { Raffle } from '../entities/raffle.entity';
-import { Ticket } from '../entities/ticket.entity';
-import { generateAllTicketNumbers } from '../utils/generateRandomNumber';
+import { Raffle } from "../entities/raffle.entity";
+import { Ticket } from "../entities/ticket.entity";
+import { PrizeType } from "../entities/prize.entity";
+import { AppDataSource } from "../data-source";
+import { generateAllTicketNumbers } from "../utils/generateRandomNumber";
 
 export class RaffleService {
+    private raffleRepo;
+    private ticketRepo;
+    private dataSource;
+
+    constructor(
+        repos?: { raffle?: any; ticket?: any },
+        dataSource?: any
+    ) {
+        this.raffleRepo = repos?.raffle ?? AppDataSource.getRepository(Raffle);
+        this.ticketRepo = repos?.ticket ?? AppDataSource.getRepository(Ticket);
+        this.dataSource = dataSource ?? AppDataSource;
+    }
+
+    // -----------------------------
+    // ACTIVATE
+    // -----------------------------
     async activateRaffle(id: number) {
-        const raffleRepo = AppDataSource.getRepository(Raffle);
-        const raffle = await raffleRepo.findOne({ where: { id }, relations: ['tickets', 'prizes'] });
-        if (!raffle) throw new Error('Rifa no encontrada');
+        const raffleRepo = this.dataSource.getRepository(Raffle);
 
-        if (raffle.status === 'active') {
-            throw new Error('La rifa ya está activa');
-        }
-
-        if (raffle.prizes.length === 0 || !raffle.prizes) throw new Error('No hay premios para activar la rifa');
-
-        if (raffle.status === 'ended') {
-            throw new Error('No se puede activar una rifa que ya terminó');
-        }
-
-
-        if (raffle.prizes.length === 0 || !raffle.prizes) throw new Error('No hay premios para activar la rifa');
-
-        if (raffle.end_date && raffle.end_date < new Date()) {
-            throw new Error('La fecha de finalización de la rifa ya ha pasado');
-        }
-
-        raffle.status = 'active';
-        await raffleRepo.save(raffle);
-
-        return { message: 'La rifa se ha activado correctamente', raffle };
-    }
-
-    async deactivateRaffle(id: number) {
-        const raffleRepo = AppDataSource.getRepository(Raffle);
-        const raffle = await raffleRepo.findOne({ where: { id }, relations: ['tickets'] });
-        if (!raffle) throw new Error('Rifa no encontrada');
-        if (raffle.status !== 'active') {
-            throw new Error('La rifa no está activa');
-        }
-        raffle.status = 'pending';
-        await raffleRepo.save(raffle);
-        return { message: 'La rifa se ha desactivado correctamente', raffle };
-    }
-
-
-    async getAllRaffles() {
-        const raffleRepo = AppDataSource.getRepository(Raffle);
-        const raffles = await raffleRepo.find({
-            relations: ["prizes"],
+        const raffle = await raffleRepo.findOne({
+            where: { id },
+            relations: ["tickets", "prizes"],
         });
-        return raffles;
+
+        if (!raffle) throw new Error("Rifa no encontrada");
+        if (raffle.status === "active") throw new Error("La rifa ya está activa");
+        if (!raffle.prizes || raffle.prizes.length === 0)
+            throw new Error("No hay premios para activar la rifa");
+        if (raffle.status === "ended")
+            throw new Error("No se puede activar una rifa que ya terminó");
+        if (raffle.end_date && raffle.end_date < new Date())
+            throw new Error("La fecha de finalización ya pasó");
+
+        raffle.status = "active";
+        await raffleRepo.save(raffle);
+
+        return { message: "Rifa activada correctamente", raffle };
     }
+
+    // -----------------------------
+    // DEACTIVATE
+    // -----------------------------
+    async deactivateRaffle(id: number) {
+        const raffleRepo = this.dataSource.getRepository(Raffle);
+
+        const raffle = await raffleRepo.findOne({
+            where: { id },
+            relations: ["tickets"],
+        });
+
+        if (!raffle) throw new Error("Rifa no encontrada");
+        if (raffle.status !== "active")
+            throw new Error("La rifa no está activa");
+
+        raffle.status = "pending";
+        await raffleRepo.save(raffle);
+
+        return { message: "La rifa se ha desactivado correctamente", raffle };
+    }
+
+    // -----------------------------
+    // GET ALL
+    // -----------------------------
+    async getAllRaffles() {
+        return this.raffleRepo.find({ relations: ["prizes"] });
+    }
+
+    // -----------------------------
+    // CREATE
+    // -----------------------------
     async createRaffle(data: {
         title: string;
         description: string;
@@ -62,53 +83,27 @@ export class RaffleService {
         digits: number;
         type: PrizeType;
     }) {
-        const raffleRepo = AppDataSource.getRepository(Raffle);
-        const ticketRepo = AppDataSource.getRepository(Ticket);
-        const total_numbers = Math.pow(10, data.digits);
+        const raffleRepo = this.raffleRepo;
+        const ticketRepo = this.ticketRepo;
 
-
+        // procesar fecha
         let endDate: Date | null = null;
 
-        if (data.end_date) {
-            if (data.end_date instanceof Date) {
-                endDate = data.end_date;
-            } else if (typeof data.end_date === "string") {
-
-                const isOnlyDate = data.end_date.length === 10;
-
-                const dateStr = isOnlyDate
+        if (data.end_date instanceof Date) {
+            endDate = data.end_date;
+        } else if (typeof data.end_date === "string") {
+            const parsed = new Date(
+                data.end_date.length === 10
                     ? `${data.end_date}T23:59:59`
-                    : data.end_date;
+                    : data.end_date
+            );
+            if (isNaN(parsed.getTime()))
+                throw new Error("La fecha de finalización no es válida");
 
-                const parsed = new Date(dateStr);
-
-                if (isNaN(parsed.getTime())) {
-                    throw new Error("La fecha de finalización no es válida.");
-                }
-
-                endDate = parsed;
-            }
+            endDate = parsed;
         }
 
-
-        if (!endDate) {
-            throw new Error("Debes proporcionar una fecha de finalización.");
-        }
-
-        const now = new Date();
-        now.setHours(0, 0, 0, 0);
-
-        const minAllowedDate = new Date();
-        minAllowedDate.setDate(now.getDate() + 7);
-        minAllowedDate.setHours(0, 0, 0, 0);
-
-        // Comparamos solo por día
-        const endDateCopy = new Date(endDate);
-        endDateCopy.setHours(0, 0, 0, 0);
-
-        if (endDateCopy < minAllowedDate) {
-            throw new Error("La fecha de finalización debe ser al menos dentro de 7 días.");
-        }
+        if (!endDate) throw new Error("Debes proporcionar una fecha de finalización");
 
         const raffle = raffleRepo.create({
             title: data.title,
@@ -117,19 +112,18 @@ export class RaffleService {
             status: "pending",
             end_date: endDate,
             digits: data.digits,
-            total_numbers,
+            total_numbers: Math.pow(10, data.digits),
         });
 
         await raffleRepo.save(raffle);
 
-        const ticketNumbers = generateAllTicketNumbers(data.digits);
+        const numbers = generateAllTicketNumbers(data.digits);
 
-        const tickets = ticketNumbers.map((number) =>
+        const tickets = numbers.map((num) =>
             ticketRepo.create({
-                ticket_number: number,
-                raffle: raffle,
+                ticket_number: num,
+                raffle,
                 status: "available",
-                purchased_at: null,
             })
         );
 
@@ -142,205 +136,135 @@ export class RaffleService {
         };
     }
 
-
+    // -----------------------------
+    // GET BY ID
+    // -----------------------------
     async getRaffleById(id: number) {
-        const raffleRepo = AppDataSource.getRepository(Raffle);
-        return await raffleRepo.findOne({
+        return this.raffleRepo.findOne({
             where: { id },
-            relations: ['tickets', 'prizes']
+            relations: ["tickets", "prizes"],
         });
     }
+
+    // -----------------------------
+    // DELETE
+    // -----------------------------
     async deleteRaffle(id: number) {
-        const raffleRepo = AppDataSource.getRepository(Raffle);
-        const raffle = await raffleRepo.findOne({ where: { id }, relations: ['tickets'] });
+        const raffleRepo = this.raffleRepo;
 
-        if (!raffle) {
-            throw new Error('Rifa no encontrada');
+        const raffle = await raffleRepo.findOne({
+            where: { id },
+            relations: ["tickets"],
+        });
+
+        if (!raffle) throw new Error("Rifa no encontrada");
+        if (raffle.status === "active")
+            throw new Error("La rifa está activa, no se puede eliminar");
+
+        if (
+            raffle.status === "ended" &&
+            raffle.tickets.some((t:Ticket) => t.status !== "available")
+        ) {
+            throw new Error("Solo se pueden eliminar rifas 'ended' sin tickets reservados/comprados");
         }
 
-        if (raffle.status === 'active') {
-            throw new Error('La rifa no se puede eliminar porque está activa');
-        }
+        await raffleRepo.delete(id);
 
-        const hasTickets = raffle.tickets && raffle.tickets.length > 0;
-
-        if (raffle.status === 'ended' && hasTickets) {
-            throw new Error('Solo se pueden eliminar rifas con estado "ended" si no tienen tickets reservados o comprados');
-        }
-
-        const hasActiveTickets = raffle.tickets.some(t => t.status === 'purchased');
-        if (hasActiveTickets) {
-            throw new Error('No se puede eliminar la reserva: uno o más tickets ya fueron comprados.');
-        }
-
-        try {
-            await raffleRepo.delete(id);
-            return { message: `La rifa #${id} se ha eliminado correctamente` };
-        } catch (error: any) {
-            if (error.code === 'ER_ROW_IS_REFERENCED_2') {
-                throw new Error('No se puede eliminar esta rifa porque tiene pagos o registros asociados.');
-            }
-            throw error;
-        }
+        return { message: `Rifa #${id} eliminada correctamente` };
     }
 
+    // -----------------------------
+    // UPDATE
+    // -----------------------------
     async updateRaffle(id: number, data: Partial<Raffle>) {
-        const raffleRepo = AppDataSource.getRepository(Raffle);
+        const raffleRepo = this.raffleRepo;
 
         const raffle = await raffleRepo.findOne({ where: { id } });
         if (!raffle) throw new Error("Rifa no encontrada");
+        if (raffle.status === "active")
+            throw new Error("No puedes actualizar una rifa activa");
 
-        if (raffle.status === 'active') {
-            throw new Error('La rifa no se puede actualizar porque está activa');
+        const cleaned: Partial<Raffle> = {};
+
+        if (data.title) cleaned.title = data.title;
+        if (data.description) cleaned.description = data.description;
+        if (data.price) cleaned.price = data.price;
+
+        if (data.end_date) {
+            const parsed = new Date(
+                typeof data.end_date === "string"
+                    ? `${data.end_date}T23:59:59`
+                    : data.end_date
+            );
+            if (isNaN(parsed.getTime()))
+                throw new Error("La fecha no es válida");
+
+            cleaned.end_date = parsed;
         }
 
-
-        let endDate: Date | null = raffle.end_date ?? null;
-
-
-        if (data.end_date !== undefined && data.end_date !== null) {
-            let incoming = data.end_date as any;
-
-            if (incoming instanceof Date) {
-                endDate = incoming;
-            } else if (typeof incoming === "string") {
-
-                const isOnlyDate = incoming.length === 10;
-                const dateStr = isOnlyDate ? `${incoming}T23:59:59` : incoming;
-
-                const parsed = new Date(dateStr);
-                if (isNaN(parsed.getTime())) {
-                    throw new Error("La fecha de finalización no es válida.");
-                }
-
-                endDate = parsed;
-            } else {
-                throw new Error("Formato de fecha no soportado para end_date.");
-            }
-
-
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-
-            const endDateCopy = new Date(endDate);
-            endDateCopy.setHours(0, 0, 0, 0);
-
-            if (endDateCopy < today) {
-                throw new Error("La fecha de finalización no puede ser anterior a hoy.");
-            }
-        }
-
-        const filteredData: Partial<Raffle> = {};
-
-        if (typeof data.title === "string" && data.title.trim() !== "") {
-            filteredData.title = data.title.trim();
-        }
-
-        if (typeof data.description === "string" && data.description.trim() !== "") {
-            filteredData.description = data.description.trim();
-        }
-
-        if (typeof data.price === "number" && !Number.isNaN(data.price)) {
-            filteredData.price = data.price;
-        }
-
-        if (typeof data.digits === "number" && !Number.isNaN(data.digits)) {
-            filteredData.digits = data.digits;
-        }
-
-
-        if (data.end_date !== undefined && data.end_date !== null) {
-            filteredData.end_date = endDate!;
-        }
-
-        if (Object.keys(filteredData).length === 0) {
-            throw new Error("No se enviaron campos válidos para actualizar");
-        }
-
-        await raffleRepo.update(id, filteredData);
+        await raffleRepo.update(id, cleaned);
         const updated = await raffleRepo.findOne({ where: { id } });
 
-        return {
-            message: "Rifa actualizada correctamente",
-            raffle: updated,
-        };
+        return { message: "Rifa actualizada correctamente", raffle: updated };
     }
 
-
+    // -----------------------------
+    // REGENERATE TICKETS
+    // -----------------------------
     async regenerateTickets(raffleId: number, newDigits: number) {
-        const raffleRepo = AppDataSource.getRepository(Raffle);
-        const ticketRepo = AppDataSource.getRepository(Ticket);
+        const queryRunner = this.dataSource.createQueryRunner();
 
-        // Buscar la rifa
-        const raffle = await raffleRepo.findOne({ where: { id: raffleId } });
-        if (!raffle) throw new Error('Rifa no encontrada');
-
-        if (raffle.status == 'active') {
-            throw new Error('No se pueden regenerar los tickets porque la rifa ya está activa');
-        }
-
-
-        // Verificar que no haya tickets reservados o comprados
-        const tickets = await ticketRepo.find({ where: { raffle: { id: raffleId } } });
-        const hasActiveTickets = tickets.some(t => t.status !== 'available');
-
-        if (hasActiveTickets) {
-            throw new Error('No se pueden regenerar los tickets porque hay reservas o compras activas.');
-        }
-
-
-        // Crear queryRunner para manejar transacción
-        const queryRunner = AppDataSource.createQueryRunner();
         await queryRunner.connect();
         await queryRunner.startTransaction();
 
         try {
-            // Eliminar tickets actuales
-            await queryRunner.manager.delete(Ticket, { raffle: { id: raffleId } });
+            const raffle = await queryRunner.manager.findOne(Raffle, {
+                where: { id: raffleId },
+            });
 
-            // Generar nuevos tickets
-            const totalTickets = Math.pow(10, newDigits);
-            const ticketNumbers = generateAllTicketNumbers(newDigits);
+            if (!raffle) throw new Error("Rifa no encontrada");
+            if (raffle.status === "active")
+                throw new Error("No puedes cambiar tickets con rifa activa");
 
-            const chunkSize = 200;
-            for (let i = 0; i < ticketNumbers.length; i += chunkSize) {
-                const chunk = ticketNumbers.slice(i, i + chunkSize);
-                const ticketsChunk = chunk.map(num =>
-                    queryRunner.manager.create(Ticket, {
-                        ticket_number: num,
-                        raffleId: raffle.id,
-                        status: 'available',
-                        purchased_at: null,
-                    })
-                );
-                await queryRunner.manager.save(ticketsChunk);
-            }
+            const existingTickets = await queryRunner.manager.find(Ticket, {
+                where: { raffle: { id: raffleId } },
+            });
+
+            if (existingTickets.some((t:Ticket) => t.status !== "available"))
+                throw new Error("Hay tickets reservados o comprados");
+
+            await queryRunner.manager.delete(Ticket, {
+                raffle: { id: raffleId },
+            });
+
+            const numbers = generateAllTicketNumbers(newDigits);
+
+            const toInsert = numbers.map((num) =>
+                queryRunner.manager.create(Ticket, {
+                    ticket_number: num,
+                    raffleId,
+                    status: "available",
+                })
+            );
+
+            await queryRunner.manager.save(toInsert);
 
             raffle.digits = newDigits;
-            raffle.total_numbers = totalTickets;
+            raffle.total_numbers = numbers.length;
+
             await queryRunner.manager.save(raffle);
 
             await queryRunner.commitTransaction();
 
-            return { message: 'Tickets regenerados correctamente', total: totalTickets };
-
-        } catch (error: any) {
+            return {
+                message: "Tickets regenerados correctamente",
+                total: numbers.length,
+            };
+        } catch (err) {
             await queryRunner.rollbackTransaction();
-
-            // 🔹 Captura errores de integridad referencial o SQL
-            if (error.code === 'ER_ROW_IS_REFERENCED_2') {
-                throw new Error('No se pueden regenerar los tickets porque existen registros relacionados (pagos o reservas activas).');
-            }
-
-            if (error.message?.includes('Duplicate entry')) {
-                throw new Error('Error generando tickets: se detectaron números duplicados.');
-            }
-
-            throw new Error('Error regenerando los tickets. Intenta nuevamente o contacta al administrador.');
+            throw err;
         } finally {
             await queryRunner.release();
         }
     }
-
-
 }

@@ -2,21 +2,22 @@ import { In } from "typeorm";
 import { AppDataSource } from "../data-source";
 import { Payment } from "../entities/payment.entity";
 import { Ticket } from "../entities/ticket.entity";
-
 import { User } from "../entities/user.entity";
 import { Raffle } from "../entities/raffle.entity";
 import { PaymentDetail } from "../entities/payment_details.entity";
 import { ReservationTicket } from "../entities/reservation_ticket.entity";
 
-
 export class PaymentService {
-  private ticketRepository = AppDataSource.getRepository(Ticket);
-  private paymentRepo = AppDataSource.getRepository(Payment);
+  private ticketRepository;
+  private paymentRepo;
 
+  constructor(private dataSource = AppDataSource) {
+    this.ticketRepository = dataSource.getRepository(Ticket);
+    this.paymentRepo = dataSource.getRepository(Payment);
+  }
 
   async createPayment(payment: any) {
-    return await AppDataSource.transaction(async (manager) => {
-
+    return await this.dataSource.transaction(async (manager) => {
       const user = await manager.getRepository(User).findOne({
         where: { id: payment.user_id },
       });
@@ -27,12 +28,11 @@ export class PaymentService {
       });
       if (!raffle) throw new Error("No se encontró la rifa");
 
-
       const tickets = await manager.getRepository(Ticket).find({
         where: { id_ticket: In(payment.ticket_ids) },
       });
-      if (tickets.length === 0) throw new Error("No hay tickets seleccionados");
-
+      if (tickets.length === 0)
+        throw new Error("No hay tickets seleccionados");
 
       const userReservations = await manager
         .getRepository(ReservationTicket)
@@ -40,14 +40,17 @@ export class PaymentService {
         .innerJoinAndSelect("resTicket.reservation", "reservation")
         .innerJoinAndSelect("reservation.user", "user")
         .innerJoinAndSelect("resTicket.ticket", "ticket")
-        .where("ticket.id_ticket IN (:...ticketIds)", { ticketIds: payment.ticket_ids })
+        .where("ticket.id_ticket IN (:...ticketIds)", {
+          ticketIds: payment.ticket_ids,
+        })
         .andWhere("user.id = :userId", { userId: payment.user_id })
         .getMany();
 
-
       for (const ticket of tickets) {
         if (ticket.raffleId !== raffle.id)
-          throw new Error(`El ticket ${ticket.id_ticket} no pertenece a esta rifa`);
+          throw new Error(
+            `El ticket ${ticket.id_ticket} no pertenece a esta rifa`
+          );
 
         if (ticket.status === "purchased")
           throw new Error(`El ticket ${ticket.id_ticket} ya fue comprado`);
@@ -57,11 +60,12 @@ export class PaymentService {
         );
 
         if (ticket.status === "reserved" && !isReservedByUser)
-          throw new Error(`El ticket ${ticket.id_ticket} está reservado por otro usuario`);
+          throw new Error(
+            `El ticket ${ticket.id_ticket} está reservado por otro usuario`
+          );
       }
 
       const totalAmount = tickets.length * Number(raffle.price);
-
 
       const paymentEntity = manager.getRepository(Payment).create({
         user,
@@ -72,7 +76,6 @@ export class PaymentService {
         transaction_id: `TX-${Date.now()}`,
       });
       await manager.getRepository(Payment).save(paymentEntity);
-
 
       for (const ticket of tickets) {
         const detail = manager.getRepository(PaymentDetail).create({
@@ -92,14 +95,16 @@ export class PaymentService {
         .createQueryBuilder("resTicket")
         .innerJoin("resTicket.reservation", "reservation")
         .innerJoin("reservation.user", "user")
-        .where("resTicket.ticketIdTicket IN (:...ticketIds)", { ticketIds: tickets.map(t => t.id_ticket) })
+        .where(
+          "resTicket.ticketIdTicket IN (:...ticketIds)",
+          { ticketIds: tickets.map((t) => t.id_ticket) }
+        )
         .andWhere("user.id = :userId", { userId: user.id })
         .getMany();
 
       if (resTicketsToDelete.length > 0) {
         await manager.getRepository(ReservationTicket).remove(resTicketsToDelete);
       }
-
 
       return {
         message: "Pago registrado correctamente",
@@ -174,47 +179,11 @@ export class PaymentService {
     };
   }
 
-
   async getAllPayments() {
-    return await this.paymentRepo.find({ relations: ["user", "raffle"] });
+    return await this.paymentRepo.find({
+      relations: ["user", "raffle"],
+    });
   }
 }
 
-
-
-/*
-{
-  "raffle_id": 1,
-  "ticket_ids": [101, 102, 103],
-  "method": "manual"
-}
-
-
-*/
-
-/*
-const user = await userRepo.findOne({
-  where: { id: payment.user_id },
-  relations: ['role'],
-});
-if (!user) throw new Error('No se encontró el usuario');
-
-// TEMPORAL: permitir que admin compre (solo en desarrollo)
-if (user.role.name === 'admin') {
-  console.warn('⚠️ Advertencia: admin comprando ticket (modo desarrollo activo)');
-  // Más adelante puedes lanzar un error aquí:
-  // throw new Error('Los administradores no pueden participar en rifas');
-}
-
-*/
-
-/*
-const tickets = await ticketRepository.find({
-  where: { 
-    ticket_number: In(payment.ticket_numbers),
-    raffle: { id: payment.raffle_id }
-  },
-  relations: ['raffle'],
-});
-
-*/
+ 

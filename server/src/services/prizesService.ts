@@ -22,7 +22,10 @@ export class PrizesService {
         return this.prizeRepo.findOne({ where: { id } });
     }
 
-    async createPrize(data: Partial<Prize>) {
+    async createPrize(
+        data: Partial<Prize> & { providerId?: number; raffleId?: number }
+    ) {
+
         if (!data.provider && (data as any).providerId) {
             const providerRepo = AppDataSource.getRepository(Provider);
             const provider = await providerRepo.findOneBy({ id: (data as any).providerId });
@@ -38,15 +41,19 @@ export class PrizesService {
         }
 
         const prize = this.prizeRepo.create(data);
-        const saved = this.prizeRepo.save(prize);
+
+        // ⭐ SOLUCIÓN: faltaba el await
+        const saved = await this.prizeRepo.save(prize);
 
         return {
             message: 'Premio creado correctamente',
             data: saved
-        }
-    }
+        };
+    } async updatePrize(
+        id: number,
+        data: Partial<Prize> & { providerId?: number; raffleId?: number }
+    ) {
 
-    async updatePrize(id: number, data: Partial<Prize>) {
         const prize = await this.prizeRepo.findOne({ where: { id } });
         if (!prize) throw new Error('Premio no encontrado');
 
@@ -107,7 +114,18 @@ export class PrizesService {
 
 
 
-    async selectWinner(prizeId: number) {
+    async selectWinner(
+        prizeId: number
+    ): Promise<{
+        prizeId: number;
+        prizeName: string;
+        winnerTicket: {
+            id_ticket: number;
+            ticket_number: number;
+            user: { id: number; name: string; email: string };
+        };
+    }> {
+
         const prize = await this.prizeRepo.findOne({
             where: { id: prizeId },
             relations: ['raffle', 'raffle.tickets'],
@@ -120,15 +138,16 @@ export class PrizesService {
             throw new Error('No hay tickets comprados para esta rifa');
         }
 
-
         const winnerTicket = purchasedTickets[Math.floor(Math.random() * purchasedTickets.length)];
-
 
         const paymentDetail = await this.paymentDetailRepo.findOne({
             where: { ticket: { id_ticket: winnerTicket.id_ticket } },
             relations: ['payment', 'payment.user'],
         });
 
+        if (!paymentDetail?.payment?.user) {
+            throw new Error("No se encontró el usuario asociado al ticket ganador");
+        }
 
         prize.winner_ticket = winnerTicket;
         await this.prizeRepo.save(prize);
@@ -138,17 +157,17 @@ export class PrizesService {
             prizeName: prize.name,
             winnerTicket: {
                 id_ticket: winnerTicket.id_ticket,
-                ticket_number: winnerTicket.ticket_number,
-                user: paymentDetail?.payment?.user
-                    ? {
-                        id: paymentDetail.payment.user.id,
-                        name: paymentDetail.payment.user.name,
-                        email: paymentDetail.payment.user.email,
-                    }
-                    : null,
+                ticket_number: Number(winnerTicket.ticket_number),
+                user: {
+                    id: paymentDetail.payment.user.id,
+                    name: paymentDetail.payment.user.name,
+                    email: paymentDetail.payment.user.email,
+                }
             },
         };
+
     }
+
     async getWinners(raffleId?: number) {
         const qb = this.prizeRepo
             .createQueryBuilder('prize')

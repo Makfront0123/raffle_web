@@ -2,13 +2,18 @@ import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn } f
 import { Raffle } from "./raffle.entity";
 import { Provider } from "./provider.entity";
 import { Ticket } from "./ticket.entity";
-export type PrizeType = 'cash' | 'trip' | 'product';
+export enum PrizeType {
+  CASH = 'cash',
+  TRIP = 'trip',
+  PRODUCT = 'product',
+}
+
 @Entity('prizes')
 export class Prize {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @ManyToOne(() => Raffle, raffle => raffle.prizes,{ onDelete: 'CASCADE' })
+  @ManyToOne(() => Raffle, raffle => raffle.prizes, { onDelete: 'CASCADE' })
   raffle!: Raffle;
 
   @ManyToOne(() => Provider, provider => provider.prizes, { onDelete: 'CASCADE' })
@@ -16,8 +21,8 @@ export class Prize {
 
   @Column({
     type: 'enum',
-    enum: ['cash', 'trip', 'product'],
-    default: 'product'
+    enum: PrizeType,
+    default: PrizeType.PRODUCT
   })
   type!: PrizeType;
 

@@ -1,41 +1,47 @@
 import { AppDataSource } from "../data-source";
-import { Payment } from "../entities/payment.entity";
-import { PaymentDetail } from "../entities/payment_details.entity";
 import { Ticket } from "../entities/ticket.entity";
+import { Payment } from "../entities/payment.entity";
 
 export class TicketService {
-    private ticketRepo = AppDataSource.getRepository(Ticket);
-    private paymentRepo = AppDataSource.getRepository(Payment);
+    private ticketRepo;
+    private paymentRepo;
+
+    constructor(repos?: { ticket?: any; payment?: any }) {
+        this.ticketRepo = repos?.ticket ?? AppDataSource.getRepository(Ticket);
+        this.paymentRepo = repos?.payment ?? AppDataSource.getRepository(Payment);
+    }
 
     async getSoldPercentage(raffleId: number) {
         const tickets = await this.ticketRepo.find({ where: { raffleId } });
+
         const total = tickets.length;
-        const sold = tickets.filter(t => t.status === 'purchased').length;
-        const reserved = tickets.filter(t => t.status === 'reserved').length;
-        const available = tickets.filter(t => t.status === 'available').length;
+        const sold = tickets.filter((t: Ticket) => t.status === "purchased").length;
+        const reserved = tickets.filter((t: Ticket) => t.status === "reserved").length;
+        const available = tickets.filter((t: Ticket) => t.status === "available").length;
+
         const percentage = total > 0 ? (sold / total) * 100 : 0;
 
-        return { raffleId, totalTickets: total, soldTickets: sold, reservedTickets: reserved, availableTickets: available, soldPercentage: percentage };
+        return {
+            raffleId,
+            totalTickets: total,
+            soldTickets: sold,
+            reservedTickets: reserved,
+            availableTickets: available,
+            soldPercentage: percentage,
+        };
     }
 
     async getTicketsByUser(userId: number, raffleId?: number) {
-        const query = this.paymentRepo
-            .createQueryBuilder("payment")
-            .leftJoinAndSelect("payment.details", "detail")
-            .leftJoinAndSelect("detail.ticket", "ticket")
-            .leftJoinAndSelect("payment.raffle", "raffle")
-            .where("payment.userId = :userId", { userId });
+        const payments = await this.paymentRepo.find({
+            where: raffleId
+                ? { userId, raffleId }
+                : { userId },
+            relations: ["details", "details.ticket", "raffle"],
+            order: { created_at: "DESC" },
+        });
 
-        if (raffleId) {
-            query.andWhere("payment.raffleId = :raffleId", { raffleId });
-        }
-
-        const payments = await query
-            .orderBy("payment.created_at", "DESC")
-            .getMany();
-
-        const tickets = payments.flatMap((p: Payment) =>
-            p.details.map((d: PaymentDetail) => ({
+        return payments.flatMap((p: any) =>
+            p.details.map((d: any) => ({
                 id_ticket: d.ticket.id_ticket,
                 ticket_number: d.ticket.ticket_number,
                 purchased_at: d.ticket.purchased_at,
@@ -54,7 +60,5 @@ export class TicketService {
                 },
             }))
         );
-
-        return tickets;
     }
 }
