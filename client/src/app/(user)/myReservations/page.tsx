@@ -5,7 +5,6 @@ import PaginationControls from "@/components/user/reservations/PaginationControl
 import ReservationsList from "@/components/user/reservations/ReservationList";
 import { useReservationsLogic } from "@/hook/useReservationsLogic";
 
-
 export default function ReservationsPage() {
   const {
     loading,
@@ -24,8 +23,10 @@ export default function ReservationsPage() {
   if (error) return <div className="p-10 text-red-500">{error}</div>;
 
   return (
-    <div className="w-full min-h-[100vh] md:px-20 px-0 py-16">
-      <h1 className="text-3xl font-bold mb-8 text-black">🎟️ Tus Reservas</h1>
+    <div className="w-full min-h-[100vh] md:px-20 px-4 py-16 text-white">
+      <h1 className="text-4xl font-bold mb-10 text-gold drop-shadow-md">
+        🎟️ Tus Reservas
+      </h1>
 
       <ReservationsList
         paginatedReservations={paginatedReservations}

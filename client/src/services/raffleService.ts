@@ -17,11 +17,9 @@ export class RaffleService {
         };
     }
 
-    async getAllRaffles(token: string): Promise<Raffle[]> {
+    async getAllRaffles(): Promise<Raffle[]> {
         try {
-            const res = await axios.get(`${API_URL}`, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
+            const res = await axios.get(`${API_URL}`);
             return res.data;
         } catch (error: any) {
             return this.handleError(error, "Error obteniendo las rifas");

@@ -11,16 +11,16 @@ export function useRaffles() {
   const { token } = AuthStore();
 
   const refreshRaffles = useCallback(async () => {
-    if (!token) return;
+
     setLoading(true);
     try {
-      await getRaffles(token);
+      await getRaffles();
     } catch {
       setError("Error cargando rifas");
     } finally {
       setLoading(false);
     }
-  }, [getRaffles, token]);
+  }, [getRaffles]);
 
   useEffect(() => {
     refreshRaffles();

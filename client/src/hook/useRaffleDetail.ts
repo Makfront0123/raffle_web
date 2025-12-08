@@ -66,15 +66,40 @@ export function useRaffleDetail() {
   const getTicketColor = (status: string) => {
     switch (status) {
       case "available":
-        return "bg-green-100 text-green-800 border-green-300 hover:bg-green-200";
+        return `
+        bg-gold/30 
+        border border-gold 
+        text-white 
+        hover:bg-gold/40
+      `;
+
       case "reserved":
-        return "bg-blue-100 text-blue-800 border-blue-300 cursor-not-allowed opacity-70";
+        return `
+        bg-white/20 
+        border border-white/40 
+        text-white/70 
+        cursor-not-allowed 
+        opacity-70
+      `;
+
       case "purchased":
-        return "bg-red-100 text-red-800 border-red-300 cursor-not-allowed opacity-70";
+        return `
+        bg-red-700/60 
+        border border-red-500 
+        text-white 
+        cursor-not-allowed 
+        opacity-70
+      `;
+
       default:
-        return "bg-gray-100 text-gray-700 border-gray-300";
+        return `
+        bg-gray-500/20 
+        border border-gray-500/40 
+        text-white/70
+      `;
     }
   };
+
 
   const handleTicketSelect = (ticket: Ticket) => {
     if (ticket.status !== "available") {

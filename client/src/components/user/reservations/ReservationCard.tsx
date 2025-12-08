@@ -36,25 +36,32 @@ export default function ReservationCard({
 
   return (
     <>
-      <Card className="p-10 bg-purple-800 text-white border border-gray-700">
+      <Card className="
+        p-8 bg-yellow-400/40 
+        text-white border border-gold 
+        backdrop-blur-sm shadow-xl rounded-2xl
+        transition-all hover:scale-[1.02]
+      ">
         <CardHeader>
-          <h3 className="font-semibold text-lg">{raffle?.title}</h3>
-          <p className="text-sm text-gray-400">
+          <h3 className="font-semibold text-xl text-gold">
+            {raffle?.title}
+          </h3>
+          <p className="text-sm text-white/60">
             Ticket #{ticket.ticket_number} — {ticket.status}
           </p>
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-white/70">
             {raffle?.description}
           </p>
         </CardHeader>
 
         <CardContent>
-          <p>
-            ⏳ Expira en: <span className="font-semibold">{countdown}</span>
+          <p className="text-white/80">
+            ⏳ Expira en: <span className="font-bold text-gold">{countdown}</span>
           </p>
 
-          <div className="flex mt-5">
+          <div className="flex mt-6 gap-4">
             <Button
-              className="bg-red-500 hover:bg-red-600"
+              className="bg-red-600 hover:bg-red-700 text-white"
               disabled={canceling === reservation.id}
               onClick={() => onCancel(reservation.id)}
             >
@@ -63,7 +70,7 @@ export default function ReservationCard({
 
             {ticket.status === "reserved" && (
               <Button
-                className="bg-green-500 hover:bg-green-600 ml-8"
+                className="bg-gold text-black hover:bg-gold/80"
                 onClick={() => setOpen(true)}
               >
                 Comprar
@@ -74,13 +81,17 @@ export default function ReservationCard({
       </Card>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
+        <DialogContent className="bg-purple-900/90 text-white border border-gold">
           <DialogHeader>
-            <DialogTitle>Ticket #{ticket.ticket_number}</DialogTitle>
-            <p className="text-sm text-gray-500">Precio: ${raffle?.price}</p>
+            <DialogTitle className="text-gold">
+              Ticket #{ticket.ticket_number}
+            </DialogTitle>
+            <p className="text-sm text-white/70">
+              Precio: ${raffle?.price}
+            </p>
           </DialogHeader>
 
-          <div className="flex flex-col gap-2 mt-4">
+          <div className="flex flex-col gap-3 mt-4">
             <Button
               onClick={() => onPay("nequi", raffle!.id, ticket.id_ticket)}
               className="bg-pink-500 hover:bg-pink-600 text-white"

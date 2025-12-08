@@ -1,6 +1,6 @@
 "use client";
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
 interface Props {
@@ -16,32 +16,45 @@ export default function RaffleTicketModal({ open, setOpen, ticket, raffle, handl
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent>
+      <DialogContent className="bg-[#0B0B0B] border border-gold/40 text-white">
+
         <DialogHeader>
-          <DialogTitle>Ticket #{ticket.ticket_number}</DialogTitle>
-          <p className="text-sm text-gray-500">Precio: ${raffle.price}</p>
+          <DialogTitle className="text-gold text-xl drop-shadow-[0_0_8px_rgba(212,175,55,0.4)]">
+            Ticket #{ticket.ticket_number}
+          </DialogTitle>
+          <p className="text-sm text-white/60">Precio: ${raffle.price}</p>
         </DialogHeader>
 
-        <DialogDescription>Selecciona cuántos números deseas comprar</DialogDescription>
+        <p className="text-white/80 text-sm mt-2">
+          Selecciona tu método de pago:
+        </p>
 
-
-        <div className="flex flex-col gap-2 mt-4">
-          <Button onClick={() => handleAction("nequi")} className="bg-pink-500 hover:bg-pink-600 text-white">
+        <div className="flex flex-col gap-3 mt-4">
+          <Button
+            onClick={() => handleAction("nequi")}
+            className="bg-gold text-white font-bold hover:bg-gold/80"
+          >
             Pagar con Nequi
           </Button>
-          <Button onClick={() => handleAction("daviplata")} className="bg-purple-500 hover:bg-purple-600 text-white">
+
+          <Button
+            onClick={() => handleAction("daviplata")}
+            className="bg-gold/70 text-white font-bold hover:bg-gold"
+          >
             Pagar con Daviplata
           </Button>
-          <Button onClick={() => handleAction("reserve")} variant="outline">
+
+          <Button onClick={() => handleAction("reserve")} variant="outline" className="border-gold text-yellow-500">
             Reservar Ticket
           </Button>
         </div>
 
         <DialogFooter>
-          <Button variant="ghost" onClick={() => setOpen(false)}>
+          <Button variant="ghost" onClick={() => setOpen(false)} className="text-white/70 hover:text-white">
             Cancelar
           </Button>
         </DialogFooter>
+
       </DialogContent>
     </Dialog>
   );

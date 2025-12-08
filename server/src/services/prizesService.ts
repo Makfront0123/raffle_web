@@ -176,7 +176,8 @@ export class PrizesService {
             .leftJoin('payment_details', 'pd', 'pd.ticketId = ticket.id_ticket')
             .leftJoin('payments', 'p', 'p.id = pd.paymentId')
             .leftJoin('users', 'u', 'u.id = p.userId')
-            .where('prize.winner_ticket IS NOT NULL');
+            .where('prize.winnerTicketIdTicket IS NOT NULL');
+
 
         if (raffleId) {
             qb.andWhere('raffle.id = :raffleId', { raffleId });
@@ -192,7 +193,8 @@ export class PrizesService {
             'ticket.ticket_number AS winner_ticket',
             'u.id AS user_id',
             'u.name AS user_name',
-            'u.email AS user_email'
+            'u.email AS user_email',
+            'u.picture AS user_picture'
         ]).getRawMany();
 
 
@@ -204,10 +206,65 @@ export class PrizesService {
             raffle_id: p.raffle_id,          // <-- agregar ID
             raffle_title: p.raffle_title,
             winner_ticket: p.winner_ticket,
-            winner_user: p.user_name ? `${p.user_name} (${p.user_email})` : null,
+            winner_user: p.user_id
+                ? {
+                    id: p.user_id,
+                    name: p.user_name,
+                    email: p.user_email,
+                    picture: p.user_picture,
+                }
+                : null,
+
         }));
 
     }
+
+    async getWinner(raffleId: number) {
+        if (!raffleId) {
+            throw new Error("Raffle ID requerido");
+        }
+
+        // 1️⃣ Obtener premio con su ticket ganador
+        const prize = await this.prizeRepo.findOne({
+            where: { raffle: { id: raffleId } },
+            relations: ['raffle', 'winner_ticket'],
+        });
+
+        if (!prize || !prize.winner_ticket) {
+            return null; // no hay ganador aún
+        }
+
+        // 2️⃣ Buscar el usuario dueño del ticket
+        const detail = await this.paymentDetailRepo.findOne({
+            where: { ticket: { id_ticket: prize.winner_ticket.id_ticket } },
+            relations: ['payment', 'payment.user'],
+        });
+
+        const user = detail?.payment?.user;
+
+        return {
+            prize_id: prize.id,
+            name: prize.name,
+            type: prize.type,
+            value: prize.value,
+            raffle_id: prize.raffle.id,
+            raffle_title: prize.raffle.title,
+
+            winner_ticket: {
+                id_ticket: prize.winner_ticket.id_ticket,
+                ticket_number: prize.winner_ticket.ticket_number,
+            },
+
+            winner_user: user
+                ? {
+                    id: user.id,
+                    name: user.name,
+                    email: user.email,
+                }
+                : null
+        };
+    }
+
 
     async closeRaffle(raffleId: number) {
         if (!raffleId) throw new Error("Raffle ID requerido");

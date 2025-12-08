@@ -7,9 +7,9 @@ export const useRaffleStore = create<RaffleStore>()((set, get) => ({
     raffles: [],
     setRaffles: (raffles: Raffle[]) => set({ raffles }),
 
-    getRaffles: async (token: string) => {
+    getRaffles: async () => {
         const raffleService = new RaffleService();
-        const raffles = await raffleService.getAllRaffles(token);
+        const raffles = await raffleService.getAllRaffles();
         set({ raffles });
     },
 
@@ -131,7 +131,7 @@ export const useRaffleStore = create<RaffleStore>()((set, get) => ({
 interface RaffleStore {
     raffles: Raffle[];
     setRaffles: (raffles: Raffle[]) => void;
-    getRaffles: (token: string) => Promise<void>;
+    getRaffles: () => Promise<void>;
     getRaffleById: (id: number, token: string) => Promise<Raffle>;
     addRaffle: (raffle:Partial<Raffle>, token: string) => Promise<Raffle>;
     deleteRaffle: (id: number, token: string) => Promise<boolean>;

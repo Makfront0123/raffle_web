@@ -1,58 +1,65 @@
 "use client";
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Winner } from "@/type/Winner";
+
 interface Props {
   showExpiredModal: any;
   setShowExpiredModal: (v: any) => void;
-  winners: any[];
-  loadingWinners: boolean;
+  winner: Winner | null;
+  loadingWinner: boolean;
 }
-export default function RaffleExpiredModal({
+
+export default function RaffleExpiredModalPremium({
   showExpiredModal,
   setShowExpiredModal,
-  winners,
-  loadingWinners,
+  winner,
+  loadingWinner
 }: Props) {
+  
   return (
     <Dialog open={!!showExpiredModal} onOpenChange={() => setShowExpiredModal(null)}>
-      <DialogContent>
+      <DialogContent className="bg-black/80 text-gold border border-gold/30 shadow-2xl backdrop-blur-xl rounded-2xl">
+
         <DialogHeader>
-          <DialogTitle>Rifa finalizada</DialogTitle>
-          {/* Descripción accesible requerida por Radix */}
-          <DialogDescription>
-            Información sobre la rifa finalizada y sus ganadores.
+          <DialogTitle className="text-2xl font-bold text-yellow-400">🎉 Rifa Finalizada</DialogTitle>
+          <DialogDescription className="text-yellow-400/60">
+            Información del ganador.
           </DialogDescription>
         </DialogHeader>
 
-        <p>
-          La rifa <strong>{showExpiredModal?.title}</strong> ha terminado 🎉
+        <p className="text-white">
+          La rifa <strong>{showExpiredModal?.title}</strong> ha terminado.
         </p>
 
         <div className="mt-4">
-          <h3 className="font-semibold mb-2">🏆 Ganadores</h3>
+          <h3 className="font-semibold mb-2 text-lg text-white">🏆 Ganador</h3>
 
-          {loadingWinners ? (
-            <p className="text-gray-500">Cargando ganadores...</p>
-          ) : winners.length === 0 ? (
-            <p className="text-gray-500">Aún no hay ganadores para esta rifa.</p>
+          {
+          loadingWinner ? (
+            <p className="text-gold/60">Cargando ganador...</p>
+          ) : !winner ? (
+            <p className="text-gold/60">Aún no hay ganador.</p>
           ) : (
-            winners
-              .filter((w: Winner) => w.raffle_id === showExpiredModal?.id)
-              .map((w: Winner) => (
-                <div key={w.id} className="p-3 mb-2 border rounded-lg shadow-sm bg-gray-50">
-                  <p className="font-medium">{w.prize_name}</p>
-                  <p>🎟️ Ticket ganador: {w.winner_ticket}</p>
-                  <p>👤 {w.winner_user ?? "Usuario desconocido"}</p>
-                  <p>💰 Valor: ${w.value}</p>
-                </div>
-              ))
+            <div className="p-4 mb-2 border border-gold/50 rounded-xl bg-yellow-400/40 shadow-md">
+              <p className="font-medium text-gold">{winner.prize_name}</p>
+              <p>🎟️ Ticket: {winner.winner_ticket.ticket_number}</p>
+              <p>👤 {winner.winner_user?.name ?? "Usuario desconocido"}</p>
+              <p>💰 Valor: ${winner.value}</p>
+            </div>
           )}
         </div>
 
         <div className="flex justify-end mt-6">
-          <Button onClick={() => setShowExpiredModal(null)}>Cerrar</Button>
+          <Button
+            className="bg-gold text-white hover:bg-yellow-400"
+            onClick={() => setShowExpiredModal(null)}
+          >
+            Cerrar
+          </Button>
         </div>
+
       </DialogContent>
     </Dialog>
   );

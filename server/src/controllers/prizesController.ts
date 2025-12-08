@@ -6,9 +6,18 @@ export class PrizesController {
 
     async getWinners(req: Request, res: Response) {
         try {
-            const raffleId = Number(req.params.raffleId);
-            const winners = await this.prizesService.getWinners(raffleId);
+            const winners = await this.prizesService.getWinners();
             res.status(200).json(winners);
+        } catch (error) {
+            res.status(500).json({ message: 'Error obteniendo premios', error });
+        }
+    }
+
+    async getWinner(req: Request, res: Response) {
+        try {
+            const raffleId = Number(req.params.raffleId);
+            const winner = await this.prizesService.getWinner(raffleId);
+            res.status(200).json(winner);
         } catch (error) {
             res.status(500).json({ message: 'Error obteniendo premios', error });
         }

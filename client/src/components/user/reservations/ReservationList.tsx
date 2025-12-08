@@ -16,10 +16,14 @@ export default function ReservationsList({
   onPay: (method: "nequi" | "daviplata", raffleId: number, ticketId: number) => Promise<void>;
 }) {
   if (paginatedReservations.length === 0)
-    return <div className="text-gray-400">No tienes reservas activas</div>;
+    return (
+      <div className="text-white/60 text-center">
+        No tienes reservas activas
+      </div>
+    );
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
       {paginatedReservations.map((r) => {
         const ticket = r.reservationTickets?.[0]?.ticket;
         if (!ticket) return null;

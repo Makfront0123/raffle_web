@@ -7,10 +7,19 @@ import { PrizeForm, Prizes } from "@/type/Prizes";
 import { Winner } from "@/type/Winner";
 
 export function usePrizes() {
-   const { token } = AuthStore();
- 
-  const { prizes = [], winners = [], getPrizes, addPrize, updatePrize, getWinners, deletePrize } = usePrizeStore();
-  
+  const { token } = AuthStore();
+
+  const {
+    prizes = [],
+    winners = [],
+    winner = null,
+    getPrizes,
+    getWinners,
+    getWinner,
+    addPrize,
+    updatePrize,
+    deletePrize,
+  } = usePrizeStore();
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -18,53 +27,47 @@ export function usePrizes() {
   const [filteredWinners, setFilteredWinners] = useState<Winner[]>([]);
   const [activeRaffleId, setActiveRaffleId] = useState<number | null>(null);
 
+
   useEffect(() => {
     const fetchData = async () => {
-      // 🔥 si no hay token, dejar loading en false
-      if (!token) {
-        setLoading(false);
-        return;
-      }
-
       setLoading(true);
       try {
-        await getPrizes(token);
-        await getWinners("all", token);
+        await getPrizes();
+        await getPrizes();
+        await getWinners();
+
       } catch (err) {
         console.error(err);
-        setError("Error cargando premios");
+        setError("Error cargando premios o ganadores");
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [getPrizes, getWinners, token]);
+  }, [getPrizes, getWinners, getWinner, token]);
 
 
   useEffect(() => {
     if (filterRaffle === "all") {
-      setFilteredWinners(winners || []);
+      setFilteredWinners(winners);
     } else {
-      setFilteredWinners(winners?.filter((w) => w.raffle_id === filterRaffle) || []);
+      setFilteredWinners(winners.filter((w) => w.raffle_id === filterRaffle));
     }
   }, [filterRaffle, winners]);
 
   useEffect(() => {
+    if (activeRaffleId === null) return;
+
     const fetchWinnersForRaffle = async () => {
-      if (!token) {
-        setLoading(false);
-        return;
-      }
+      if (!token) return;
 
       setLoading(true);
       try {
-        if (activeRaffleId) {
-          await getWinners(activeRaffleId, token);
-        } else {
-          await getWinners("all", token);
-        }
-        setFilterRaffle(activeRaffleId ?? "all");
+        const id = activeRaffleId ?? "all";
+        await getWinners();
+        await getWinner(id);
+        setFilterRaffle(id);
       } catch (err) {
         console.error(err);
         setError("Error cargando ganadores por rifa");
@@ -74,7 +77,8 @@ export function usePrizes() {
     };
 
     fetchWinnersForRaffle();
-  }, [activeRaffleId, getWinners, token]);
+  }, [activeRaffleId, getWinners, getWinner, token]);
+
 
 
   const createPrize = async (newPrize: PrizeForm) => {
@@ -91,9 +95,8 @@ export function usePrizes() {
         },
         token
       );
-      await getPrizes(token);
-    } catch (err) {
-      console.error(err);
+      await getPrizes();
+    } catch {
       setError("Error creando premio");
     }
   };
@@ -103,28 +106,27 @@ export function usePrizes() {
     if (!token) return setError("No hay token disponible");
     try {
       await updatePrize(id, updatedPrize, token);
-      await getPrizes(token);
-    } catch (err) {
-      console.error(err);
+      await getPrizes();
+    } catch {
       setError("Error actualizando premio");
     }
   };
-
 
   const handleDeletePrize = async (id: number) => {
     if (!token) return setError("No hay token disponible");
     try {
       await deletePrize(id, token);
-      await getPrizes(token);
-    } catch (err) {
-      console.error(err);
+      await getPrizes();
+    } catch {
       setError("Error eliminando premio");
     }
   };
 
   return {
-    prizes: prizes || [],
+
+    prizes,
     winners: filteredWinners,
+    winner,
     loading,
     error,
     filterRaffle,
@@ -133,6 +135,5 @@ export function usePrizes() {
     createPrize,
     editPrize,
     deletePrize: handleDeletePrize,
-    updatePrize,
   };
 }

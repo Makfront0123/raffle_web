@@ -10,16 +10,26 @@ const prizesService = new PrizesService();
 const prizesController = new PrizesController(prizesService);
 
  
-router.get('/', authMiddleware, prizesController.getAllPrizes.bind(prizesController));
+router.get('/', prizesController.getAllPrizes.bind(prizesController));
 router.post('/', authMiddleware, adminMiddleware, prizesController.createPrize.bind(prizesController));
 
+
+// ⬇⬇⬇ RUTAS SIN PARÁMETROS PRIMERO ⬇⬇⬇
+router.get('/winners', prizesController.getWinners.bind(prizesController));   // ← TODOS LOS GANADORES
+
+
+// ⬇⬇⬇ luego rutas con parámetros ESPECÍFICOS ⬇⬇⬇
+router.get('/:raffleId/winner', prizesController.getWinner.bind(prizesController)); // ← GANADOR POR RIFA
+
+
+// ⬇⬇⬇ luego rutas con parámetro libre :id ⬇⬇⬇
 router.post('/:id/select-winner', prizesController.selectWinner.bind(prizesController));
 router.post('/:raffleId/close-raffle', authMiddleware, adminMiddleware, prizesController.closeRaffle.bind(prizesController));
 
-router.get('/:raffleId/winners', authMiddleware, prizesController.getWinners.bind(prizesController));
-
 router.delete('/:id', authMiddleware, adminMiddleware, prizesController.deletePrize.bind(prizesController));
 router.patch('/:id', authMiddleware, adminMiddleware, prizesController.updatePrize.bind(prizesController));
+
+
 
 export default router;
 

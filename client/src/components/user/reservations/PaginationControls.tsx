@@ -18,11 +18,11 @@ export default function PaginationControls({
 }) {
   return (
     <Pagination className="mt-10">
-      <PaginationContent>
+      <PaginationContent className="text-white">
         <PaginationItem>
           <PaginationPrevious
             onClick={() => onChange(Math.max(1, page - 1))}
-            className="cursor-pointer bg-white"
+            className="cursor-pointer bg-white/10 border border-gold text-gold hover:bg-gold/20"
           />
         </PaginationItem>
 
@@ -31,6 +31,10 @@ export default function PaginationControls({
             <PaginationLink
               isActive={page === i + 1}
               onClick={() => onChange(i + 1)}
+              className={page === i + 1
+                ? "bg-gold text-black"
+                : "bg-white/10 text-white hover:bg-white/20"
+              }
             >
               {i + 1}
             </PaginationLink>
@@ -40,7 +44,7 @@ export default function PaginationControls({
         <PaginationItem>
           <PaginationNext
             onClick={() => onChange(Math.min(totalPages, page + 1))}
-            className="cursor-pointer bg-white"
+            className="cursor-pointer bg-white/10 border border-gold text-gold hover:bg-gold/20"
           />
         </PaginationItem>
       </PaginationContent>

@@ -1,6 +1,7 @@
 "use client";
 
-import { RaffleCard } from "@/components/RaffleCard";
+import RaffleCard from "@/components/RaffleCard";
+
 import LoadingScreen from "@/components/LoadingScreen";
 import { useFilteredRaffles } from "@/hook/useFilteredRaffles";
 import { usePrizes } from "@/hook/usePrizes";
@@ -8,6 +9,9 @@ import RaffleExpiredModal from "@/components/user/raffles/RaffleExpiredModal";
 import { useState, useEffect } from "react";
 import RaffleFilters from "@/components/user/raffles/RafflesFilters";
 import RafflePagination from "@/components/user/raffles/RafflesPagination";
+
+
+
 export default function Raffles() {
   const {
     filteredRaffles,
@@ -25,10 +29,11 @@ export default function Raffles() {
     setShowExpiredModal,
   } = useFilteredRaffles();
 
-  const { winners, loading: loadingWinners, setActiveRaffleId } = usePrizes();
+  const { winner,setActiveRaffleId,loading: loadingWinner } = usePrizes();
+
 
   const [currentPage, setCurrentPage] = useState(1);
-  const rafflesPerPage = 6;
+  const rafflesPerPage = 3;
 
   const totalPages = Math.ceil(filteredRaffles.length / rafflesPerPage);
   const paginatedRaffles = filteredRaffles.slice(
@@ -41,12 +46,14 @@ export default function Raffles() {
   }, [showExpiredModal]);
 
   return (
-    <div className="w-full min-h-[120vh] px-10 py-10 flex flex-col md:items-start items-center">
+    <div className="w-full min-h-screen px-6 py-16 bg-gradient-to-b from-black via-yellow-500 to-black text-white">
+
       {loading && <LoadingScreen />}
       {error && <div className="text-red-500">{error}</div>}
 
-      <h1 className="text-3xl font-bold mb-8 text-black">
-        🎟️ Explora nuestras rifas
+      {/* TÍTULO PREMIUM */}
+      <h1 className="text-center text-4xl font-extrabold mb-12 text-gold drop-shadow-[0_0_12px_rgba(255,215,0,0.6)]">
+        🎟️ Rifas Premium
       </h1>
 
       <RaffleFilters
@@ -66,26 +73,32 @@ export default function Raffles() {
         totalPages={totalPages}
       />
 
-      <div className="flex flex-wrap gap-10 mt-10">
-        {paginatedRaffles.length === 0 ? (
-          <p>No se encontraron rifas 😢</p>
-        ) : (
-          paginatedRaffles.map((raffle) => (
-            <RaffleCard
-              key={raffle.id}
-              raffle={raffle}
-              setShowExpiredModal={setShowExpiredModal}
-            />
-          ))
-        )}
+      {/* GRID PREMIUM */}
+      <div className="w-full flex justify-center mt-10">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12 mt-10">
+          {paginatedRaffles.length === 0 ? (
+            <p className="text-center col-span-full text-gray-400">
+              No se encontraron rifas 😢
+            </p>
+          ) : (
+            paginatedRaffles.map((raffle) => (
+              <RaffleCard
+                key={raffle.id}
+                raffle={raffle}
+                setShowExpiredModal={setShowExpiredModal}
+              />
+            ))
+          )}
+        </div>
       </div>
 
       <RaffleExpiredModal
         showExpiredModal={showExpiredModal}
         setShowExpiredModal={setShowExpiredModal}
-        winners={winners}
-        loadingWinners={loadingWinners}
+        winner={winner}
+        loadingWinner={loadingWinner}
       />
+
     </div>
   );
 }
