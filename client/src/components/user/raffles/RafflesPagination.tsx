@@ -13,8 +13,6 @@ export default function RafflesPagination({
   totalPages,
   setCurrentPage,
 }: Props) {
-  console.log("📍 paginator:", { currentPage, totalPages });
-
  if (totalPages === 0) return null;
 
 

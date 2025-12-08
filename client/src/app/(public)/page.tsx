@@ -13,7 +13,6 @@ import { usePrizes } from "@/hook/usePrizes";
 export default function Home() {
   const loading = useLoadingScreen(300);
 
-
   const { filteredRaffles } = useFilteredRaffles();
   const { winners } = usePrizes();
 

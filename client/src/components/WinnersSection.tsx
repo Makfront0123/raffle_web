@@ -36,7 +36,7 @@ export default function WinnersSection({ winners }: { winners: Winner[] }) {
 
           {paginatedWinners.map((w: Winner) => (
             <motion.div
-              key={w.id}
+              key={w?.id}
               className="bg-black/60 border border-gold/40 rounded-xl shadow-lg p-5 flex flex-col items-center text-center backdrop-blur-xl"
               initial={{ opacity: 0, y: 10 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -49,13 +49,12 @@ export default function WinnersSection({ winners }: { winners: Winner[] }) {
               </h3>
               <p className="text-gray-300 text-sm mt-1">{w.raffle_title}</p>
               <p className="text-gold font-bold text-lg mt-2">
-                {w.winner_ticket}
+                {w.winner_ticket.ticket_number}
               </p>
             </motion.div>
           ))}
         </div>
-
-        {/* PAGINADOR */}
+ 
         <div className="flex justify-center items-center gap-4 mt-10">
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}

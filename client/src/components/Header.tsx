@@ -16,10 +16,14 @@ import {
   SheetDescription,
 } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
+import { usePathname } from "next/navigation";
 
 const mainRoutes = appRoutes[0]?.children || [];
 
 export function Header() {
+  const pathName = usePathname();
+  const isHome = pathName === "/";
+  console.log("isHome:", isHome ?? true);
   const { user, logout } = useAuth();
   const [openAuth, setOpenAuth] = useState(false);
   const [openMenu, setOpenMenu] = useState(false);
@@ -27,11 +31,12 @@ export function Header() {
 
   return (
     <header
-      className="
-        w-full sticky top-0 z-50 
-        bg-[#0B0B0B]/80 backdrop-blur-xl 
-        border-b border-yellow-500/20 shadow-lg
-      "
+      className={`
+    w-full sticky top-0 z-50 
+    bg-[#0B0B0B]/80 backdrop-blur-xl 
+    border-b border-yellow-500/20 shadow-lg
+    ${isHome ? "premium-led-border" : ""}
+  `}
     >
       <nav className="w-full px-6 py-4 flex justify-between items-center text-white max-w-7xl mx-auto">
 
