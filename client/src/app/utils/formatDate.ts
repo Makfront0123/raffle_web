@@ -5,12 +5,7 @@ export interface TimeRemaining {
   minutes: number;
   seconds: number;
 }
-
-/**
- * Calcula el tiempo restante de forma segura en UTC
- */
 export function getTimeRemaining(expireDate: string | Date): TimeRemaining {
-  // Convierte la fecha a timestamp en milisegundos UTC
   const total = new Date(expireDate).getTime() - Date.now();
 
   const seconds = Math.floor((total / 1000) % 60);
@@ -20,9 +15,7 @@ export function getTimeRemaining(expireDate: string | Date): TimeRemaining {
 
   return { total, days, hours, minutes, seconds };
 }
-/**
- * Formatea el tiempo restante para mostrarlo bonito
- */
+
 export function formatCountdown(time: TimeRemaining) {
   const { days, hours, minutes, seconds, total } = time;
   if (total <= 0) return "Expirada";

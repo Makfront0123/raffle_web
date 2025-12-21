@@ -8,7 +8,7 @@ interface Props {
   setOpen: (v: boolean) => void;
   ticket: any;
   raffle: any;
-  handleAction: (type: "nequi" | "daviplata" | "reserve") => void;
+  handleAction: (type: "card" | "pse" | "reserve")  => void;
 }
 
 export default function RaffleTicketModal({ open, setOpen, ticket, raffle, handleAction }: Props) {
@@ -31,17 +31,17 @@ export default function RaffleTicketModal({ open, setOpen, ticket, raffle, handl
 
         <div className="flex flex-col gap-3 mt-4">
           <Button
-            onClick={() => handleAction("nequi")}
+            onClick={() => handleAction("card")}
             className="bg-gold text-white font-bold hover:bg-gold/80"
           >
-            Pagar con Nequi
+            Pagar con Tarjeta
           </Button>
 
           <Button
-            onClick={() => handleAction("daviplata")}
+            onClick={() => handleAction("pse")}
             className="bg-gold/70 text-white font-bold hover:bg-gold"
           >
-            Pagar con Daviplata
+            Pagar con PSE
           </Button>
 
           <Button onClick={() => handleAction("reserve")} variant="outline" className="border-gold text-yellow-500">

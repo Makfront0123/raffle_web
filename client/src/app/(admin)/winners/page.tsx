@@ -11,7 +11,7 @@ const WinnersPage = () => {
   const { winners, loading, error, filterRaffle, setFilterRaffle, setActiveRaffleId } = usePrizes();
   const { raffles } = useRaffles();
 
-  // 🧠 Cuando cambia el valor del select, actualizamos los estados del hook
+
   const handleFilterChange = (val: string) => {
     if (val === "all") {
       setFilterRaffle("all");
@@ -26,8 +26,6 @@ const WinnersPage = () => {
   return (
     <main className="flex-1 p-6 bg-gray-50 overflow-y-auto">
       <h1 className="text-3xl font-bold mb-6">Ganadores</h1>
-
-      {/* 🎯 Filtro por rifa */}
       <div className="mb-4 w-64">
         <Label>Filtrar por Rifa</Label>
         <Select
@@ -48,7 +46,6 @@ const WinnersPage = () => {
         </Select>
       </div>
 
-      {/* 🏆 Lista de ganadores */}
       <Card>
         <CardHeader>
           <CardTitle>Ganadores Recientes</CardTitle>
@@ -76,9 +73,9 @@ const WinnersPage = () => {
                   {winners.map((w, idx) => (
                     <tr key={idx} className="border-t">
                       <td className="px-4 py-2">{w.raffle_title}</td>
-                      <td className="px-4 py-2">{w.winner_user}</td>
+                      <td className="px-4 py-2">{w.winner_user.name}</td>
                       <td className="px-4 py-2">{w.prize_name}</td>
-                      <td className="px-4 py-2">{w.winner_ticket}</td>
+                      <td className="px-4 py-2">{w.winner_ticket.ticket_number}</td>
                       <td className="px-4 py-2">${w.value}</td>
                     </tr>
                   ))}

@@ -18,7 +18,7 @@ export function startTokenWatcher() {
             return;
         }
 
-        // Cerrar sesión automáticamente cuando expire
+ 
         setTimeout(() => {
             AuthStore.getState().logout();
             window.location.href = "/";

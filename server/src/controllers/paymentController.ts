@@ -1,8 +1,9 @@
 import { Request, Response } from 'express';
 import { PaymentService } from '../services/paymentService';
 
+
 export class PaymentController {
-    constructor(private paymentService: PaymentService) {}
+    constructor(private paymentService: PaymentService) { }
 
     async getAllPayments(req: Request, res: Response) {
         try {
@@ -82,4 +83,71 @@ export class PaymentController {
             res.status(500).json({ message: 'Error al cancelar el pago', error });
         }
     }
+
+    async createWompiPayment(req: Request, res: Response) {
+        try {
+            const userId = (req as any).user.id;
+            const { ticket_id, method, reference } = req.body;
+
+            if (!ticket_id || !method || !reference)
+                return res.status(400).json({ message: "Datos incompletos" });
+
+
+            const result = await this.paymentService.createWompiPayment({
+                userId,
+                ticketId: ticket_id,
+                method,
+                reference,
+
+            });
+
+            return res.status(201).json(result);
+
+        } catch (error: any) {
+            console.error(error);
+            return res.status(400).json({
+                message: error.message || "Error creando pago Wompi"
+            });
+        }
+    }
+
+
+    async wompiWebhook(req: Request, res: Response) {
+        try {
+            const result = await this.paymentService.wompiWebhook(req, res);
+            return result;
+        } catch (error) {
+            console.log(error);
+            return res.status(500).json({ message: "Error en webhook", error });
+        }
+    }
+
+    async getWompiSignature(req: Request, res: Response) {
+        try {
+            const { reference, amount_in_cents, currency } = req.body;
+
+            if (!reference || !amount_in_cents || !currency) {
+                return res.status(400).json({ message: "Datos incompletos" });
+            }
+
+            const signature = await this.paymentService.getWompiSignature(
+                reference,
+                amount_in_cents,
+                currency
+            );
+
+            return res.json({ signature });
+
+        } catch (error: any) {
+            return res.status(500).json({
+                message: "Error generando firma",
+                error: error.message,
+            });
+        }
+    }
+
+
+
+
+
 }

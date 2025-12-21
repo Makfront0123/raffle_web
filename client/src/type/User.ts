@@ -4,6 +4,7 @@ interface User {
     role?: string;
     name?: string;
     picture?: string;
+    phone_number?: string;
 }
 
 interface AuthResponse {

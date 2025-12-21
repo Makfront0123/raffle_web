@@ -17,7 +17,7 @@ export default function WinnersSection({ winners }: { winners: Winner[] }) {
   );
 
   return (
-    <section  id="winners" className="py-20 bg-black/80 relative rounded-lg shadow-lg">
+    <section id="winners" className="py-20 bg-black/80 relative rounded-lg shadow-lg">
       <div className="absolute inset-0 bg-gradient-to-b from-gold/5 to-transparent pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-6 relative z-10">
@@ -36,7 +36,7 @@ export default function WinnersSection({ winners }: { winners: Winner[] }) {
 
           {paginatedWinners.map((w: Winner) => (
             <motion.div
-              key={w?.id}
+              key={`winner-${w.prize_id}`}
               className="bg-black/60 border border-gold/40 rounded-xl shadow-lg p-5 flex flex-col items-center text-center backdrop-blur-xl"
               initial={{ opacity: 0, y: 10 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -54,7 +54,7 @@ export default function WinnersSection({ winners }: { winners: Winner[] }) {
             </motion.div>
           ))}
         </div>
- 
+
         <div className="flex justify-center items-center gap-4 mt-10">
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}

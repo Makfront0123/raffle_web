@@ -17,6 +17,9 @@ export class User {
 
   @Column({ nullable: true })
   picture?: string;
+
+  @Column({ nullable: true })
+  phone_number?: string;
   @ManyToOne(() => Role, role => role.users)
   @JoinColumn({ name: 'roleId' })
   role!: Role;

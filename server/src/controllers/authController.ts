@@ -97,6 +97,7 @@ export class AuthController {
           email: user.email,
           picture: user.picture,
           role: user.role?.name,
+          phone: user.phone_number,
         },
       });
     } catch {
@@ -136,4 +137,34 @@ export class AuthController {
       });
     }
   }
+  async updatePhone(req: Request, res: Response) {
+    try {
+      const { phone } = req.body;
+
+      if (!phone)
+        return res.status(400).json({ message: "Falta el número de teléfono" });
+
+      if (!req.user || !req.user.id) {
+        return res.status(401).json({ message: "Usuario no autenticado" });
+      }
+
+      const user = await this.userRepo.findByIdAndUpdate(req.user.id, {
+        phone_number: phone,
+      });
+
+      if (!user)
+        return res.status(404).json({ message: "Usuario no encontrado" });
+
+      return res.status(200).json({
+        message: "Número de teléfono actualizado",
+        user,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        message: "Error actualizando número de teléfono",
+        error,
+      });
+    }
+  }
+
 }

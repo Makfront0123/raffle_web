@@ -16,8 +16,6 @@ const Dashboard = () => {
   return (
     <main className="flex-1 p-4 sm:p-6 bg-gray-300 overflow-y-auto">
       <h1 className="text-2xl sm:text-3xl font-bold mb-6">Dashboard</h1>
-
-      {/* Cards de resumen */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {stats.map((stat) => (
           <Card key={stat.title} className="bg-white shadow-sm">
@@ -31,7 +29,7 @@ const Dashboard = () => {
         ))}
       </div>
 
-      {/* Últimas rifas */}
+   
       <section className="mb-6">
         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 mb-4">
           <h2 className="text-lg sm:text-xl font-semibold">Últimas Rifas</h2>
@@ -39,8 +37,6 @@ const Dashboard = () => {
             Crear Rifa
           </Button>
         </div>
-
-        {/* Contenedor con scroll horizontal controlado */}
         <div className="w-full overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
           <table className="min-w-full  text-sm text-gray-700">
             <thead className="bg-gray-100 text-gray-600">

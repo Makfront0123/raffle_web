@@ -18,6 +18,10 @@ export class Ticket {
   @Column()
   ticket_number!: string;
 
+  @Column({ type: "timestamp", nullable: true })
+  held_until?: Date | null;
+
+
 
   @CreateDateColumn({ nullable: true })
   purchased_at?: Date | null;

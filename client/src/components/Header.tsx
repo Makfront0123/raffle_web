@@ -17,17 +17,18 @@ import {
 } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
 import { usePathname } from "next/navigation";
+import { PhoneDialog } from "./PhoneDialog";
 
 const mainRoutes = appRoutes[0]?.children || [];
 
 export function Header() {
   const pathName = usePathname();
   const isHome = pathName === "/";
-  console.log("isHome:", isHome ?? true);
-  const { user, logout } = useAuth();
+ 
+  const { user, logout, phoneModalOpen, setPhoneModalOpen, updatePhone } = useAuth();
   const [openAuth, setOpenAuth] = useState(false);
   const [openMenu, setOpenMenu] = useState(false);
-  console.log("user.picture:", user?.picture);
+ 
 
   return (
     <header
@@ -218,6 +219,13 @@ export function Header() {
 
       {/* Auth Dialog */}
       <AuthDialog open={openAuth} onOpenChange={setOpenAuth} />
+      {
+        user?.role != "admin" && <PhoneDialog
+          open={phoneModalOpen}
+          onClose={() => setPhoneModalOpen(false)}
+          onSubmit={(phone) => updatePhone(phone)}
+        />
+      }
     </header>
   );
 }

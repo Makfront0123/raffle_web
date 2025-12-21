@@ -28,7 +28,6 @@ export default function PaymentsFilters({
         <h2 className="text-xl font-semibold mb-4">Filtros</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
-          {/* Status */}
           <div className="flex flex-col gap-2">
             <Label>Estado</Label>
             <Select value={statusFilter} onValueChange={(v: any) => setStatusFilter(v)}>
@@ -42,14 +41,11 @@ export default function PaymentsFilters({
               </SelectContent>
             </Select>
           </div>
-
-          {/* From */}
           <div className="flex flex-col gap-2">
             <Label>Desde</Label>
             <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
           </div>
 
-          {/* To */}
           <div className="flex flex-col gap-2">
             <Label>Hasta</Label>
             <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />

@@ -10,10 +10,7 @@ import { PrizesService } from "../services/prizesService";
 
 const reservationsService = new ReservationService();
 const prizeService = new PrizesService();
-
-// ============================
-// 1️⃣ Limpia reservas expiradas
-// ============================
+ 
 export async function cleanupExpiredReservations() {
     const reservationRepo = AppDataSource.getRepository(Reservation);
     const ticketRepo = AppDataSource.getRepository(Ticket);
@@ -41,9 +38,7 @@ export async function cleanupExpiredReservations() {
     return expired.length;
 }
 
-// ==================================
-// 2️⃣ Cierra rifas vencidas + ganadores
-// ==================================
+ 
 export async function closeExpiredRaffles(prizeServiceInjected = prizeService) {
     const raffleRepo = AppDataSource.getRepository(Raffle);
 
@@ -70,11 +65,10 @@ export async function closeExpiredRaffles(prizeServiceInjected = prizeService) {
             let winnersAssigned = 0;
 
             for (const prize of prizes) {
-                await prizeServiceInjected.selectWinner(prize.id); // ← USAMOS EL INYECTADO
+                await prizeServiceInjected.selectWinner(prize.id);  
                 winnersAssigned++;
             }
-
-            // 4. Liberar tickets reservados
+ 
             await queryRunner.manager
                 .createQueryBuilder()
                 .update(Ticket)
@@ -85,7 +79,7 @@ export async function closeExpiredRaffles(prizeServiceInjected = prizeService) {
                 })
                 .execute();
 
-            // 5. Borrar ReservationTickets
+          
             await queryRunner.manager
                 .createQueryBuilder()
                 .delete()
@@ -95,7 +89,7 @@ export async function closeExpiredRaffles(prizeServiceInjected = prizeService) {
                 })
                 .execute();
 
-            // 6. Borrar reservas
+        
             await queryRunner.manager
                 .createQueryBuilder()
                 .delete()

@@ -3,26 +3,35 @@ import { persist } from "zustand/middleware";
 import { toast } from "sonner";
 import { AuthService } from "@/services/authService";
 
-
 interface AuthState {
   user: User | null;
   token: string | null;
   refreshToken?: string | null;
+
   setUser: (user: User | null, token?: string | null) => void;
   logout: () => void;
   devLogin: (email: string) => Promise<void>;
   refreshTokenFn: (refreshToken: string) => Promise<void>;
+
+  // 🔹 Estado global del modal de teléfono
+  phoneModalOpen: boolean;
+  setPhoneModalOpen: (value: boolean) => void;
 }
 
 export const AuthStore = create<AuthState>()(
   persist(
     (set) => ({
+
       user: null,
       token: null,
+
+      // 🔹 Estado global para abrir/cerrar el modal
+      phoneModalOpen: false,
+      setPhoneModalOpen: (value: boolean) => set({ phoneModalOpen: value }),
+
       setUser: (user, token) => {
         set({ user, token });
       },
-
 
       logout: () => {
         set({ user: null, token: null });
@@ -58,7 +67,12 @@ export const AuthStore = create<AuthState>()(
     }),
     {
       name: "auth-storage",
-      partialize: (state) => ({ user: state.user, token: state.token }),
+
+      // 🔹 Guardamos user y token, PERO NO phoneModalOpen
+      partialize: (state) => ({
+        user: state.user,
+        token: state.token
+      }),
     }
   )
 );

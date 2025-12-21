@@ -8,7 +8,6 @@ export default function PublicLayout({
 }) {
   return (
     <div className="min-h-screen w-full bg-[#0B0B0B] text-white relative">
-      {/* Background gradient premium */}
       <div
         className="absolute inset-0 z-0 opacity-60"
         style={{

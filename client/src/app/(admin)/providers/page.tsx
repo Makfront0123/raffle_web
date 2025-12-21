@@ -30,8 +30,6 @@ export default function ProvidersPage() {
   return (
     <main className="p-6 bg-gray-50 flex-1">
       <h1 className="text-3xl font-bold mb-6">Proveedores</h1>
-
-      {/* FORM */}
       <Card className="mb-6">
         <CardHeader>
           <CardTitle>Agregar Nuevo Proveedor</CardTitle>
@@ -40,8 +38,6 @@ export default function ProvidersPage() {
           <ProvidersForm form={form} onChange={handleChange} onSubmit={handleSubmit} />
         </CardContent>
       </Card>
-
-      {/* TABLE */}
       <Card>
         <CardHeader>
           <CardTitle>Proveedores Existentes</CardTitle>
@@ -58,7 +54,6 @@ export default function ProvidersPage() {
         </CardContent>
       </Card>
 
-      {/* EDIT MODAL */}
       <ProvidersEditModal
         open={open}
         onOpenChange={setOpen}
@@ -67,7 +62,6 @@ export default function ProvidersPage() {
         onSubmit={handleSubmit}
       />
 
-      {/* DELETE MODAL */}
       <ProvidersDeleteModal
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}

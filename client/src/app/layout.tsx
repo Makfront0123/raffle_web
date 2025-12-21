@@ -17,8 +17,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="es" suppressHydrationWarning>
       <body className={inter.className} suppressHydrationWarning>
+
         <Script
           src="https://accounts.google.com/gsi/client"
+          strategy="afterInteractive"
+        />
+
+        <Script
+          src="https://checkout.wompi.co/widget.js"
           strategy="afterInteractive"
         />
         {children}

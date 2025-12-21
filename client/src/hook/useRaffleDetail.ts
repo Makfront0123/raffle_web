@@ -9,7 +9,6 @@ import { useReservationStore } from "@/store/reservationStore";
 import { useTicketStore } from "@/store/ticketStore";
 import { usePayment } from "@/hook/usePayment";
 import { Ticket } from "@/type/Ticket";
-import { PaymentCreateDto } from "@/type/Payment";
 
 export function useRaffleDetail() {
   const params = useParams<{ id: string }>();
@@ -18,7 +17,7 @@ export function useRaffleDetail() {
   const { token } = AuthStore();
   const { raffles, getRaffleById } = useRaffleStore();
   const { createReservation } = useReservationStore();
-  const { makePayment } = usePayment();
+  const { payWithWompiWidget } = usePayment(); // ✅ CAMBIO
   const { soldPercentage, getSoldPercentage } = useTicketStore();
 
   const [raffle, setRaffle] = useState<any>(null);
@@ -26,24 +25,19 @@ export function useRaffleDetail() {
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [open, setOpen] = useState(false);
   const [page, setPage] = useState(1);
+
   const perPage = 50;
 
-
+  /* =======================
+     Cargar rifa
+  ======================= */
   useEffect(() => {
     if (!id || !token) return;
 
-    const fetchRaffle = async () => {
-      try {
-        const data = await getRaffleById(id, token);
-        setRaffle(data);
-      } catch (error) {
-        console.error("Error cargando rifa:", error);
-      }
-    };
-
-    fetchRaffle();
+    getRaffleById(id, token)
+      .then(setRaffle)
+      .catch(() => console.error("Error cargando rifa"));
   }, [id, token]);
-
 
   useEffect(() => {
     if (!id) return;
@@ -51,52 +45,33 @@ export function useRaffleDetail() {
     if (found) setRaffle(found);
   }, [raffles, id]);
 
-
   useEffect(() => {
     if (raffle?.tickets) {
       setLocalTickets(raffle.tickets);
       getSoldPercentage(raffle.id, token!);
     }
-  }, [raffle, getSoldPercentage, token]);
+  }, [raffle, token]);
 
+  /* =======================
+     Paginación
+  ======================= */
   const totalPages = Math.ceil(localTickets.length / perPage);
   const start = (page - 1) * perPage;
   const currentTickets = localTickets.slice(start, start + perPage);
 
+  /* =======================
+     UI helpers
+  ======================= */
   const getTicketColor = (status: string) => {
     switch (status) {
       case "available":
-        return `
-        bg-gold/30 
-        border border-gold 
-        text-white 
-        hover:bg-gold/40
-      `;
-
+        return "bg-gold/30 border border-gold text-white hover:bg-gold/40";
       case "reserved":
-        return `
-        bg-white/20 
-        border border-white/40 
-        text-white/70 
-        cursor-not-allowed 
-        opacity-70
-      `;
-
+        return "bg-white/20 border border-white/40 text-white/70 cursor-not-allowed opacity-70";
       case "purchased":
-        return `
-        bg-red-700/60 
-        border border-red-500 
-        text-white 
-        cursor-not-allowed 
-        opacity-70
-      `;
-
+        return "bg-red-700/60 border border-red-500 text-white cursor-not-allowed opacity-70";
       default:
-        return `
-        bg-gray-500/20 
-        border border-gray-500/40 
-        text-white/70
-      `;
+        return "bg-gray-500/20 border border-gray-500/40 text-white/70";
     }
   };
 
@@ -106,8 +81,7 @@ export function useRaffleDetail() {
       toast.error(
         ticket.status === "reserved"
           ? "Este ticket ya fue reservado 🕒"
-          : "Este ticket ya fue comprado ❌",
-        { duration: 1500 }
+          : "Este ticket ya fue comprado ❌"
       );
       return;
     }
@@ -115,7 +89,53 @@ export function useRaffleDetail() {
     setOpen(true);
   };
 
-  const handleAction = async (action: string) => {
+  const handleAction = async (action: "card" | "pse" | "reserve") => {
+    if (!selectedTicket || !raffle) return;
+
+    if (action === "reserve") {
+      await createReservation(selectedTicket.id_ticket, raffle.id, token!);
+      toast.success("Ticket reservado 🕒");
+      return;
+    }
+
+
+    if (action === "card" || action === "pse") {
+      setOpen(false);
+      await payWithWompiWidget({
+        ticket: selectedTicket,
+        raffle,
+        method: action 
+      });
+
+
+    }
+
+
+
+  };
+
+
+  return {
+    token,
+    raffle,
+    page,
+    setPage,
+    totalPages,
+    currentTickets,
+    selectedTicket,
+    setSelectedTicket,
+    open,
+    setOpen,
+    getTicketColor,
+    handleTicketSelect,
+    handleAction,
+    soldPercentage,
+  };
+}
+
+
+/*
+const handleAction = async (action: string) => {
     if (!selectedTicket || !raffle) return;
     setOpen(false);
 
@@ -134,7 +154,7 @@ export function useRaffleDetail() {
       }
 
       const paymentData: PaymentCreateDto = {
-        method: action as "nequi" | "daviplata",
+        method: action as "card" | "pse",
         raffle_id: raffle.id,
         ticket_ids: [selectedTicket.id_ticket],
       };
@@ -154,21 +174,4 @@ export function useRaffleDetail() {
       setSelectedTicket(null);
     }
   };
-
-  return {
-    token,
-    raffle,
-    page,
-    setPage,
-    totalPages,
-    currentTickets,
-    selectedTicket,
-    setSelectedTicket,
-    open,
-    setOpen,
-    getTicketColor,
-    handleTicketSelect,
-    handleAction,
-    soldPercentage,
-  };
-}
+*/

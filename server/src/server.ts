@@ -7,10 +7,15 @@ import { AppDataSource } from './data-source';
 import helmet from 'helmet';
 import "./cron/cron";
 import dotenv from 'dotenv';
+import { PaymentService } from "./services/paymentService";
+import { PaymentController } from "./controllers/paymentController";
+const paymentService = new PaymentService(AppDataSource);
+const paymentController = new PaymentController(paymentService);
+
 dotenv.config();
 const app = express();
 
- 
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -21,7 +26,6 @@ app.use(cors({
   credentials: true,
 }));
 
-// 👇 Manejo manual de preflight (sin path-to-regexp)
 app.use((req, res, next) => {
   if (req.method === "OPTIONS") {
     res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
@@ -40,20 +44,24 @@ app.use(helmet());
 
 const routesPath = path.join(__dirname, 'routes');
 
-// server.ts
 fs.readdirSync(routesPath).forEach((file) => {
   if (file.endsWith('.ts') || file.endsWith('.js')) {
     const route = require(path.join(routesPath, file));
     const routeName = file.replace(/Routes\.(ts|js)/, '').toLowerCase();
-    app.use(`/api/${routeName}`, route.default); // no authMiddleware global
+    app.use(`/api/${routeName}`, route.default);
   }
 });
+
+app.post("/payments/wompi/webhook", (req, res) => {
+  console.log("⚠️ Legacy webhook hit");
+  return paymentController.wompiWebhook(req, res);
+});
+
 
 const PORT = process.env.PORT || 4000;
 
 async function startServer() {
   try {
-    // ✅ Inicializar TypeORM
     await AppDataSource.initialize();
     console.log('✅ Database connected');
 

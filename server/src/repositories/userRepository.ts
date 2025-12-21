@@ -1,4 +1,4 @@
- import { Repository } from "typeorm";
+import { Repository } from "typeorm";
 import { User } from "../entities/user.entity";
 
 export class UserRepository {
@@ -21,5 +21,23 @@ export class UserRepository {
       where: { id },
       relations: ["role"],
     });
+  }
+
+  async findByIdAndUpdate(id: number, data: Partial<User>) {
+    await this.repo.update(id, data);
+    return this.findById(id); // <- ahora devuelve el usuario actualizado
+  }
+
+  async update(id: number, data: Partial<User>) {
+    // Opción simple si no necesitas devolver nada
+    return this.repo.update(id, data);
+  }
+
+  async save(user: User) {
+    return this.repo.save(user);
+  }
+
+  async findByIdAndDelete(id: number) {
+    return this.repo.delete(id);
   }
 }
