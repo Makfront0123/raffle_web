@@ -84,10 +84,26 @@ export function useRaffleDetail() {
     if (!selectedTicket || !raffle) return;
 
     if (action === "reserve") {
-      await createReservation(selectedTicket.id_ticket, raffle.id, token!);
-      toast.success("Ticket reservado 🕒");
+      try {
+        await createReservation(selectedTicket.id_ticket, raffle.id, token!);
+        toast.success("Ticket reservado 🕒");
+
+        setOpen(false);
+        if (raffle.tickets) {
+          setLocalTickets((prev) =>
+            prev.map((t) =>
+              t.id_ticket === selectedTicket.id_ticket
+                ? { ...t, status: "reserved" }
+                : t
+            )
+          );
+        }
+      } catch (err) {
+        toast.error("No se pudo reservar el ticket");
+      }
       return;
     }
+
 
 
     if (action === "card" || action === "pse") {

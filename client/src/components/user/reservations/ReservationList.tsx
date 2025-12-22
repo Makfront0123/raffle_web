@@ -1,6 +1,7 @@
 import ReservationCard from "./ReservationCard";
 import { Raffle } from "@/type/Raffle";
 import { Reservation } from "@/type/Reservation";
+import { AnimatePresence, motion } from "framer-motion";
 
 export default function ReservationsList({
   paginatedReservations,
@@ -13,33 +14,38 @@ export default function ReservationsList({
   raffles: Raffle[];
   canceling: number | null;
   onCancel: (id: number) => Promise<void>;
-  onPay: (method: "nequi" | "daviplata", raffleId: number, ticketId: number) => Promise<void>;
+  onPay: (method: "card" | "pse", raffleId: number, ticketId: number) => Promise<void>;
 }) {
   if (paginatedReservations.length === 0)
-    return (
-      <div className="text-white/60 text-center">
-        No tienes reservas activas
-      </div>
-    );
+    return <div className="text-black text-center">No tienes reservas activas</div>;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-      {paginatedReservations.map((r) => {
-        const ticket = r.reservationTickets?.[0]?.ticket;
-        if (!ticket) return null;
-        const raffle = raffles.find((rf) => rf.id === ticket.raffleId);
+      <AnimatePresence mode="popLayout">
+        {paginatedReservations.map((r) => {
+          const ticket = r.reservationTickets?.[0]?.ticket;
+          if (!ticket) return null;
+          const raffle = raffles.find((rf) => rf.id === ticket.raffleId);
 
-        return (
-          <ReservationCard
-            key={r.id}
-            reservation={r}
-            raffle={raffle}
-            canceling={canceling}
-            onCancel={onCancel}
-            onPay={onPay}
-          />
-        );
-      })}
+          return (
+            <motion.div
+              key={r.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <ReservationCard
+                reservation={r}
+                raffle={raffle}
+                canceling={canceling}
+                onCancel={onCancel}
+                onPay={onPay}
+              />
+            </motion.div>
+          );
+        })}
+      </AnimatePresence>
     </div>
   );
 }

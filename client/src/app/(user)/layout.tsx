@@ -9,9 +9,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
  
   if (loading) return <LoadingScreen />;
 
- 
-  if (!user) return <div>No autorizado</div>;
-  if (user.role?.toLowerCase() !== "user") return <div>No autorizado</div>;
+  if (user?.role?.toLowerCase() !== "user") return <div>No autorizado</div>;
 
   return <UserLayout>{children}</UserLayout>;
 }

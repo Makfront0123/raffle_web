@@ -1,25 +1,27 @@
+// RaffleTicketModal.tsx
 "use client";
-
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Ticket } from "@/type/Ticket";
+import { Raffle } from "@/type/Raffle";
 
 interface Props {
   open: boolean;
   setOpen: (v: boolean) => void;
-  ticket: any;
-  raffle: any;
-  handleAction: (type: "card" | "pse" | "reserve")  => void;
+  ticket: Ticket;
+  raffle: Raffle;
+  handleAction: (type: "card" | "pse" | "reserve") => void;
 }
 
 export default function RaffleTicketModal({ open, setOpen, ticket, raffle, handleAction }: Props) {
   if (!ticket) return null;
+  const canReserve = ticket.status === "available";
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="bg-[#0B0B0B] border border-gold/40 text-white">
-
         <DialogHeader>
-          <DialogTitle className="text-gold text-xl drop-shadow-[0_0_8px_rgba(212,175,55,0.4)]">
+          <DialogTitle className="text-gold text-xl">
             Ticket #{ticket.ticket_number}
           </DialogTitle>
           <p className="text-sm text-white/60">Precio: ${raffle.price}</p>
@@ -44,9 +46,16 @@ export default function RaffleTicketModal({ open, setOpen, ticket, raffle, handl
             Pagar con PSE
           </Button>
 
-          <Button onClick={() => handleAction("reserve")} variant="outline" className="border-gold text-yellow-500">
-            Reservar Ticket
-          </Button>
+
+          {canReserve && (
+            <Button
+              onClick={() => handleAction("reserve")}
+              variant="outline"
+              className="border-gold text-yellow-500"
+            >
+              Reservar Ticket
+            </Button>
+          )}
         </div>
 
         <DialogFooter>
@@ -54,7 +63,6 @@ export default function RaffleTicketModal({ open, setOpen, ticket, raffle, handl
             Cancelar
           </Button>
         </DialogFooter>
-
       </DialogContent>
     </Dialog>
   );

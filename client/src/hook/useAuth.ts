@@ -111,6 +111,7 @@ export function useAuth() {
         } else {
           setPhoneModalOpen(false);
         }
+        startTokenWatcher(token);
 
       } catch (err) {
         logout();

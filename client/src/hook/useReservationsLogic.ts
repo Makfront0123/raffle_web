@@ -5,20 +5,18 @@ import { useReservationStore } from "@/store/reservationStore";
 import { AuthStore } from "@/store/authStore";
 import { usePayment } from "@/hook/usePayment";
 import { toast } from "sonner";
-import { PaymentCreateDto } from "@/type/Payment";
 import { useRaffles } from "./useRaffles";
+
 export function useReservationsLogic() {
   const { reservations, loading, error, fetchReservations } = useReservation();
-  const { cancelReservation, } = useReservationStore();
+  const { cancelReservation, createReservation } = useReservationStore();
   const { raffles } = useRaffles();
 
   const { token } = AuthStore();
-  const { makePayment } = usePayment();
-
+  const { payWithWompiWidget } = usePayment();
 
   const [canceling, setCanceling] = useState<number | null>(null);
   const [page, setPage] = useState(1);
-
 
   const itemsPerPage = 6;
 
@@ -30,7 +28,6 @@ export function useReservationsLogic() {
     [reservations]
   );
 
-
   const paginatedReservations = useMemo(() => {
     return activeReservations.slice(
       (page - 1) * itemsPerPage,
@@ -40,7 +37,6 @@ export function useReservationsLogic() {
 
   const totalPages = Math.ceil(activeReservations.length / itemsPerPage);
 
-
   const handleCancel = async (id: number) => {
     if (!token) return;
     setCanceling(id);
@@ -49,34 +45,23 @@ export function useReservationsLogic() {
     setCanceling(null);
   };
 
-  const handlePayment = async (
-    method: "nequi" | "daviplata",
-    raffleId: number,
-    ticketId: number
+  const handleAction = async (
+    action: "card" | "pse",
+    reservationTicket: any,
+    raffleId: number
   ) => {
     if (!token) return;
-    const raffle = raffles.find(r => r.id === raffleId);
-    if (!raffle) return toast.error("Rifa no encontrada");
 
-    const total_amount = raffle.price;
-    const reference = `RAFFLE_${raffleId}_TICKET_${ticketId}_${Date.now()}`;
-
-    const paymentData: PaymentCreateDto = {
-      method,
-      raffle_id: raffleId,
-      ticket_id: ticketId,
-      total_amount,
-      reference,
-    };
-
-
-    try {
-      await makePayment(paymentData);
-      await fetchReservations();
-      toast.success(`Pago realizado con ${method === "nequi" ? "Nequi" : "Daviplata"} 💰`);
-    } catch {
-      toast.error("Error al procesar el pago");
+    const raffle = raffles.find((r) => r.id === raffleId);
+    if (!raffle) {
+      toast.error("Rifa no encontrada");
+      return;
     }
+    await payWithWompiWidget({
+      ticket: reservationTicket,
+      raffle,
+      method: action,
+    });
   };
 
   return {
@@ -90,6 +75,6 @@ export function useReservationsLogic() {
     paginatedReservations,
     setPage,
     handleCancel,
-    handlePayment,
+    handleAction,
   };
 }

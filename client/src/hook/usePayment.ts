@@ -26,12 +26,12 @@ export function usePayment() {
     getPayments(token).catch(() => setError("Error al cargar los pagos"));
   }, [token, user?.id]);
 
-  const makePayment = async (data: PaymentCreateDto) => {
+  const makePayment = async (data: PaymentCreateDto): Promise<void> => {
     if (!token) {
       toast.error("Debes iniciar sesión");
       return;
     }
-    return createPayment(data, token);
+    await createPayment(data, token);
   };
 
   const payWithWompiWidget = async ({

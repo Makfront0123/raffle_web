@@ -16,25 +16,24 @@ export default function ReservationsPage() {
     paginatedReservations,
     setPage,
     handleCancel,
-    handlePayment,
+    handleAction,
   } = useReservationsLogic();
 
   if (loading || raffles.length === 0) return <LoadingScreen />;
   if (error) return <div className="p-10 text-red-500">{error}</div>;
 
   return (
-    <div className="w-full min-h-[100vh] md:px-20 px-4 py-16 text-white">
-      <h1 className="text-4xl font-bold mb-10 text-gold drop-shadow-md">
-        🎟️ Tus Reservas
-      </h1>
+    <div className="flex-1 p-6 bg-white min-h-[30vh] overflow-y-auto">
+      <h1 className="text-3xl font-bold mb-6">Tus Reservas</h1>
 
       <ReservationsList
         paginatedReservations={paginatedReservations}
         raffles={raffles}
         canceling={canceling}
         onCancel={handleCancel}
-        onPay={handlePayment}
+        onPay={handleAction}
       />
+
 
       {totalPages > 1 && (
         <PaginationControls
@@ -43,6 +42,7 @@ export default function ReservationsPage() {
           onChange={setPage}
         />
       )}
+
     </div>
   );
 }
