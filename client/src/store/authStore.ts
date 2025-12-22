@@ -7,13 +7,10 @@ interface AuthState {
   user: User | null;
   token: string | null;
   refreshToken?: string | null;
-
   setUser: (user: User | null, token?: string | null) => void;
   logout: () => void;
   devLogin: (email: string) => Promise<void>;
   refreshTokenFn: (refreshToken: string) => Promise<void>;
-  phoneModalOpen: boolean;
-  setPhoneModalOpen: (value: boolean) => void;
 }
 
 export const AuthStore = create<AuthState>()(
@@ -23,7 +20,6 @@ export const AuthStore = create<AuthState>()(
       user: null,
       token: null,
       phoneModalOpen: false,
-      setPhoneModalOpen: (value: boolean) => set({ phoneModalOpen: value }),
 
       setUser: (user, token) => {
         set({ user, token });

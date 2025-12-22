@@ -22,7 +22,7 @@ export function useRaffleDetail() {
 
   const [raffle, setRaffle] = useState<any>(null);
   const [localTickets, setLocalTickets] = useState<Ticket[]>([]);
-  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
+  const [selectedTicket, setSelectedTicket] = useState<Ticket>();
   const [open, setOpen] = useState(false);
   const [page, setPage] = useState(1);
 

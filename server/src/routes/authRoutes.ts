@@ -11,7 +11,6 @@ router.post("/google", (req, res) => authController.loginWithGoogle(req, res));
 router.get("/persist", (req, res) => authController.persistToken(req, res));
 router.post("/refresh", (req, res) => authController.refreshToken(req, res));
 
-router.put("/phone", authMiddleware,authController.updatePhone.bind(authController));
 
 
 

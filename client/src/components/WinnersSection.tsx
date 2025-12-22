@@ -43,7 +43,7 @@ export default function WinnersSection({ winners }: { winners: Winner[] }) {
               viewport={{ once: true }}
               transition={{ duration: 0.4 }}
             >
-              <img src={w.winner_user?.picture} className="w-24 h-24 rounded-full border-2 border-gold object-cover shadow-md" />
+              <img src={w.winner_user?.picture || "/icons/mynaui--user.png"}className="w-24 h-24 rounded-full border-2 border-gold object-cover shadow-md" />
               <h3 className="text-xl text-gold font-semibold mt-4">
                 {w.winner_user?.name ?? "Usuario desconocido"}
               </h3>

@@ -36,14 +36,4 @@ export class AuthService {
         );
         return res.data;
     }
-
-    async updatePhone({ phone, token }: { phone: string, token: string }) {
-        const res = await axios.put(
-            `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/phone`,
-            { phone }, {
-            headers: { Authorization: `Bearer ${token}` },
-        }
-        );
-        return res.data;
-    }
 }

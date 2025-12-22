@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
+import { usePathname } from "next/navigation";
+import { Menu } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
-import { appRoutes } from "@/routes/AppRoutes";
-import { AuthDialog } from "./AuthDialog";
-import { useAuth } from "@/hook/useAuth";
-import { Badge } from "./ui/badge";
+import { Badge } from "@/components/ui/badge";
 import {
   Sheet,
   SheetContent,
@@ -15,41 +16,45 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/components/ui/sheet";
-import { Menu } from "lucide-react";
-import { usePathname } from "next/navigation";
+
+import { appRoutes } from "@/routes/AppRoutes";
+import { AuthDialog } from "./AuthDialog";
 import { PhoneDialog } from "./PhoneDialog";
+import { useAuth } from "@/hook/useAuth";
 
 const mainRoutes = appRoutes[0]?.children || [];
 
 export function Header() {
-  const pathName = usePathname();
-  const isHome = pathName === "/";
- 
-  const { user, logout, phoneModalOpen, setPhoneModalOpen, updatePhone } = useAuth();
+  const pathname = usePathname();
+  const isHome = pathname === "/";
+
+  const { user, logout } =
+    useAuth();
+
   const [openAuth, setOpenAuth] = useState(false);
   const [openMenu, setOpenMenu] = useState(false);
- 
 
   return (
     <header
       className={`
-    w-full sticky top-0 z-50 
-    bg-[#0B0B0B]/80 backdrop-blur-xl 
+    w-full sticky top-0 z-50
+    bg-[#0B0B0B]/80 backdrop-blur-xl
     border-b border-yellow-500/20 shadow-lg
     ${isHome ? "premium-led-border" : ""}
   `}
     >
-      <nav className="w-full px-6 py-4 flex justify-between items-center text-white max-w-7xl mx-auto">
-
-        {/* 🔹 Logo */}
-        <div className="flex items-center gap-2">
-          <h1 className="font-extrabold text-2xl tracking-widest text-yellow-400">
+      <nav className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between text-white">
+        <Link href="/" className="flex flex-col leading-none">
+          <span className="font-extrabold text-2xl tracking-[0.3em] text-yellow-400">
             ICON
-          </h1>
-        </div>
+          </span>
+          <span className="text-[10px] text-gray-400 tracking-widest">
+            RIFAS PREMIUM
+          </span>
+        </Link>
 
-        {/* 🔹 Desktop Menu */}
-        <div className="hidden md:flex justify-center gap-x-10">
+
+        <div className="hidden md:flex items-center gap-x-10">
           {mainRoutes.map((route) => {
             const isProtected = route.protected;
 
@@ -64,73 +69,102 @@ export function Header() {
               <Link
                 key={route.path}
                 href={isProtected && !user ? "#" : route.path}
-                prefetch
                 onClick={handleClick}
                 className="
-                  text-gray-300 hover:text-yellow-300 
-                  transition-all font-medium relative group
+                  relative text-gray-300 font-medium tracking-wide
+                  transition-all duration-300
+                  hover:text-yellow-300
+                  after:absolute after:left-1/2 after:-bottom-1
+                  after:h-[2px] after:w-0 after:bg-yellow-400
+                  after:transition-all after:duration-300
+                  after:-translate-x-1/2
+                  hover:after:w-full
                 "
               >
                 {route.name}
-
-                {/* Línea dorada debajo */}
-                <span
-                  className="
-                    absolute bottom-0 left-0 w-0 h-[2px] 
-                    bg-yellow-400 transition-all group-hover:w-full
-                  "
-                />
               </Link>
             );
           })}
         </div>
-        <div className="hidden md:flex items-center gap-x-6">
+
+
+        <div className="hidden md:flex items-center gap-5">
           {user ? (
-            <div className="flex items-center gap-4">
-              <img
-                src={user.picture}
-                alt="foto de perfil"
-                className="w-10 h-10 rounded-full object-cover border border-yellow-400"
+            <>
+              <Image
+                src={user.picture || "/icons/mynaui--user.png"}
+                alt="avatar"
+                width={40}
+                height={40}
+                className="
+                  rounded-full object-cover
+                  border border-yellow-400/40
+                  hover:shadow-[0_0_15px_rgba(255,215,0,0.4)]
+                  transition-all
+                "
               />
 
-              <Badge className="text-black bg-yellow-400 font-semibold">
+              <Badge
+                className="
+                  bg-gradient-to-r from-yellow-400 to-yellow-500
+                  text-black font-semibold
+                  px-3 py-1
+                  shadow-md
+                "
+              >
                 Hola {user.name}
               </Badge>
 
               <Button
+                variant="outline"
                 onClick={logout}
-                className="text-xs bg-yellow-500 hover:bg-yellow-600 text-black font-semibold border border-yellow-300"
+                className="
+                  border-yellow-400/40
+                  text-yellow-400
+                  hover:bg-yellow-400 hover:text-black
+                  transition-all
+                  text-xs
+                "
               >
                 Cerrar sesión
               </Button>
-            </div>
+            </>
           ) : (
-            <div
+            <button
               onClick={() => setOpenAuth(true)}
               className="
-        rounded-full p-[6px] bg-yellow-500 
-        cursor-pointer hover:bg-yellow-600 transition-all shadow-lg
-      "
+                rounded-full p-2
+                bg-yellow-500
+                hover:bg-yellow-600
+                transition-all
+                shadow-lg
+              "
             >
-              <img
+              <Image
                 src="/icons/mynaui--user.png"
-                className="w-8 h-8 p-1"
                 alt="user"
+                width={28}
+                height={28}
               />
-            </div>
+            </button>
           )}
         </div>
-
-        <div className="md:hidden flex items-center">
+        <div className="md:hidden">
           <Sheet open={openMenu} onOpenChange={setOpenMenu}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon">
                 <Menu className="w-6 h-6 text-yellow-400" />
               </Button>
             </SheetTrigger>
+
             <SheetContent
               side="right"
-              className="bg-[#0B0B0B] text-white border-l border-yellow-500/20"
+              className="
+                bg-[#0B0B0B]
+                border-l border-yellow-500/10
+                shadow-2xl
+                text-white
+              "
             >
               <SheetHeader>
                 <SheetTitle className="text-xl font-bold text-yellow-400">
@@ -159,8 +193,8 @@ export function Header() {
                       href={isProtected && !user ? "#" : route.path}
                       onClick={handleClick}
                       className="
-                        text-lg text-gray-300 font-medium 
-                        hover:text-yellow-300 transition-all
+                        text-lg tracking-wide text-gray-300
+                        hover:text-yellow-400 transition-all
                       "
                     >
                       {route.name}
@@ -169,25 +203,29 @@ export function Header() {
                 })}
               </div>
 
-              <div className="mt-10 border-t border-yellow-500/20 pt-4 flex flex-col gap-4">
+              <div className="mt-10 pt-6 border-t border-yellow-500/10 flex flex-col gap-4">
                 {user ? (
                   <>
-                    <img
-                      src={user.picture}
-                      alt="foto de perfil"
-                      className="w-10 h-10 rounded-full object-cover"
-                    />
+                    <div className="flex items-center gap-3">
+                      <Image
+                        src={user.picture || "/icons/mynaui--user.png"}
+                        alt="avatar"
+                        width={40}
+                        height={40}
+                        className="rounded-full object-cover"
+                      />
+                      <span className="text-sm text-gray-300">
+                        Hola {user.name}
+                      </span>
+                    </div>
 
-                    <p className="text-sm text-gray-400">
-                      Hola {user.name}
-                    </p>
                     <Button
                       onClick={() => {
                         logout();
                         setOpenMenu(false);
                       }}
                       className="
-                        bg-yellow-500 hover:bg-yellow-600 
+                        bg-yellow-500 hover:bg-yellow-600
                         text-black font-semibold
                       "
                     >
@@ -200,7 +238,10 @@ export function Header() {
                       setOpenAuth(true);
                       setOpenMenu(false);
                     }}
-                    className="bg-yellow-500 hover:bg-yellow-600 text-black font-semibold"
+                    className="
+                      bg-yellow-500 hover:bg-yellow-600
+                      text-black font-semibold
+                    "
                   >
                     Iniciar sesión
                   </Button>
@@ -211,14 +252,8 @@ export function Header() {
         </div>
       </nav>
 
+
       <AuthDialog open={openAuth} onOpenChange={setOpenAuth} />
-      {
-        user?.role != "admin" && <PhoneDialog
-          open={phoneModalOpen}
-          onClose={() => setPhoneModalOpen(false)}
-          onSubmit={(phone) => updatePhone(phone)}
-        />
-      }
     </header>
   );
 }

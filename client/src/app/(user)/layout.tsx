@@ -3,13 +3,27 @@
 import LoadingScreen from "@/components/LoadingScreen";
 import { useAuth } from "@/hook/useAuth";
 import UserLayout from "@/layouts/UserLayout";
+import { useMounted } from "@/hook/useMounted";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth();
+  const mounted = useMounted();
+  const { user, initialized } = useAuth();
  
-  if (loading) return <LoadingScreen />;
+  if (!mounted) {
+    return null;
+  }
 
-  if (user?.role?.toLowerCase() !== "user") return <div>No autorizado</div>;
+  if (!initialized) {
+    return <LoadingScreen />;
+  }
+
+  if (!user) {
+    return <div>No autenticado</div>;
+  }
+
+  if (user.role?.toLowerCase() !== "user") {
+    return <div>No autorizado</div>;
+  }
 
   return <UserLayout>{children}</UserLayout>;
 }

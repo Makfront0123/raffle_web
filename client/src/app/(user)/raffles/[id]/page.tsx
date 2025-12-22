@@ -6,10 +6,11 @@ import RaffleTicketModal from "@/components/user/raffles/RaffleTickedModal";
 import RaffleTicketsGrid from "@/components/user/raffles/RaffleTicketsGrid";
 import RafflePagination from "@/components/user/raffles/RafflesPagination";
 import { useRaffleDetail } from "@/hook/useRaffleDetail";
+import { PaymentSuccessModal } from "@/components/PaymentSuccessModal";
+import { usePayment } from "@/hook/usePayment";
 
 export default function RaffleDetailPage() {
   const {
-    token,
     raffle,
     page,
     setPage,
@@ -23,20 +24,12 @@ export default function RaffleDetailPage() {
     handleAction,
     soldPercentage,
   } = useRaffleDetail();
+  const {
+    successModalOpen,
+    setSuccessModalOpen,
+    paymentInfo,
+  } = usePayment();
 
-  if (!token)
-    return (
-      <div className="p-10 text-gold text-center bg-black min-h-screen">
-        No tienes acceso a esta página
-      </div>
-    );
-
-  if (!raffle)
-    return (
-      <div className="flex justify-center items-center h-screen text-gold bg-black">
-        <p>Cargando rifa...</p>
-      </div>
-    );
 
   return (
     <div className="max-w-5xl mx-auto p-6 md:p-10 text-white 
@@ -59,13 +52,22 @@ export default function RaffleDetailPage() {
         setCurrentPage={setPage}
       />
 
-      <RaffleTicketModal
-        open={open}
-        setOpen={setOpen}
-        ticket={selectedTicket}
-        raffle={raffle}
-        handleAction={handleAction}
+      {selectedTicket && (
+        <RaffleTicketModal
+          open={open}
+          setOpen={setOpen}
+          ticket={selectedTicket}
+          raffle={raffle}
+          handleAction={handleAction}
+        />
+      )}
+      <PaymentSuccessModal
+        open={successModalOpen}
+        onClose={() => setSuccessModalOpen(false)}
+        raffleName={paymentInfo?.raffleName}
+        ticketNumber={paymentInfo?.ticketNumber}
       />
+
     </div>
   );
 }

@@ -12,9 +12,11 @@ export function useAuth() {
   const getAuthService = () => new AuthService();
   const router = useRouter();
 
-  const { user, setUser, logout: storeLogout, phoneModalOpen, setPhoneModalOpen } = AuthStore();
+  const { user, setUser, logout: storeLogout } = AuthStore();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [initialized, setInitialized] = useState(false);
+
 
   const [client, setClient] = useState<TokenClient | null>(null);
 
@@ -32,13 +34,6 @@ export function useAuth() {
       startTokenWatcher(userData.token);
       setError(null);
 
-      if (persistRes.user.role !== "admin" && !persistRes.user.phone) {
-        setPhoneModalOpen(true);
-      } else {
-        setPhoneModalOpen(false);
-      }
-
-
 
       toast.success(`¡Bienvenido ${persistRes.user.name || ""}!`);
 
@@ -53,18 +48,7 @@ export function useAuth() {
     }
   };
 
-  const updatePhone = async (phone: string) => {
-    try {
-      const res = await getAuthService().updatePhone({ phone, token: localStorage.getItem("token")! });
 
-      setUser(res.user, localStorage.getItem("token")!);
-      setPhoneModalOpen(false);
-
-      toast.success("Teléfono actualizado correctamente.");
-    } catch (err: any) {
-      toast.error("Error al actualizar teléfono");
-    }
-  };
   const logout = useCallback(() => {
     storeLogout();
     router.push("/");
@@ -96,25 +80,34 @@ export function useAuth() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (!token || user) return;
+
+    // ✅ NO hay token → auth ya fue evaluada
+    if (!token) {
+      setInitialized(true);
+      return;
+    }
+
+    // ✅ ya hay usuario cargado
+    if (user) {
+      setInitialized(true);
+      return;
+    }
 
     const authService = new AuthService();
-    const { setUser, setPhoneModalOpen } = AuthStore.getState();
+ 
 
     (async () => {
       try {
         const res = await authService.getUserByToken(token);
 
         setUser(res.user, token);
-        if (res.user.role !== "admin" && !res.user.phone) {
-          setPhoneModalOpen(true);
-        } else {
-          setPhoneModalOpen(false);
-        }
-        startTokenWatcher(token);
 
+        startTokenWatcher(token);
       } catch (err) {
         logout();
+      } finally {
+        // 🔥 CLAVE
+        setInitialized(true);
       }
     })();
   }, []);
@@ -170,8 +163,6 @@ export function useAuth() {
     error,
     loginWithGoogle,
     logout,
-    phoneModalOpen,
-    setPhoneModalOpen,
-    updatePhone,
+    initialized,
   };
 }

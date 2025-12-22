@@ -20,6 +20,11 @@ export function usePayment() {
   const { token, user } = AuthStore();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [successModalOpen, setSuccessModalOpen] = useState(false);
+  const [paymentInfo, setPaymentInfo] = useState<{
+    raffleName?: string;
+    ticketNumber?: string;
+  } | null>(null);
 
   useEffect(() => {
     if (!token || !user?.id) return;
@@ -85,13 +90,25 @@ export function usePayment() {
         const tx = result?.transaction;
 
         if (tx?.status === "APPROVED") {
-          toast.success("Pago aprobado, esperando confirmación...");
-        } else if (tx?.status === "DECLINED") {
+          toast.success("Pago aprobado");
+
+          setPaymentInfo({
+            raffleName: raffle.name,
+            ticketNumber: ticket.ticket_number,
+          });
+
+          setSuccessModalOpen(true);
+
+          // aquí luego puedes llamar completePayment(tx.id)
+        }
+        else if (tx?.status === "DECLINED") {
           toast.error("Pago rechazado");
-        } else if (tx?.status === "ERROR") {
+        }
+        else if (tx?.status === "ERROR") {
           toast.error("Ocurrió un error en el pago");
         }
       });
+
 
     } catch (err) {
       console.error(err);
@@ -100,7 +117,6 @@ export function usePayment() {
       setLoading(false);
     }
   };
-
   return {
     payments,
     loading,
@@ -109,6 +125,10 @@ export function usePayment() {
     payWithWompiWidget,
     cancelPayment,
     completePayment,
+    successModalOpen,
+    setSuccessModalOpen,
+    paymentInfo,
   };
+
 }
 
