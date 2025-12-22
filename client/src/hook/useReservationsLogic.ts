@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { PaymentCreateDto } from "@/type/Payment";
 import { useRaffles } from "./useRaffles";
 export function useReservationsLogic() {
-  const { reservations, loading, error, fetchReservations } = useReservation(); // solo datos
+  const { reservations, loading, error, fetchReservations } = useReservation();
   const { cancelReservation, } = useReservationStore();
   const { raffles } = useRaffles();
 
@@ -55,11 +55,20 @@ export function useReservationsLogic() {
     ticketId: number
   ) => {
     if (!token) return;
+    const raffle = raffles.find(r => r.id === raffleId);
+    if (!raffle) return toast.error("Rifa no encontrada");
+
+    const total_amount = raffle.price;
+    const reference = `RAFFLE_${raffleId}_TICKET_${ticketId}_${Date.now()}`;
+
     const paymentData: PaymentCreateDto = {
       method,
       raffle_id: raffleId,
-      ticket_ids: [ticketId],
+      ticket_id: ticketId,
+      total_amount,
+      reference,
     };
+
 
     try {
       await makePayment(paymentData);

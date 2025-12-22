@@ -1,4 +1,3 @@
-// src/services/auth.service.ts
 import jwt from "jsonwebtoken";
 import { JwtPayload } from "../types/jwtPayload";
 import { env } from "../config/env";

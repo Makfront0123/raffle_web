@@ -1,6 +1,3 @@
-// types/Prizes.ts
-import { Providers } from "./Providers";
-import { Raffle } from "./Raffle";
 import { Ticket } from "./Ticket";
 
 
@@ -22,7 +19,7 @@ export interface Prizes {
     id: number;
     title: string;
   };
-  winner_ticket?: Ticket | null; // 👈 agregamos esta propiedad opcional
+  winner_ticket?: Ticket | null;
 }
 
 export interface PrizeForm {
@@ -31,9 +28,9 @@ export interface PrizeForm {
   value: number;
   raffle: string;
   provider: string;
-  type?: string; // ✅ opcional también
+  type?: string;
 }
-// Datos que se envían al backend al crear un premio
+
 export interface CreatePrizeDTO {
   name: string;
   description: string;

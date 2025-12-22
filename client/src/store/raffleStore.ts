@@ -23,17 +23,14 @@ export const useRaffleStore = create<RaffleStore>()((set, get) => ({
                 : [...state.raffles, raffle],
         }));
 
-        return raffle; // ✅ <- Devuelve la rifa obtenida
+        return raffle;
     },
 
     addRaffle: async (raffle: Partial<Raffle>, token: string) => {
         try {
             const raffleService = new RaffleService();
-
-            // 🔹 Normaliza end_date -> endDate
             const payload: any = { ...raffle };
             if ('end_date' in raffle && raffle.end_date) {
-                // si viene "YYYY-MM-DD"
                 if (raffle.end_date.length === 10) {
                     payload.endDate = new Date(raffle.end_date + "T23:59:59").toISOString();
                 } else {
@@ -65,7 +62,6 @@ export const useRaffleStore = create<RaffleStore>()((set, get) => ({
             toast.success("Rifa eliminada correctamente");
             return true;
         } catch (err: any) {
-            // ✅ Aquí mostramos el mensaje del backend (por ejemplo: "Solo se pueden eliminar rifas con estado 'ended'...")
             toast.error(err.message || "Error eliminando la rifa");
             console.error("Error al eliminar la rifa:", err);
             return false;
@@ -92,7 +88,7 @@ export const useRaffleStore = create<RaffleStore>()((set, get) => ({
             await raffleService.activateRaffle(id, token);
             toast.success("La rifa se ha activado correctamente");
         } catch (err: any) {
-            toast.error(err.message || "Error activando la rifa"); // 👈 muestra mensaje del backend
+            toast.error(err.message || "Error activando la rifa");
             console.error(err);
         }
     },

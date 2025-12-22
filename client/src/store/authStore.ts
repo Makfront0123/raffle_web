@@ -12,8 +12,6 @@ interface AuthState {
   logout: () => void;
   devLogin: (email: string) => Promise<void>;
   refreshTokenFn: (refreshToken: string) => Promise<void>;
-
-  // 🔹 Estado global del modal de teléfono
   phoneModalOpen: boolean;
   setPhoneModalOpen: (value: boolean) => void;
 }
@@ -24,8 +22,6 @@ export const AuthStore = create<AuthState>()(
 
       user: null,
       token: null,
-
-      // 🔹 Estado global para abrir/cerrar el modal
       phoneModalOpen: false,
       setPhoneModalOpen: (value: boolean) => set({ phoneModalOpen: value }),
 
@@ -67,8 +63,6 @@ export const AuthStore = create<AuthState>()(
     }),
     {
       name: "auth-storage",
-
-      // 🔹 Guardamos user y token, PERO NO phoneModalOpen
       partialize: (state) => ({
         user: state.user,
         token: state.token

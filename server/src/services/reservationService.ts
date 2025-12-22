@@ -20,8 +20,6 @@ export class ReservationService {
     return this.dataSource.createQueryRunner();
   }
 
-  // -------------------------------------------------------------------
-
   async getAllReservationsByUser(userId: number) {
     return this.getRepo(Reservation).find({
       where: { user: { id: userId } },
@@ -29,7 +27,6 @@ export class ReservationService {
     });
   }
 
-  // -------------------------------------------------------------------
 
   async createReservation(userId: number, raffleId: number, ticketIds: number[]) {
     const queryRunner = this.createQueryRunner();
@@ -37,7 +34,6 @@ export class ReservationService {
     await queryRunner.startTransaction();
 
     try {
-      // Validar rifa
       const raffle = await this.getRepo(Raffle).findOne({
         where: { id: raffleId }
       });
@@ -45,25 +41,20 @@ export class ReservationService {
       if (!raffle) throw new Error('Rifa no encontrada.');
       if (raffle.status !== 'active') throw new Error('La rifa no está activa.');
 
-      // Buscar tickets
       const tickets = await queryRunner.manager.find(Ticket, {
         where: { id_ticket: In(ticketIds) },
         relations: ["raffle"],
       });
 
-      // Tickets inválidos
       const invalidTickets = tickets.filter((t: Ticket) => !t.raffle || t.raffle.id !== raffleId);
       if (invalidTickets.length > 0) {
         throw new Error('Uno o más tickets no pertenecen a esta rifa.');
       }
-
-      // Tickets no disponibles
       const unavailable = tickets.filter((t: Ticket) => t.status !== 'available');
       if (unavailable.length > 0) {
         throw new Error('Uno o más tickets ya no están disponibles.');
       }
 
-      // Límite
       const maxTicketsPerUser = 5;
       if (ticketIds.length > maxTicketsPerUser) {
         throw new Error(`No puedes reservar más de ${maxTicketsPerUser} tickets.`);
@@ -82,7 +73,6 @@ export class ReservationService {
 
       await queryRunner.manager.save(reservation);
 
-      // Marcar tickets reservados
       for (const resTicket of reservation.reservationTickets) {
         resTicket.ticket.status = 'reserved';
         await queryRunner.manager.save(resTicket.ticket);
@@ -99,8 +89,6 @@ export class ReservationService {
       await queryRunner.release();
     }
   }
-
-  // -------------------------------------------------------------------
 
   async releaseExpiredReservations() {
     const queryRunner = this.createQueryRunner();
@@ -141,7 +129,6 @@ export class ReservationService {
     }
   }
 
-  // -------------------------------------------------------------------
 
   async getAllReservations() {
     return this.getRepo(Reservation).find({
@@ -149,7 +136,6 @@ export class ReservationService {
     });
   }
 
-  // -------------------------------------------------------------------
 
   async getReservationById(id: number) {
     return this.getRepo(Reservation).findOne({
@@ -158,7 +144,6 @@ export class ReservationService {
     });
   }
 
-  // -------------------------------------------------------------------
 
   async deleteReservation(id: number) {
     const queryRunner = this.createQueryRunner();
@@ -183,7 +168,6 @@ export class ReservationService {
         throw new Error('No se puede eliminar la reserva: Uno o más tickets ya fueron comprados.');
       }
 
-      // Liberar tickets
       for (const resTicket of reservation.reservationTickets) {
         resTicket.ticket.status = 'available';
         await queryRunner.manager.save(resTicket.ticket);

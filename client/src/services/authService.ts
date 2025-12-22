@@ -26,7 +26,7 @@ export class AuthService {
             `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/dev-login`,
             { email }
         );
-        return res.data; // { user, token }
+        return res.data;
     }
 
     async refreshToken(refreshToken: string) {

@@ -18,30 +18,20 @@ export function useAuth() {
 
   const [client, setClient] = useState<TokenClient | null>(null);
 
-
-  // =======================================
-  // 🔥 1. Función ÚNICA para manejar Google
-  // =======================================
   const handleGoogleLogin = async (accessToken: string) => {
     try {
       setLoading(true);
 
       const userData = await getAuthService().getUserByGoogle({ token: accessToken });
-
-      // Guardar token temporalmente
       localStorage.setItem("token", userData.token);
 
-      // 🔥 AHORA SÍ persistimos (obtiene phone actualizado desde DB)
       const persistRes = await getAuthService().getUserByToken(userData.token);
 
-      // Guardamos el usuario REAL (ya con phone)
       setUser(persistRes.user, userData.token);
 
       startTokenWatcher(userData.token);
       setError(null);
 
-      // Mostrar modal si NO hay teléfono
-      // No mostrar modal al admin
       if (persistRes.user.role !== "admin" && !persistRes.user.phone) {
         setPhoneModalOpen(true);
       } else {
@@ -63,9 +53,6 @@ export function useAuth() {
     }
   };
 
-  // =======================================
-  // 2. Actualizar teléfono
-  // =======================================
   const updatePhone = async (phone: string) => {
     try {
       const res = await getAuthService().updatePhone({ phone, token: localStorage.getItem("token")! });
@@ -78,18 +65,11 @@ export function useAuth() {
       toast.error("Error al actualizar teléfono");
     }
   };
-
-  // =======================================
-  // 3. Logout
-  // =======================================
   const logout = useCallback(() => {
     storeLogout();
     router.push("/");
   }, [storeLogout, router]);
 
-  // =======================================
-  // 4. Watcher para expiración de token
-  // =======================================
   const startTokenWatcher = useCallback(
     (token: string) => {
       try {
@@ -114,9 +94,6 @@ export function useAuth() {
     [logout]
   );
 
-  // =======================================
-  // 5. Mantener sesión en recarga
-  // =======================================
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token || user) return;
@@ -128,10 +105,7 @@ export function useAuth() {
       try {
         const res = await authService.getUserByToken(token);
 
-        // Guardamos usuario
         setUser(res.user, token);
-
-        // Reglas para mostrar el modal
         if (res.user.role !== "admin" && !res.user.phone) {
           setPhoneModalOpen(true);
         } else {
@@ -145,9 +119,6 @@ export function useAuth() {
   }, []);
 
 
-  // =======================================
-  // 6. Inicializar Google OAuth → TokenClient
-  // =======================================
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -184,9 +155,6 @@ export function useAuth() {
     }
   }, []);
 
-  // =======================================
-  // 7. Función para botón "Continuar con Google"
-  // =======================================
   const loginWithGoogle = () => {
     if (!client) {
       console.error("Cliente OAuth de Google no inicializado aún");
@@ -195,17 +163,12 @@ export function useAuth() {
     client.requestAccessToken();
   };
 
-  // =======================================
-  // RETURN DEL HOOK
-  // =======================================
   return {
     user,
     loading,
     error,
-
     loginWithGoogle,
     logout,
-
     phoneModalOpen,
     setPhoneModalOpen,
     updatePhone,

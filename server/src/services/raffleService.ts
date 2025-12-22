@@ -18,9 +18,6 @@ export class RaffleService {
         this.dataSource = dataSource ?? AppDataSource;
     }
 
-    // -----------------------------
-    // ACTIVATE
-    // -----------------------------
     async activateRaffle(id: number) {
         const raffleRepo = this.dataSource.getRepository(Raffle);
 
@@ -44,9 +41,6 @@ export class RaffleService {
         return { message: "Rifa activada correctamente", raffle };
     }
 
-    // -----------------------------
-    // DEACTIVATE
-    // -----------------------------
     async deactivateRaffle(id: number) {
         const raffleRepo = this.dataSource.getRepository(Raffle);
 
@@ -65,16 +59,10 @@ export class RaffleService {
         return { message: "La rifa se ha desactivado correctamente", raffle };
     }
 
-    // -----------------------------
-    // GET ALL
-    // -----------------------------
     async getAllRaffles() {
         return this.raffleRepo.find({ relations: ["prizes"] });
     }
 
-    // -----------------------------
-    // CREATE
-    // -----------------------------
     async createRaffle(data: {
         title: string;
         description: string;
@@ -86,7 +74,7 @@ export class RaffleService {
         const raffleRepo = this.raffleRepo;
         const ticketRepo = this.ticketRepo;
 
-        // procesar fecha
+
         let endDate: Date | null = null;
 
         if (data.end_date instanceof Date) {
@@ -136,9 +124,6 @@ export class RaffleService {
         };
     }
 
-    // -----------------------------
-    // GET BY ID
-    // -----------------------------
     async getRaffleById(id: number) {
         return this.raffleRepo.findOne({
             where: { id },
@@ -146,9 +131,7 @@ export class RaffleService {
         });
     }
 
-    // -----------------------------
-    // DELETE
-    // -----------------------------
+
     async deleteRaffle(id: number) {
         const raffleRepo = this.raffleRepo;
 
@@ -173,9 +156,6 @@ export class RaffleService {
         return { message: `Rifa #${id} eliminada correctamente` };
     }
 
-    // -----------------------------
-    // UPDATE
-    // -----------------------------
     async updateRaffle(id: number, data: Partial<Raffle>) {
         const raffleRepo = this.raffleRepo;
 
@@ -208,9 +188,7 @@ export class RaffleService {
         return { message: "Rifa actualizada correctamente", raffle: updated };
     }
 
-    // -----------------------------
-    // REGENERATE TICKETS
-    // -----------------------------
+
     async regenerateTickets(raffleId: number, newDigits: number) {
         const queryRunner = this.dataSource.createQueryRunner();
 

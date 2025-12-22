@@ -28,9 +28,6 @@ export function useRaffleDetail() {
 
   const perPage = 50;
 
-  /* =======================
-     Cargar rifa
-  ======================= */
   useEffect(() => {
     if (!id || !token) return;
 
@@ -52,16 +49,10 @@ export function useRaffleDetail() {
     }
   }, [raffle, token]);
 
-  /* =======================
-     Paginación
-  ======================= */
   const totalPages = Math.ceil(localTickets.length / perPage);
   const start = (page - 1) * perPage;
   const currentTickets = localTickets.slice(start, start + perPage);
 
-  /* =======================
-     UI helpers
-  ======================= */
   const getTicketColor = (status: string) => {
     switch (status) {
       case "available":
@@ -104,7 +95,7 @@ export function useRaffleDetail() {
       await payWithWompiWidget({
         ticket: selectedTicket,
         raffle,
-        method: action 
+        method: action
       });
 
 
@@ -132,46 +123,3 @@ export function useRaffleDetail() {
     soldPercentage,
   };
 }
-
-
-/*
-const handleAction = async (action: string) => {
-    if (!selectedTicket || !raffle) return;
-    setOpen(false);
-
-    try {
-      if (action === "reserve") {
-        await createReservation(selectedTicket.id_ticket, raffle.id, token || "");
-        setLocalTickets((prev) =>
-          prev.map((t) =>
-            t.id_ticket === selectedTicket.id_ticket ? { ...t, status: "reserved" } : t
-          )
-        );
-        toast.success(`Ticket #${selectedTicket.ticket_number} reservado ✅`, {
-          duration: 1500,
-        });
-        return;
-      }
-
-      const paymentData: PaymentCreateDto = {
-        method: action as "card" | "pse",
-        raffle_id: raffle.id,
-        ticket_ids: [selectedTicket.id_ticket],
-      };
-
-      await makePayment(paymentData);
-
-      setLocalTickets((prev) =>
-        prev.map((t) =>
-          t.id_ticket === selectedTicket.id_ticket ? { ...t, status: "purchased" } : t
-        )
-      );
-      toast.success(`Pago realizado con ${action} 💳`, { duration: 1500 });
-    } catch (err) {
-      console.error(err);
-      toast.error("Error al procesar la acción ❌");
-    } finally {
-      setSelectedTicket(null);
-    }
-  };
-*/

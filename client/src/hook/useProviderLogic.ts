@@ -4,7 +4,6 @@ import { useState } from "react";
 import { AuthStore } from "@/store/authStore";
 import { Providers } from "@/type/Providers";
 import { useProviders } from "./useProviders";
-// 👇 Añade esto al inicio del archivo
 export interface ProviderFormState {
   id?: number;
   name: string;

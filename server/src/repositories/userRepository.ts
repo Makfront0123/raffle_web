@@ -25,11 +25,10 @@ export class UserRepository {
 
   async findByIdAndUpdate(id: number, data: Partial<User>) {
     await this.repo.update(id, data);
-    return this.findById(id); // <- ahora devuelve el usuario actualizado
+    return this.findById(id);
   }
 
   async update(id: number, data: Partial<User>) {
-    // Opción simple si no necesitas devolver nada
     return this.repo.update(id, data);
   }
 

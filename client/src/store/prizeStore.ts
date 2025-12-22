@@ -75,7 +75,7 @@ export const usePrizeStore = create<PrizeStore>()((set) => ({
   addPrize: async (prize: CreatePrizeDTO, token: string) => {
     try {
       const prizeService = new PrizeService();
-      const res = await prizeService.createPrize(prize, token); // ahora devuelve message + data
+      const res = await prizeService.createPrize(prize, token);
       set((state) => ({ prizes: [...state.prizes, res.data] }));
       toast.success(res.message);
     } catch (err: any) {
@@ -110,7 +110,7 @@ export const usePrizeStore = create<PrizeStore>()((set) => ({
   deletePrize: async (id: number, token: string) => {
     try {
       const prizeService = new PrizeService();
-      const res = await prizeService.deletePrize(id, token); // ahora devuelve message
+      const res = await prizeService.deletePrize(id, token);
       set((state) => ({ prizes: state.prizes.filter((p) => p.id !== id) }));
       toast.success(res.message);
     } catch (err: any) {

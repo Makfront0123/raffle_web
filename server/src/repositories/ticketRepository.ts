@@ -7,7 +7,7 @@ export const ticketRepository = {
     },
     async findByIds(ids: number[]) {
         if (!ids || ids.length === 0) return [];
-        const placeholders = ids.map(() => '?').join(','); // genera ?,?,?
+        const placeholders = ids.map(() => '?').join(',');
         const [rows]: any = await db.query(
             `SELECT * FROM tickets WHERE id_ticket IN (${placeholders})`,
             ids

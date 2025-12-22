@@ -28,7 +28,7 @@ export const useTicketStore = create<TicketStore>()((set) => ({
     },
     getTickets: async (token: string) => {
         try {
-            const tickets = await TicketService.getTickets(token); // no destructures
+            const tickets = await TicketService.getTickets(token);
             set({ tickets: tickets ?? [] });
         } catch (error) {
             console.error("Error al obtener los tickets:", error);

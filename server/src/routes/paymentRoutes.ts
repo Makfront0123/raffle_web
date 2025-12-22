@@ -19,7 +19,6 @@ router.put("/:id", adminMiddleware, paymentController.updatePayment.bind(payment
 router.post("/:id/complete", adminMiddleware, paymentController.completePayment.bind(paymentController));
 router.post("/:id/cancel", adminMiddleware, paymentController.cancelPayment.bind(paymentController));
 
-//PAYMENT INTEGRATIONS
 router.post("/wompi", authMiddleware, paymentController.createWompiPayment.bind(paymentController));
 router.post("/wompi/webhook", paymentController.wompiWebhook.bind(paymentController));
 

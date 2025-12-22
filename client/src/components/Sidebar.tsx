@@ -13,8 +13,8 @@ export function Sidebar() {
         { label: "Rifas", icon: Ticket, href: "/rafflesAdmin" },
         { label: "Pagos", icon: Gift, href: "/payments" },
         { label: "Ganadores", icon: Users, href: "/winners" },
-        { label: "Proveedores", icon: Settings, href: "/providers" }, // quienes proveen los premios
-        { label: "Crear Prizes", icon: Gift, href: "/prizes" }, // para crear premios
+        { label: "Proveedores", icon: Settings, href: "/providers" },
+        { label: "Crear Prizes", icon: Gift, href: "/prizes" },
     ];
 
 

@@ -32,7 +32,6 @@ export default function MyTicketsView({
     <main className="flex-1 p-6 bg-gray-50 overflow-y-auto">
       <h1 className="text-3xl font-bold mb-6">Mis Tickets</h1>
 
-      {/* Filtros */}
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <Input
           placeholder="Buscar rifa..."
@@ -59,7 +58,6 @@ export default function MyTicketsView({
         </Select>
       </div>
 
-      {/* Tabla */}
       <div className="overflow-x-auto">
         <table className="w-full table-auto border border-gray-200">
           <thead className="bg-gray-100">
@@ -98,7 +96,6 @@ export default function MyTicketsView({
         </table>
       </div>
 
-      {/* Paginación */}
       {totalPages > 1 && (
         <div className="flex justify-end mt-4 gap-2">
           <button

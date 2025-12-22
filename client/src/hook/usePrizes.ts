@@ -135,5 +135,6 @@ export function usePrizes() {
     createPrize,
     editPrize,
     deletePrize: handleDeletePrize,
+    updatePrize
   };
 }

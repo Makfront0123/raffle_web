@@ -34,7 +34,6 @@ export class PrizeService {
     return res.data;
   }
 
-  // ⭐ GANADORES DE PREMIOS
   async getWinners(): Promise<Winner[]> {
     const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/prizes/winners`
 
@@ -43,7 +42,6 @@ export class PrizeService {
     return await response.json();
   }
 
-  // ⭐ GANADOR PRINCIPAL DE LA RIFA
   async getWinner(raffleId: number): Promise<Winner | null> {
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/prizes/${raffleId}/winner`

@@ -1,5 +1,6 @@
 "use client";
-import { RaffleCard } from "@/components/RaffleCard";
+
+import RaffleCard from "@/components/RaffleCard";
 import { Raffle } from "@/type/Raffle";
 
 interface Props {

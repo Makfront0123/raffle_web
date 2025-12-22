@@ -209,8 +209,6 @@ export class PaymentService {
     const integritySecret = process.env.WOMPI_INTEGRITY_SECRET;
 
     const isDev = process.env.NODE_ENV !== "production";
-
-    // 🔥 SOLO validar firma en producción
     if (!isDev) {
       if (!checksum || !integritySecret) {
         return res.status(400).json({ message: "Firma no encontrada" });
@@ -304,64 +302,3 @@ export class PaymentService {
 
 
 }
-
-
-/*
- async wompiWebhook(req: Request, res: Response) {
-    const event = req.body;
-    const checksum = req.headers["x-event-checksum"] as string;
-    const integritySecret = process.env.WOMPI_INTEGRITY_SECRET;
-
-    if (!checksum || !integritySecret) {
-      return res.status(400).json({ message: "Firma no encontrada" });
-    }
-
-    const hash = crypto
-      .createHash("sha256")
-      .update(JSON.stringify(event) + integritySecret)
-      .digest("hex");
-
-    if (hash !== checksum) {
-      return res.status(401).json({ message: "Firma inválida" });
-    }
-
-    const tx = event?.data?.transaction;
-    if (!tx?.reference || !tx?.status) {
-      return res.status(400).json({ message: "Evento inválido" });
-    }
-
-    const payment = await this.paymentRepo.findOne({
-      where: { reference: tx.reference },
-      relations: ["details", "details.ticket"],
-    });
-
-    if (!payment) {
-      return res.status(404).json({ message: "Pago no encontrado" });
-    }
-
-    if (payment.status !== "pending") {
-      return res.status(200).json({ message: "Evento ya procesado" });
-    }
-
-    payment.transaction_id = tx.id;
-
-    if (tx.status === "APPROVED") {
-      payment.status = "approved";
-      for (const d of payment.details) {
-        d.ticket.status = "purchased";
-        d.ticket.purchased_at = new Date();
-        await this.ticketRepository.save(d.ticket);
-      }
-    } else {
-      payment.status = "declined";
-      for (const d of payment.details) {
-        d.ticket.status = "available";
-        await this.ticketRepository.save(d.ticket);
-      }
-    }
-
-    await this.paymentRepo.save(payment);
-    return res.status(200).json({ message: "Webhook procesado correctamente" });
-  }
-
-*/

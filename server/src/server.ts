@@ -53,7 +53,6 @@ fs.readdirSync(routesPath).forEach((file) => {
 });
 
 app.post("/payments/wompi/webhook", (req, res) => {
-  console.log("⚠️ Legacy webhook hit");
   return paymentController.wompiWebhook(req, res);
 });
 

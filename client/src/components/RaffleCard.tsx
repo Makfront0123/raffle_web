@@ -33,13 +33,11 @@ export default function RaffleCard({
       setOpenAuth(true);
       return;
     }
-    // Si está autenticado, navegamos normal
     window.location.href = `/raffles/${raffle.id}`;
   };
 
   return (
     <>
-      {/* Auth Dialog */}
       <AuthDialog open={openAuth} onOpenChange={setOpenAuth} />
 
       <motion.div
@@ -52,10 +50,7 @@ export default function RaffleCard({
           className={`relative max-w-6xl overflow-hidden rounded-2xl border border-gold/40 bg-black/60 backdrop-blur-xl shadow-xl transition-all duration-300
         ${isExpired ? "opacity-60 grayscale" : "hover:shadow-gold/30 hover:scale-[1.03]"}`}
         >
-          {/* Golden glow overlay */}
           <div className="absolute inset-0 bg-gradient-to-br from-gold/10 via-transparent to-gold/5 pointer-events-none" />
-
-          {/* Imagen */}
           {raffle.image_url && (
             <div className="h-44 w-full overflow-hidden">
               <img

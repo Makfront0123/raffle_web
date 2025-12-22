@@ -84,8 +84,6 @@ export function Header() {
             );
           })}
         </div>
-
-        {/* 🔹 Right Side (desktop) */}
         <div className="hidden md:flex items-center gap-x-6">
           {user ? (
             <div className="flex items-center gap-4">
@@ -123,8 +121,6 @@ export function Header() {
           )}
         </div>
 
-
-        {/* 🔹 Mobile Menu Button */}
         <div className="md:hidden flex items-center">
           <Sheet open={openMenu} onOpenChange={setOpenMenu}>
             <SheetTrigger asChild>
@@ -132,8 +128,6 @@ export function Header() {
                 <Menu className="w-6 h-6 text-yellow-400" />
               </Button>
             </SheetTrigger>
-
-            {/* Drawer content */}
             <SheetContent
               side="right"
               className="bg-[#0B0B0B] text-white border-l border-yellow-500/20"
@@ -217,7 +211,6 @@ export function Header() {
         </div>
       </nav>
 
-      {/* Auth Dialog */}
       <AuthDialog open={openAuth} onOpenChange={setOpenAuth} />
       {
         user?.role != "admin" && <PhoneDialog

@@ -41,8 +41,6 @@ export class PrizesService {
         }
 
         const prize = this.prizeRepo.create(data);
-
-        // ⭐ SOLUCIÓN: faltaba el await
         const saved = await this.prizeRepo.save(prize);
 
         return {
@@ -203,7 +201,7 @@ export class PrizesService {
             prize_name: p.prize_name,
             prize_type: p.prize_type,
             value: p.prize_value,
-            raffle_id: p.raffle_id,          // <-- agregar ID
+            raffle_id: p.raffle_id,
             raffle_title: p.raffle_title,
             winner_ticket: p.winner_ticket,
             winner_user: p.user_id
@@ -223,18 +221,15 @@ export class PrizesService {
         if (!raffleId) {
             throw new Error("Raffle ID requerido");
         }
-
-        // 1️⃣ Obtener premio con su ticket ganador
         const prize = await this.prizeRepo.findOne({
             where: { raffle: { id: raffleId } },
             relations: ['raffle', 'winner_ticket'],
         });
 
         if (!prize || !prize.winner_ticket) {
-            return null; // no hay ganador aún
+            return null;
         }
 
-        // 2️⃣ Buscar el usuario dueño del ticket
         const detail = await this.paymentDetailRepo.findOne({
             where: { ticket: { id_ticket: prize.winner_ticket.id_ticket } },
             relations: ['payment', 'payment.user'],
@@ -268,18 +263,13 @@ export class PrizesService {
 
     async closeRaffle(raffleId: number) {
         if (!raffleId) throw new Error("Raffle ID requerido");
-
-        // Repos
         const prizeRepo = this.prizeRepo;
         const ticketRepo = this.ticketRepo;
-
-        // 1️⃣ Marcar todos los tickets como comprados
         await ticketRepo.update(
             { raffle: { id: raffleId } },
             { status: 'purchased' }
         );
 
-        // 2️⃣ Obtener todos los premios de la rifa
         const prizes = await prizeRepo.find({
             where: { raffle: { id: raffleId } },
             relations: ['raffle', 'raffle.tickets', 'raffle.tickets.user'],
@@ -293,8 +283,6 @@ export class PrizesService {
         }
 
         const winners = [];
-
-        // 3️⃣ Seleccionar ganador para cada premio
         for (const prize of prizes) {
             const result = await this.selectWinner(prize.id);
             winners.push(result);

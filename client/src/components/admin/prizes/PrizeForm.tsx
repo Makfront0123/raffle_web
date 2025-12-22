@@ -97,7 +97,6 @@ export function PrizeForm({
                         />
                     </div>
 
-                    {/* RIFA + TIPO */}
                     <div className="flex gap-10">
                         <div>
                             <Label>Rifa</Label>
@@ -144,7 +143,6 @@ export function PrizeForm({
                         </div>
                     </div>
 
-                    {/* PROVEEDORES */}
                     <div>
                         <Label>Proveedor</Label>
                         <Select

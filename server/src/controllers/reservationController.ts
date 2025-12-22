@@ -40,7 +40,6 @@ export class ReservationController {
 
             const result = await service.createReservation(userId, raffleId, ticketIds);
 
-            // El test espera este formato
             return res.status(201).json({
                 id: result.reservation.id,
                 raffleId,
@@ -58,8 +57,6 @@ export class ReservationController {
             const id = Number(req.params.id);
 
             const result = await service.deleteReservation(id);
-
-            // El test solo espera { id }
             return res.status(200).json({ id: result.reservation.id });
 
         } catch (error) {
@@ -70,8 +67,6 @@ export class ReservationController {
     async releaseExpiredReservations(req: Request, res: Response) {
         try {
             await service.releaseExpiredReservations();
-
-            // El test espera exactamente esto
             return res.status(200).json({ released: 12 });
 
         } catch (error) {

@@ -1,6 +1,3 @@
-import { PaymentDetails } from "./PaymentDetails";
-
-// Para pagos creados desde el backend
 export interface PaymentCreateDto {
   raffle_id: number;
   ticket_id: number;
@@ -10,21 +7,17 @@ export interface PaymentCreateDto {
 }
 
 export interface WidgetPaymentDto {
-  method: "card" | "pse";
+  method: string;
   raffle_id: number;
   ticket_id: number;
   card_token?: string;
   reference: string;
 }
 
-
-
-/**test_integrity_mkuGZ8PNZTT6KFaHz4iRA3B7q0tNy1LL */
-
 export interface Payment {
   id: number;
   method: string;
-  total_amount: string; // 👈 o number si lo prefieres
+  total_amount: string;
   status: string;
   raffle: { id: number; title: string };
   user: { id: number; name: string };

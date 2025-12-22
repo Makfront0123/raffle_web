@@ -17,7 +17,6 @@ export default function HeaderAdmin({
 }: HeaderAdminProps) {
   return (
     <header className="w-full flex items-center justify-between bg-white border-b px-4 sm:px-6 py-4 shadow-sm sticky top-0 z-50">
-      {/* Botón menú móvil */}
       <div className="flex items-center gap-3">
         <Button
           variant="ghost"
@@ -32,7 +31,6 @@ export default function HeaderAdmin({
         </h1>
       </div>
 
-      {/* Sección derecha */}
       <div className="md:flex hidden items-center gap-4">
         <Button variant="ghost" size="icon" className="hidden sm:flex">
           <Bell className="h-5 w-5" />

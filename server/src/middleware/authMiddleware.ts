@@ -13,8 +13,6 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
     if (!token) return res.status(401).json({ message: "No Autenticado" });
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { id: number; roleId: number };
-
-    // Traer el usuario con el role cargado
     const user = await AppDataSource.getRepository(User).findOne({
       where: { id: decoded.id },
       relations: ['role'],  

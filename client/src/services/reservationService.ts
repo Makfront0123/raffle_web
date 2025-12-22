@@ -30,7 +30,6 @@ export class ReservationService {
     return res.data;
   }
 
-  // 👇 Aquí cambias el tipo de retorno
   async cancelReservation(id: number, token: string): Promise<CancelReservationResponse> {
     const res = await axios.delete(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/reservation/${id}`, {
       headers: { Authorization: `Bearer ${token}` },

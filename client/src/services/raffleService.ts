@@ -4,7 +4,6 @@ import axios from "axios";
 const API_URL = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/raffle`;
 
 export class RaffleService {
-    // 🔹 Centraliza el manejo de errores del backend
     private handleError(error: any, defaultMessage: string): never {
         console.error("Backend error:", error.response?.data || error);
         const backendMessage =

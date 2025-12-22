@@ -10,7 +10,6 @@ export function useFilteredRaffles() {
   const [filterPrize, setFilterPrize] = useState("all");
   const [sortBy, setSortBy] = useState("recent");
 
-  // 🔥 Ahora soporta: active | ended | all
   const [tab, setTab] = useState<"active" | "ended" | "all">("active");
 
   const [showExpiredModal, setShowExpiredModal] = useState<Raffle | null>(null);
@@ -30,10 +29,8 @@ export function useFilteredRaffles() {
 
         const isEnded = r.status === "ended";
 
-        // 🔥 NUEVA LÓGICA DE TABS
         if (tab === "active" && isEnded) return false;
         if (tab === "ended" && !isEnded) return false;
-        // tab === "all" → deja pasar todo
 
         return matchesSearch && matchesPrize;
       })

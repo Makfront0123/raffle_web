@@ -4,7 +4,7 @@ import { Ticket } from "./Ticket";
 export interface Raffle {
   id: number;
   title: string;
-  price: number; // o number si quieres
+  price: number;
   description: string;
   end_date: string;
   digits: number;
@@ -12,7 +12,7 @@ export interface Raffle {
   tickets: Ticket[];
   prizes: Prizes[];
   created_at: string;
-  total_numbers: number; // readonly, calculado en backend
+  total_numbers: number;
 }
 
 export type RaffleForm = {
