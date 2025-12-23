@@ -13,7 +13,7 @@ interface Props {
   payWithWompiWidget: (args: {
     ticket: Ticket;
     raffle: any;
-    method: "card" | "pse";
+    method: "pay";
   }) => Promise<void>;
 }
 
@@ -41,9 +41,7 @@ export function useRaffleDetail({ payWithWompiWidget }: Props) {
   };
 
   useEffect(() => {
-    refreshRaffle().catch(() =>
-      console.error("Error cargando rifa")
-    );
+    refreshRaffle().catch(() => console.error("Error cargando rifa"));
   }, [id, token]);
 
   useEffect(() => {
@@ -84,10 +82,10 @@ export function useRaffleDetail({ payWithWompiWidget }: Props) {
     setOpen(true);
   };
 
-  const handleAction = async (action: "card" | "pse" | "reserve") => {
+  const handleAction = async (action: "pay" | "reserved") => {
     if (!selectedTicket || !raffle) return;
 
-    if (action === "reserve") {
+    if (action === "reserved") {
       try {
         await createReservation(selectedTicket.id_ticket, raffle.id, token!);
         toast.success("Ticket reservado 🕒");
@@ -128,6 +126,6 @@ export function useRaffleDetail({ payWithWompiWidget }: Props) {
     handleTicketSelect,
     handleAction,
     soldPercentage,
-    refreshRaffle, // 👈 IMPORTANTE
+    refreshRaffle,
   };
 }

@@ -21,7 +21,7 @@ export default function ReservationCard({
   raffle?: Raffle;
   canceling: number | null;
   onCancel: (id: number) => Promise<void>;
-  onPay: (method: "card" | "pse", raffleId: number, ticketId: number) => Promise<void>;
+  onPay: (method: "pay", raffleId: number, ticketId: number) => Promise<void>;
 }) {
   const [open, setOpen] = useState(false);
   const countdown = useCountdown(reservation.expires_at);
@@ -39,7 +39,13 @@ export default function ReservationCard({
 
   const ticketForModal: Ticket = {
     ...ticket,
-    raffle: raffle!,
+    raffle: {
+      id: raffle!.id,
+      title: raffle!.title,
+      description: raffle!.description,
+      total_numbers: raffle!.total_numbers,
+      price: String(raffle!.price), // ✅ convertir a string
+    },
     payment: {} as Payment,
   };
 
@@ -85,11 +91,8 @@ export default function ReservationCard({
         setOpen={setOpen}
         ticket={ticketForModal}
         raffle={raffle!}
-        handleAction={(type:any
-
-        ) => handleAction(type, ticketForModal, raffle!.id)}
+        handleAction={(type: any) => handleAction(type, ticketForModal, raffle!.id)}
       />
-
 
 
     </>

@@ -14,7 +14,7 @@ export default function ReservationsList({
   raffles: Raffle[];
   canceling: number | null;
   onCancel: (id: number) => Promise<void>;
-  onPay: (method: "card" | "pse", raffleId: number, ticketId: number) => Promise<void>;
+  onPay: (method: "pay" | "reserved", raffleId: number, ticketId: number) => Promise<void>;
 }) {
   if (paginatedReservations.length === 0)
     return <div className="text-black text-center">No tienes reservas activas</div>;

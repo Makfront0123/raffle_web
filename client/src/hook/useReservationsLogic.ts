@@ -46,7 +46,7 @@ export function useReservationsLogic() {
   };
 
   const handleAction = async (
-    action: "card" | "pse",
+
     reservationTicket: any,
     raffleId: number
   ) => {
@@ -60,7 +60,7 @@ export function useReservationsLogic() {
     await payWithWompiWidget({
       ticket: reservationTicket,
       raffle,
-      method: action,
+     
     });
   };
 

@@ -12,13 +12,8 @@ interface UsePaymentProps {
 }
 
 export function usePayment({ onPaymentSuccess }: UsePaymentProps = {}) {
-  const {
-    userPayments,
-    getPaymentsUser,
-    widgetPayment,
-    getWompiSignature,
-  } = usePaymentStore();
-
+  const { userPayments, getPaymentsUser, widgetPayment, getWompiSignature } =
+    usePaymentStore();
   const { token, user } = AuthStore();
 
   const [loading, setLoading] = useState(false);
@@ -30,19 +25,15 @@ export function usePayment({ onPaymentSuccess }: UsePaymentProps = {}) {
 
   useEffect(() => {
     if (!token || !user?.id) return;
-    getPaymentsUser(token).catch(() =>
-      console.error("Error cargando pagos")
-    );
+    getPaymentsUser(token).catch(() => console.error("Error cargando pagos"));
   }, [token, user?.id, getPaymentsUser]);
 
   const payWithWompiWidget = async ({
     ticket,
     raffle,
-    method,
   }: {
     ticket: any;
     raffle: any;
-    method: "card" | "pse";
   }) => {
     if (!token) {
       toast.error("Debes iniciar sesión");
@@ -59,23 +50,18 @@ export function usePayment({ onPaymentSuccess }: UsePaymentProps = {}) {
 
       const reference = `RAFFLE_${raffle.id}_TICKET_${ticket.id_ticket}_${Date.now()}`;
       const amountInCents = Math.round(Number(raffle.price) * 100);
-
       await widgetPayment(
         {
           raffle_id: raffle.id,
           ticket_id: ticket.id_ticket,
-          method,
+          method: "pay",
           reference,
         },
         token
       );
 
       const { signature } = await getWompiSignature(
-        {
-          reference,
-          amount_in_cents: amountInCents,
-          currency: "COP",
-        },
+        { reference, amount_in_cents: amountInCents, currency: "COP" },
         token
       );
 
@@ -94,7 +80,6 @@ export function usePayment({ onPaymentSuccess }: UsePaymentProps = {}) {
             ticketNumber: ticket.ticket_number,
           });
         });
-
         const interval = setInterval(async () => {
           const updatedPayments = await getPaymentsUser(token);
           const payment = updatedPayments.find(
@@ -103,12 +88,10 @@ export function usePayment({ onPaymentSuccess }: UsePaymentProps = {}) {
 
           if (payment?.status === "completed") {
             clearInterval(interval);
-
             flushSync(() => setSuccessModalOpen(true));
             setLoading(false);
             toast.success("Pago aprobado");
 
-            // 🔥 REFRESCAR RIFA / TICKETS
             if (onPaymentSuccess) {
               await onPaymentSuccess();
             }

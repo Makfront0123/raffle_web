@@ -1,4 +1,3 @@
-// RaffleTicketModal.tsx
 "use client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -10,7 +9,7 @@ interface Props {
   setOpen: (v: boolean) => void;
   ticket: Ticket;
   raffle: Raffle;
-  handleAction: (type: "card" | "pse" | "reserve") => void;
+  handleAction: (type: "pay" | "reserved") => void;
 }
 
 export default function RaffleTicketModal({ open, setOpen, ticket, raffle, handleAction }: Props) {
@@ -33,23 +32,15 @@ export default function RaffleTicketModal({ open, setOpen, ticket, raffle, handl
 
         <div className="flex flex-col gap-3 mt-4">
           <Button
-            onClick={() => handleAction("card")}
+            onClick={() => handleAction("pay")}
             className="bg-gold text-white font-bold hover:bg-gold/80"
           >
-            Pagar con Tarjeta
+            Pagar
           </Button>
-
-          <Button
-            onClick={() => handleAction("pse")}
-            className="bg-gold/70 text-white font-bold hover:bg-gold"
-          >
-            Pagar con PSE
-          </Button>
-
 
           {canReserve && (
             <Button
-              onClick={() => handleAction("reserve")}
+              onClick={() => handleAction("reserved")}
               variant="outline"
               className="border-gold text-yellow-500"
             >
