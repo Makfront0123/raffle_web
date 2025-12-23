@@ -86,6 +86,14 @@ export class PaymentService {
     });
   }
 
+  async getPaymentUser(userId: number) {
+    return await this.paymentRepo.find({
+      where: { user: { id: userId } }, // ✅ filtramos por user.id
+      relations: ["user", "raffle", "details", "details.ticket"], // traemos relaciones necesarias
+    });
+  }
+
+
   async createPayment(payment: any) {
     return await this.dataSource.transaction(async (manager) => {
       const user = await manager.getRepository(User).findOne({

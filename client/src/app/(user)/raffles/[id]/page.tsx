@@ -8,6 +8,7 @@ import RafflePagination from "@/components/user/raffles/RafflesPagination";
 import { useRaffleDetail } from "@/hook/useRaffleDetail";
 import { PaymentSuccessModal } from "@/components/PaymentSuccessModal";
 import { usePayment } from "@/hook/usePayment";
+import LoadingScreen from "@/components/LoadingScreen";
 
 export default function RaffleDetailPage() {
   const {
@@ -28,8 +29,10 @@ export default function RaffleDetailPage() {
     successModalOpen,
     setSuccessModalOpen,
     paymentInfo,
+    loading
   } = usePayment();
 
+  console.log('successModalOpen', successModalOpen);
 
   return (
     <div className="max-w-5xl mx-auto p-6 md:p-10 text-white 
@@ -61,12 +64,15 @@ export default function RaffleDetailPage() {
           handleAction={handleAction}
         />
       )}
+      {loading && <LoadingScreen />}
+
       <PaymentSuccessModal
         open={successModalOpen}
         onClose={() => setSuccessModalOpen(false)}
         raffleName={paymentInfo?.raffleName}
         ticketNumber={paymentInfo?.ticketNumber}
       />
+
 
     </div>
   );

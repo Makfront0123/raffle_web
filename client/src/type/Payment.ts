@@ -1,3 +1,6 @@
+import { Raffle } from "./Raffle";
+import { Ticket } from "./Ticket";
+
 export interface PaymentCreateDto {
   raffle_id: number;
   ticket_id: number;
@@ -16,11 +19,17 @@ export interface WidgetPaymentDto {
 
 export interface Payment {
   id: number;
-  method: string;
   total_amount: string;
   status: string;
-  raffle: { id: number; title: string };
-  user: { id: number; name: string };
+  method: string;
   created_at: string;
   cancelled_at: string | null;
+  details: TicketDetail[];
+  raffle: Raffle;
+  reference: string;
+}
+export interface TicketDetail {
+  id: number;
+  amount: string;
+  ticket: Ticket;
 }

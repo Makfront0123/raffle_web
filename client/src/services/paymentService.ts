@@ -25,7 +25,7 @@ export class PaymentService {
       axios.post(`${API_URL}/api/payment/wompi`, data, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      console.log(response.data);
+    console.log(response.data);
 
     return response.data;
   }
@@ -42,6 +42,13 @@ export class PaymentService {
     });
     return response.data;
   }
+  static async getPaymentsUser(token: string): Promise<Payment[]> { // ✅ array
+    const response = await axios.get(`${API_URL}/api/payment/user`, { // si quieres solo del usuario actual
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  }
+
 
   static async completePayment(id: number, token: string): Promise<void> {
     await axios.put(`${API_URL}/api/payment/${id}/complete`, null, {

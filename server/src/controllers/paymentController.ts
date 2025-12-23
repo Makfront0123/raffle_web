@@ -13,6 +13,16 @@ export class PaymentController {
             res.status(500).json({ message: 'Error obteniendo pagos', error });
         }
     }
+    async getPaymentUser(req: Request, res: Response) {
+        try {
+            // Filtramos solo los pagos del usuario logueado
+            const payments = await this.paymentService.getPaymentUser((req as any).user.id);
+            res.status(200).json(payments);
+        } catch (error) {
+            res.status(500).json({ message: 'Error obteniendo pagos', error });
+        }
+    }
+
 
     async createPayment(req: Request, res: Response) {
         try {
@@ -113,6 +123,10 @@ export class PaymentController {
 
 
     async wompiWebhook(req: Request, res: Response) {
+        console.log("🔥🔥🔥 WEBHOOK WOMPI LLAMADO 🔥🔥🔥");
+        console.log("Headers:", req.headers);
+        console.log("Body:", req.body);
+
         try {
             const result = await this.paymentService.wompiWebhook(req, res);
             return result;

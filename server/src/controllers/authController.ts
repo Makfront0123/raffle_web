@@ -24,28 +24,20 @@ export class AuthController {
   async loginWithGoogle(req: Request, res: Response) {
     try {
       const { token } = req.body;
-
-      if (!token) {
-        return res.status(400).json({ message: "Falta el token de Google" });
-      }
+      if (!token) return res.status(400).json({ message: "Falta el token de Google" });
 
       const googleUserResponse = await axios.get(
         "https://www.googleapis.com/oauth2/v3/userinfo",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       const { email, name, picture } = googleUserResponse.data;
 
-      const { user, isNew } = await this.authService.findOrCreateUser({
-        name,
-        email,
-        picture,
-      });
+      const { user, isNew } = await this.authService.findOrCreateUser({ name, email, picture });
 
+      // Generar JWT usando roleId seguro
       const appToken = jwt.sign(
-        { id: user.id, email: user.email, roleId: user.role.id },
+        { id: user.id, email: user.email, roleId: user.role?.id || 2 },
         process.env.JWT_SECRET!,
         { expiresIn: "1h" }
       );
@@ -57,20 +49,19 @@ export class AuthController {
       );
 
       return res.status(200).json({
-        message: isNew
-          ? "Usuario registrado correctamente"
-          : "Inicio de sesión exitoso",
+        message: isNew ? "Usuario registrado correctamente" : "Inicio de sesión exitoso",
         user: {
           id: user.id,
           name: user.name,
           email: user.email,
           picture: user.picture,
-          role: user.role.name,
+          role: user.role?.name || "Usuario",
         },
         token: appToken,
         refreshToken,
       });
     } catch (error: any) {
+      console.error("Error en login:", error);
       return res.status(500).json({
         message: "Error al autenticar con Google",
         error: error.response?.data || error.message,

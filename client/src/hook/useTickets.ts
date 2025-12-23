@@ -1,28 +1,34 @@
 import { useEffect, useState } from "react";
 import { AuthStore } from "@/store/authStore";
 import { useTicketStore } from "@/store/ticketStore";
- 
-export function useTickets() {
+import { usePaymentStore } from "@/store/paymentStore";
+import { Payment } from "@/type/Payment";
+
+export function usePayments() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { token } = AuthStore();
-  const { tickets, getTickets } = useTicketStore();
-   
-  const fetchTickets = async () => {
+  const { setTickets } = useTicketStore();
+  const { getPaymentsUser } = usePaymentStore();
 
+  const fetchPayments = async () => {
     try {
       setLoading(true);
-      await getTickets(token ?? "");
+      const payments: Payment[] = await getPaymentsUser(token ?? "");
+      console.log("Payments obtenidos:", payments);
+ 
+      setTickets(payments as any);
     } catch (err) {
-      setError("Error cargando tickets");
+      setError("Error cargando pagos");
+      console.error(err);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchTickets();
+    if (token) fetchPayments();
   }, [token]);
 
-  return { tickets, loading, error, fetchTickets };
+  return { payments: useTicketStore().tickets, loading, error, fetchPayments };
 }

@@ -41,10 +41,23 @@ export const usePaymentStore = create<PaymentStore>()((set, get) => ({
         try {
             const payments = await PaymentService.getPayments(token);
             set({ payments });
+            return payments; // ✅ agregar return
         } finally {
             set({ loading: false });
         }
     },
+
+    getPaymentsUser: async (token) => {
+        set({ loading: true });
+        try {
+            const payments = await PaymentService.getPaymentsUser(token);
+            set({ payments });
+            return payments;
+        } finally {
+            set({ loading: false });
+        }
+    },
+
 
     completePayment: async (id, token) => {
         await PaymentService.completePayment(id, token);
@@ -58,6 +71,7 @@ export const usePaymentStore = create<PaymentStore>()((set, get) => ({
     getWompiSignature: async (data, token) => {
         return PaymentService.getWompiSignature(data, token);
     },
+
 }));
 
 interface PaymentStore {
@@ -69,6 +83,7 @@ interface PaymentStore {
     widgetPayment: (data: WidgetPaymentDto, token: string) => Promise<any>;
     getWompiSignature: (data: WompiSignatureDto, token: string) => Promise<any>;
     cancelPayment: (id: number, token: string) => Promise<void>;
-    getPayments: (token: string) => Promise<void>;
+    getPayments: (token: string) => Promise<Payment[]>;
+    getPaymentsUser: (token: string) => Promise<Payment[]>;
     completePayment: (id: number, token: string) => Promise<void>;
 }

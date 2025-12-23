@@ -1,28 +1,44 @@
 "use client";
 
-import { filterTickets } from "@/app/utils/filterTickets";
+import { useState } from "react";
 import { paginate } from "@/app/utils/paginate";
 import MyTicketsView from "@/components/user/tickets/MyTicketsView";
-import { useTickets } from "@/hook/useTickets";
-import { useState } from "react";
-
-
+import { usePayment } from "@/hook/usePayment";
 
 export default function MyTickets() {
-  const { tickets, loading } = useTickets();
+  const { payments, loading } = usePayment();
 
   const [search, setSearch] = useState("");
   const [filterRaffle, setFilterRaffle] = useState<"all" | number>("all");
   const [page, setPage] = useState(1);
 
-  if (loading) return <div>Cargando tickets...</div>;
+  if (loading) return <div>Cargando pagos...</div>;
 
-  const uniqueRaffles = Array.from(
-    new Map(tickets.map((t) => [t.raffle.id, t.raffle])).values()
+  const completedPayments = payments.filter(
+    (p) => p.status === "completed" && p.raffle
   );
 
-  const filtered = filterTickets(tickets, search, filterRaffle);
-  const { totalPages, currentItems } = paginate(filtered, page, 10);
+
+  const uniqueRaffles = Array.from(
+    new Map(
+      completedPayments
+        .map((p) => p.raffle)
+        .filter(Boolean)
+        .map((r) => [r.id, r])
+    ).values()
+  );
+
+  const filteredPayments = completedPayments.filter((payment) => {
+    const matchesRaffle =
+      filterRaffle === "all" || payment.raffle.id === filterRaffle;
+
+    const matchesSearch = payment.raffle.title
+      .toLowerCase()
+      .includes(search.toLowerCase());
+
+    return matchesRaffle && matchesSearch;
+  });
+  const { totalPages, currentItems } = paginate(filteredPayments, page, 10);
 
   return (
     <MyTicketsView
@@ -30,7 +46,7 @@ export default function MyTickets() {
       filterRaffle={filterRaffle}
       page={page}
       totalPages={totalPages}
-      currentTickets={currentItems}
+      currentPayments={currentItems}
       uniqueRaffles={uniqueRaffles}
       onSearch={(v) => {
         setSearch(v);
@@ -40,7 +56,7 @@ export default function MyTickets() {
         setFilterRaffle(v);
         setPage(1);
       }}
-      onPageChange={(p) => setPage(p)}
+      onPageChange={setPage}
     />
   );
 }

@@ -175,7 +175,7 @@ export function Header() {
                 </SheetDescription>
               </SheetHeader>
 
-              <div className="flex flex-col gap-6 mt-8">
+              <div className="flex flex-col gap-6 mt-8 p-5">
                 {mainRoutes.map((route) => {
                   const isProtected = route.protected;
 
@@ -203,7 +203,7 @@ export function Header() {
                 })}
               </div>
 
-              <div className="mt-10 pt-6 border-t border-yellow-500/10 flex flex-col gap-4">
+              <div className="mt-10 pt-6 border-t p-5 border-yellow-500/10 flex flex-col gap-4">
                 {user ? (
                   <>
                     <div className="flex items-center gap-3">
@@ -226,7 +226,7 @@ export function Header() {
                       }}
                       className="
                         bg-yellow-500 hover:bg-yellow-600
-                        text-black font-semibold
+                        text-black font-semibold mr-10
                       "
                     >
                       Cerrar sesión
@@ -240,7 +240,7 @@ export function Header() {
                     }}
                     className="
                       bg-yellow-500 hover:bg-yellow-600
-                      text-black font-semibold
+                      text-black font-semibold mx-10
                     "
                   >
                     Iniciar sesión

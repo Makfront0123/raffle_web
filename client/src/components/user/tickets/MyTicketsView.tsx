@@ -2,13 +2,15 @@
 import { Input } from "@/components/ui/input";
 import { Ticket } from "@/type/Ticket";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { Raffle } from "@/type/Raffle";
+import { Payment } from "@/type/Payment";
 
 interface Props {
   search: string;
   filterRaffle: "all" | number;
   page: number;
   totalPages: number;
-  currentTickets: Ticket[];
+  currentPayments: Payment[];
   uniqueRaffles: any[];
 
   onSearch: (v: string) => void;
@@ -21,12 +23,14 @@ export default function MyTicketsView({
   filterRaffle,
   page,
   totalPages,
-  currentTickets,
+  currentPayments,
   uniqueRaffles,
   onSearch,
   onFilter,
   onPageChange,
 }: Props) {
+
+
 
   return (
     <main className="flex-1 p-6 bg-gray-50 overflow-y-auto">
@@ -49,11 +53,14 @@ export default function MyTicketsView({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas las rifas</SelectItem>
-            {uniqueRaffles.map((r) => (
-              <SelectItem key={r.id} value={r.id.toString()}>
-                {r.title}
-              </SelectItem>
-            ))}
+            {uniqueRaffles.length > 0 &&
+              uniqueRaffles.map((r: Raffle) => (
+                <SelectItem key={r.id} value={r.id.toString()}>
+                  {r.title}
+                </SelectItem>
+              ))
+            }
+
           </SelectContent>
         </Select>
       </div>
@@ -71,28 +78,27 @@ export default function MyTicketsView({
           </thead>
 
           <tbody>
-            {currentTickets.length === 0 ? (
+            {currentPayments.length === 0 ? (
               <tr>
-                <td colSpan={5} className="text-center py-4 text-gray-400">
-                  No se encontraron tickets.
-                </td>
+                <td colSpan={5}>No hay resultados</td>
               </tr>
             ) : (
-              currentTickets.map((ticket) => (
-                <tr key={ticket.id_ticket} className="border-t">
-                  <td className="px-4 py-2">{ticket.raffle.title}</td>
-                  <td className="px-4 py-2">{ticket.ticket_number}</td>
-                  <td className="px-4 py-2">${ticket.payment?.total_amount}</td>
-                  <td className="px-4 py-2">
-                    {new Date(
-                      ticket.purchased_at || ticket.payment?.created_at
-                    ).toLocaleDateString()}
-                  </td>
-                  <td className="px-4 py-2 capitalize">{ticket.status}</td>
-                </tr>
-              ))
+              currentPayments.map(payment =>
+                payment.details.map(detail => (
+                  <tr key={detail.ticket.id_ticket} className="border-t">
+                    <td className="px-4 py-2">{payment.raffle.title}</td>
+                    <td className="px-4 py-2">{detail.ticket.ticket_number}</td>
+                    <td className="px-4 py-2">${payment.total_amount}</td>
+                    <td className="px-4 py-2">
+                      {new Date(payment.created_at).toLocaleDateString()}
+                    </td>
+                    <td className="capitalize">{payment.status}</td>
+                  </tr>
+                ))
+              )
             )}
           </tbody>
+
         </table>
       </div>
 

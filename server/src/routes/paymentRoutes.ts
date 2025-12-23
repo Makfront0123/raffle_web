@@ -11,7 +11,8 @@ const router = Router();
 const paymentService = new PaymentService(AppDataSource);
 const paymentController = new PaymentController(paymentService);
 
-router.get("/", authMiddleware, paymentController.getAllPayments.bind(paymentController));
+router.get("/", adminMiddleware, paymentController.getAllPayments.bind(paymentController));
+router.get("/user",authMiddleware, paymentController.getPaymentUser.bind(paymentController));
 router.post("/", authMiddleware, paymentController.createPayment.bind(paymentController));
 router.get("/:id", authMiddleware, paymentController.getPaymentById.bind(paymentController));
 router.delete("/:id", paymentController.deletePayment.bind(paymentController));
