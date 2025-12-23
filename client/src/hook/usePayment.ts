@@ -7,9 +7,13 @@ import { AuthStore } from "@/store/authStore";
 import { Payment } from "@/type/Payment";
 import { useState, useEffect } from "react";
 
-export function usePayment() {
+interface UsePaymentProps {
+  onPaymentSuccess?: () => Promise<void>;
+}
+
+export function usePayment({ onPaymentSuccess }: UsePaymentProps = {}) {
   const {
-    payments,
+    userPayments,
     getPaymentsUser,
     widgetPayment,
     getWompiSignature,
@@ -23,13 +27,14 @@ export function usePayment() {
     raffleName?: string;
     ticketNumber?: string;
   } | null>(null);
+
   useEffect(() => {
     if (!token || !user?.id) return;
-
     getPaymentsUser(token).catch(() =>
       console.error("Error cargando pagos")
     );
   }, [token, user?.id, getPaymentsUser]);
+
   const payWithWompiWidget = async ({
     ticket,
     raffle,
@@ -65,7 +70,6 @@ export function usePayment() {
         token
       );
 
-
       const { signature } = await getWompiSignature(
         {
           reference,
@@ -98,10 +102,16 @@ export function usePayment() {
           );
 
           if (payment?.status === "completed") {
+            clearInterval(interval);
+
             flushSync(() => setSuccessModalOpen(true));
             setLoading(false);
             toast.success("Pago aprobado");
-            clearInterval(interval);
+
+            // 🔥 REFRESCAR RIFA / TICKETS
+            if (onPaymentSuccess) {
+              await onPaymentSuccess();
+            }
           }
         }, 3000);
       });
@@ -113,7 +123,7 @@ export function usePayment() {
   };
 
   return {
-    payments,
+    userPayments,
     loading,
     payWithWompiWidget,
     successModalOpen,
@@ -121,6 +131,7 @@ export function usePayment() {
     paymentInfo,
   };
 }
+
 
 
 

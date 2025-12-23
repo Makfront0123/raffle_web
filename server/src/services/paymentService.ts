@@ -8,16 +8,37 @@ import { PaymentDetail } from "../entities/payment_details.entity";
 import { ReservationTicket } from "../entities/reservation_ticket.entity";
 import type { Request, Response } from "express";
 import crypto from "crypto";
+import { WhatsappService } from "../services/whatpsappService";
 
 export class PaymentService {
   private ticketRepository;
   private paymentRepo;
+  private whatsappService;
 
   constructor(private dataSource = AppDataSource) {
     this.ticketRepository = dataSource.getRepository(Ticket);
     this.paymentRepo = dataSource.getRepository(Payment);
+    this.whatsappService = new WhatsappService();
   }
 
+  async sendWhatsappReceipt({
+    phone,
+    raffleName,
+    ticketNumber,
+    amount,
+  }: {
+    phone: string;
+    raffleName: string;
+    ticketNumber: string;
+    amount: number;
+  }) {
+    await this.whatsappService.sendReceipt({
+      phone,
+      raffleName,
+      ticketNumber,
+      amount,
+    });
+  }
 
 
   async getPaymentById(id: number) {
@@ -92,7 +113,6 @@ export class PaymentService {
       relations: ["user", "raffle", "details", "details.ticket"], // traemos relaciones necesarias
     });
   }
-
 
   async createPayment(payment: any) {
     return await this.dataSource.transaction(async (manager) => {

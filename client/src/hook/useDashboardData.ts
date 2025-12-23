@@ -8,38 +8,39 @@ import { usePayment } from "./usePayment";
 import { usePrizes } from "./usePrizes";
 import { useRaffles } from "./useRaffles";
 import { Winner } from "@/type/Winner";
+import { useAdminPayments } from "./userAdminPayments";
 
- 
+
 interface DashboardStats {
     stats: { title: string; value: string | number }[];
     lastRaffles: Raffle[];
     loading: boolean;
 }
- 
+
 export function useDashboardData(): DashboardStats {
     const { raffles, loading: loadingRaffles } = useRaffles();
     const { prizes, loading: loadingPrizes, winners } = usePrizes();
-    const { payments, loading: loadingPayments } = usePayment();
-
+    const { payments, loading: loadingPayments } = useAdminPayments();
+    console.log('payments', payments);
     const { stats, lastRaffles } = useMemo(() => {
- 
+
         const safeRaffles: Raffle[] = raffles || [];
         const safePrizes: Prizes[] = prizes || [];
         const safePayments: Payment[] = payments || [];
         const safeWinners: Winner[] = winners || [];
- 
+
         const activeRaffles = safeRaffles.filter((r) => r.status === "active").length;
         const totalPayments = safePayments.reduce(
             (acc, p) => acc + (parseFloat(p.total_amount) || 0),
             0
         );
 
-    
+
         const totalPrizes = safePrizes.length;
         const totalWinners = safeWinners.length;
 
 
-        
+
         const lastRaffles = safeRaffles
             .slice()
             .sort(
@@ -47,7 +48,7 @@ export function useDashboardData(): DashboardStats {
                     new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
             )
             .slice(0, 5);
- 
+
         const stats = [
             { title: "Rifas activas", value: activeRaffles },
             { title: "Pagos recibidos", value: `$${totalPayments.toLocaleString()}` },
@@ -59,6 +60,7 @@ export function useDashboardData(): DashboardStats {
     }, [raffles, prizes, payments]);
 
     const loading = loadingRaffles || loadingPrizes || loadingPayments;
+    
 
     return { stats, lastRaffles, loading };
 }

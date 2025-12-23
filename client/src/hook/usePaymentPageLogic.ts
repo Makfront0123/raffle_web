@@ -1,8 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { usePaymentStore } from "@/store/paymentStore";
 import { AuthStore } from "@/store/authStore";
 import { applyFilters } from "@/app/utils/paymentFilters";
- 
 
 export function usePaymentsPageLogic() {
   const [statusFilter, setStatusFilter] =
@@ -11,9 +10,14 @@ export function usePaymentsPageLogic() {
   const [dateTo, setDateTo] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
-  const { payments, loading, completePayment } = usePaymentStore();
+  const { payments, loading, completePayment, getPayments } =
+    usePaymentStore();
 
   const token = AuthStore.getState().token;
+
+  useEffect(() => {
+    if (token) getPayments(token);
+  }, [token]);
 
   const filteredPayments = applyFilters({
     payments,
@@ -25,7 +29,6 @@ export function usePaymentsPageLogic() {
   return {
     loading,
     completePayment,
-    token,
     filteredPayments,
     currentPage,
     setCurrentPage,
@@ -35,5 +38,6 @@ export function usePaymentsPageLogic() {
     setDateFrom,
     dateTo,
     setDateTo,
+    token,
   };
 }

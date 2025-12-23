@@ -23,6 +23,31 @@ export class PaymentController {
         }
     }
 
+    async sendWhatsappReceipt(req: Request, res: Response) {
+        try {
+            const { phone, raffleName, ticketNumber, amount } = req.body;
+
+            if (!phone || !raffleName || !ticketNumber || !amount) {
+                return res.status(400).json({ message: "Datos incompletos" });
+            }
+
+            await this.paymentService.sendWhatsappReceipt({
+                phone,
+                raffleName,
+                ticketNumber,
+                amount,
+            });
+
+            return res.status(200).json({ message: "Recibo enviado por WhatsApp" });
+        } catch (error: any) {
+            console.error(error);
+            return res.status(500).json({
+                message: "Error enviando recibo",
+                error: error.message,
+            });
+        }
+    }
+
 
     async createPayment(req: Request, res: Response) {
         try {

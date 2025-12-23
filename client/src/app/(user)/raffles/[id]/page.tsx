@@ -11,68 +11,69 @@ import { usePayment } from "@/hook/usePayment";
 import LoadingScreen from "@/components/LoadingScreen";
 
 export default function RaffleDetailPage() {
-  const {
-    raffle,
-    page,
-    setPage,
-    totalPages,
-    currentTickets,
-    selectedTicket,
-    setOpen,
-    open,
-    getTicketColor,
-    handleTicketSelect,
-    handleAction,
-    soldPercentage,
-  } = useRaffleDetail();
-  const {
-    successModalOpen,
-    setSuccessModalOpen,
-    paymentInfo,
-    loading
-  } = usePayment();
+  const raffleDetail = useRaffleDetail({
+    payWithWompiWidget: async () => { },
+  });
 
-  console.log('successModalOpen', successModalOpen);
+  const payment = usePayment({
+    onPaymentSuccess: raffleDetail.refreshRaffle,
+  });
+
+  raffleDetail.handleAction = async (action: any) => {
+    if (!raffleDetail.selectedTicket || !raffleDetail.raffle) return;
+
+    if (action === "reserve") {
+      return raffleDetail.handleAction(action);
+    }
+
+    await payment.payWithWompiWidget({
+      ticket: raffleDetail.selectedTicket,
+      raffle: raffleDetail.raffle,
+      method: action,
+    });
+  };
 
   return (
-    <div className="max-w-5xl mx-auto p-6 md:p-10 text-white 
-      bg-gradient-to-b from-black via-[#111] to-black 
-      min-h-screen"
-    >
-      <RaffleInfo raffle={raffle} soldPercentage={soldPercentage} />
+    <div className="max-w-5xl mx-auto p-6 md:p-10 text-white min-h-screen bg-black">
+      <RaffleInfo
+        raffle={raffleDetail.raffle}
+        soldPercentage={raffleDetail.soldPercentage}
+      />
 
       <RaffleTicketsGrid
-        tickets={currentTickets}
-        getColor={getTicketColor}
-        handleSelect={handleTicketSelect}
+        tickets={raffleDetail.currentTickets}
+        getColor={raffleDetail.getTicketColor}
+        handleSelect={raffleDetail.handleTicketSelect}
       />
 
       <RaffleLegend />
 
       <RafflePagination
-        currentPage={page}
-        totalPages={totalPages}
-        setCurrentPage={setPage}
+        currentPage={raffleDetail.page}
+        totalPages={raffleDetail.totalPages}
+        setCurrentPage={raffleDetail.setPage}
       />
 
-      {selectedTicket && (
+      {raffleDetail.selectedTicket && (
         <RaffleTicketModal
-          open={open}
-          setOpen={setOpen}
-          ticket={selectedTicket}
-          raffle={raffle}
-          handleAction={handleAction}
+          open={raffleDetail.open}
+          setOpen={raffleDetail.setOpen}
+          ticket={raffleDetail.selectedTicket}
+          raffle={raffleDetail.raffle}
+          handleAction={raffleDetail.handleAction}
         />
       )}
-      {loading && <LoadingScreen />}
+
+      {payment.loading && <LoadingScreen />}
 
       <PaymentSuccessModal
-        open={successModalOpen}
-        onClose={() => setSuccessModalOpen(false)}
-        raffleName={paymentInfo?.raffleName}
-        ticketNumber={paymentInfo?.ticketNumber}
-      />
+        open={payment.successModalOpen}
+        onClose={() => payment.setSuccessModalOpen(false)}
+        raffleName={payment.paymentInfo?.raffleName}
+        ticketNumber={payment.paymentInfo?.ticketNumber}
+        amount={raffleDetail.raffle?.price ?? 0}
 
+      />
 
     </div>
   );

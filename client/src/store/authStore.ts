@@ -19,7 +19,6 @@ export const AuthStore = create<AuthState>()(
 
       user: null,
       token: null,
-      phoneModalOpen: false,
 
       setUser: (user, token) => {
         set({ user, token });

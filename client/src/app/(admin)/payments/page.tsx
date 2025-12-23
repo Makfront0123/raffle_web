@@ -16,8 +16,6 @@ export default function PaymentsPage() {
     setCurrentPage,
     filteredPayments,
     token,
-
-    /* filtros */
     statusFilter,
     setStatusFilter,
     dateFrom,

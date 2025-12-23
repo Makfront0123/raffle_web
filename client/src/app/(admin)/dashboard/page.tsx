@@ -8,7 +8,7 @@ import router from "next/router";
 
 const Dashboard = () => {
   const { stats, lastRaffles, loading } = useDashboardData();
-
+ console.log('stats', stats);
   if (loading) {
     return <p className="p-6 text-gray-500">Cargando datos del dashboard...</p>;
   }

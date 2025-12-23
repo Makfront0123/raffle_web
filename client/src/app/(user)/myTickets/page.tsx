@@ -6,7 +6,7 @@ import MyTicketsView from "@/components/user/tickets/MyTicketsView";
 import { usePayment } from "@/hook/usePayment";
 
 export default function MyTickets() {
-  const { payments, loading } = usePayment();
+  const { userPayments, loading } = usePayment();
 
   const [search, setSearch] = useState("");
   const [filterRaffle, setFilterRaffle] = useState<"all" | number>("all");
@@ -14,7 +14,7 @@ export default function MyTickets() {
 
   if (loading) return <div>Cargando pagos...</div>;
 
-  const completedPayments = payments.filter(
+  const completedPayments = userPayments.filter(
     (p) => p.status === "completed" && p.raffle
   );
 

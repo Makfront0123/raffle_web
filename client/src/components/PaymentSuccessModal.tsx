@@ -1,41 +1,53 @@
 "use client";
 
 import { useState } from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, Send } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { useWhatsappReceipt } from "@/hook/useSendWhatsappReceipt";
+
+
+interface Props {
+  open: boolean;
+  onClose: () => void;
+  raffleName?: string;
+  ticketNumber?: string;
+  amount: number;
+}
 
 export function PaymentSuccessModal({
   open,
   onClose,
   raffleName,
   ticketNumber,
-}: any) {
+  amount,
+}: Props) {
   const [phone, setPhone] = useState("");
-  const [sending, setSending] = useState(false);
-  const [sent, setSent] = useState(false);
+
+  const { sendReceipt, loading, sent } = useWhatsappReceipt();
 
   const handleSendReceipt = async () => {
-    if (!phone) return;
+    if (!phone || !raffleName || !ticketNumber) return;
 
     try {
-      setSending(true);
-
-      // 👉 aquí luego llamas tu endpoint con Twilio
-      // await sendReceipt({ phone, raffleName, ticketNumber });
-
-      setSent(true);
+      await sendReceipt({
+        phone,
+        raffleName,
+        ticketNumber,
+        amount,
+      });
     } catch (err) {
       console.error(err);
-    } finally {
-      setSending(false);
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="bg-[#0B0B0B] border border-yellow-500/20 text-white max-w-md rounded-2xl">
+        <DialogHeader>
+          <DialogTitle>Pago exitoso</DialogTitle>
+        </DialogHeader>
         <div className="flex flex-col items-center text-center gap-5 py-6">
 
           <CheckCircle className="w-20 h-20 text-yellow-400" />
@@ -46,7 +58,6 @@ export function PaymentSuccessModal({
             Tu pago fue procesado correctamente.
           </p>
 
-          {/* WhatsApp receipt */}
           {!sent ? (
             <div className="w-full mt-4 space-y-3">
               <p className="text-sm text-gray-400">
@@ -66,11 +77,11 @@ export function PaymentSuccessModal({
 
               <Button
                 onClick={handleSendReceipt}
-                disabled={!phone || sending}
+                disabled={!phone || loading}
                 className="w-full bg-green-500 hover:bg-green-600 text-black font-semibold"
               >
                 <Send className="w-4 h-4 mr-2" />
-                Enviar recibo por WhatsApp
+                {loading ? "Enviando..." : "Enviar recibo por WhatsApp"}
               </Button>
             </div>
           ) : (
