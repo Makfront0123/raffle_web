@@ -10,11 +10,6 @@ export function useAdminPayments() {
 
     const isAdmin = user?.role === "admin";
 
-
-    console.log("USER", user);
-    console.log("IS ADMIN", isAdmin);
-
-
     useEffect(() => {
         if (!token || !isAdmin) return;
         getPayments(token).catch(() =>

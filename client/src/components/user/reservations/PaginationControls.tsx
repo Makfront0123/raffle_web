@@ -17,7 +17,7 @@ export default function PaginationControls({
   onChange: (newPage: number) => void;
 }) {
   return (
-    <Pagination className="mt-10">
+    <Pagination className="mb-10">
       <PaginationContent className="text-white">
         <PaginationItem>
           <PaginationPrevious

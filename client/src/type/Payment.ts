@@ -3,10 +3,10 @@ import { Ticket } from "./Ticket";
 
 export interface PaymentCreateDto {
   raffle_id: number;
-  ticket_id: number;
+  ticket_ids: number[];
   reference: string;
   total_amount: number;
-  method: string;
+  reservation_id?: number;
 }
 
 export interface WidgetPaymentDto {
@@ -19,7 +19,7 @@ export interface WidgetPaymentDto {
 
 export interface Payment {
   id: number;
-  total_amount: string;
+  total_amount: number;
   status: string;
   method: string;
   created_at: string;

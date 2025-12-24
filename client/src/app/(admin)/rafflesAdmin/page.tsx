@@ -9,7 +9,6 @@ import { RaffleForm } from "@/components/admin/raffle/RaffleForm";
 import { RafflesTable } from "@/components/admin/raffle/RaffleTable";
 
 const RafflesAdmin = () => {
-  const { token } = AuthStore();
 
   const {
     raffles,

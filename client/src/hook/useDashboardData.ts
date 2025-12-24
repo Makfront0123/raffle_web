@@ -21,7 +21,6 @@ export function useDashboardData(): DashboardStats {
     const { raffles, loading: loadingRaffles } = useRaffles();
     const { prizes, loading: loadingPrizes, winners } = usePrizes();
     const { payments, loading: loadingPayments } = useAdminPayments();
-    console.log('payments', payments);
     const { stats, lastRaffles } = useMemo(() => {
 
         const safeRaffles: Raffle[] = raffles || [];
@@ -31,7 +30,7 @@ export function useDashboardData(): DashboardStats {
 
         const activeRaffles = safeRaffles.filter((r) => r.status === "active").length;
         const totalPayments = safePayments.reduce(
-            (acc, p) => acc + (parseFloat(p.total_amount) || 0),
+            (acc, p) => acc + (parseFloat(p.total_amount.toString()) || 0),
             0
         );
 

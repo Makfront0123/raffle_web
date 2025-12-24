@@ -20,6 +20,8 @@ export class Reservation {
 
   @CreateDateColumn()
   created_at!: Date;
+  @Column({ type: 'timestamp', nullable: true })
+  cancelled_at?: Date;
 
   @Column({ type: 'timestamp' })
   expires_at!: Date;

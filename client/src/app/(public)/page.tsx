@@ -9,31 +9,56 @@ import RaffleGrid from "@/components/RafflesGrid";
 import { useState } from "react";
 import { useFilteredRaffles } from "@/hook/useFilteredRaffles";
 import { usePrizes } from "@/hook/usePrizes";
-
+import PaginationControls from "@/components/user/reservations/PaginationControls";
+import { usePagination } from "@/hook/usePagination";
+import AdminSplashScreen from "@/components/admin/adminSplashScreen";
+import { useAuth } from "@/hook/useAuth";
 export default function Home() {
   const loading = useLoadingScreen(300);
 
   const { filteredRaffles } = useFilteredRaffles();
   const { winners } = usePrizes();
 
+  const {
+    page,
+    totalPages,
+    setPage,
+    items: paginatedRaffles,
+  } = usePagination(filteredRaffles, 3);
 
   const [expiredModal, setExpiredModal] = useState({
     open: false,
     raffle: null,
   });
 
+  const { user, showAdminSplash } = useAuth();
+
   if (loading) return <LoadingScreen />;
+
+  console.log(user);
+
+  if (showAdminSplash && user?.role === "admin") {
+    return <AdminSplashScreen name={user.name} />;
+  }
 
   return (
     <>
       <Hero />
 
       <RaffleGrid
-        raffles={filteredRaffles}
+        raffles={paginatedRaffles}
         setShowExpiredModal={(open, raffle) =>
           setExpiredModal({ open, raffle })
         }
       />
+
+      {totalPages > 1 && (
+        <PaginationControls
+          page={page}
+          totalPages={totalPages}
+          onChange={setPage}
+        />
+      )}
 
       <WinnersSection winners={winners} />
       <FAQSection />

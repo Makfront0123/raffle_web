@@ -16,6 +16,8 @@ export function useAuth() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [initialized, setInitialized] = useState(false);
+  const [showAdminSplash, setShowAdminSplash] = useState(false);
+
 
 
   const [client, setClient] = useState<TokenClient | null>(null);
@@ -37,8 +39,16 @@ export function useAuth() {
 
       toast.success(`¡Bienvenido ${persistRes.user.name || ""}!`);
 
-      if (persistRes.user.role === "admin") router.push("/dashboard");
-      else router.push("/");
+      if (persistRes.user.role === "admin") {
+        sessionStorage.setItem("adminSplash", "true");
+        setTimeout(() => {
+          router.push("/dashboard");
+        }, 50);
+      }
+      else {
+        router.push("/");
+      }
+
 
     } catch (err: any) {
       console.error("Error en login:", err);
@@ -80,21 +90,17 @@ export function useAuth() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-
-    // ✅ NO hay token → auth ya fue evaluada
     if (!token) {
       setInitialized(true);
       return;
     }
-
-    // ✅ ya hay usuario cargado
     if (user) {
       setInitialized(true);
       return;
     }
 
     const authService = new AuthService();
- 
+
 
     (async () => {
       try {
@@ -106,7 +112,6 @@ export function useAuth() {
       } catch (err) {
         logout();
       } finally {
-        // 🔥 CLAVE
         setInitialized(true);
       }
     })();
@@ -164,5 +169,6 @@ export function useAuth() {
     loginWithGoogle,
     logout,
     initialized,
+    showAdminSplash,
   };
 }

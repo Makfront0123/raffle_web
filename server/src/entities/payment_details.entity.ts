@@ -13,9 +13,10 @@ export class PaymentDetail {
   payment!: Payment;
 
   @ManyToOne(() => Ticket)
-  @JoinColumn({ name: 'ticketId', referencedColumnName: 'id_ticket' })  
+  @JoinColumn({ name: 'ticketId', referencedColumnName: 'id_ticket' })
   ticket!: Ticket;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2 })
-  amount!: number;  
+  @Column({ type: 'int' })
+  amount!: number;
+
 }

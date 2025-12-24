@@ -18,8 +18,9 @@ export class Raffle {
   @Column({ type: 'int' })
   total_numbers!: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  @Column({ type: 'int' })
   price!: number;
+
 
   @Column({ type: 'text' })
   status!: string;

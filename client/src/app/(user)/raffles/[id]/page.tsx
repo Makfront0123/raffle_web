@@ -12,7 +12,16 @@ import { PaymentSuccessModal } from "@/components/PaymentSuccessModal";
 
 
 export default function RaffleDetailPage() {
-  const payment = usePayment();
+  const payment = usePayment({
+    onPaymentSuccess: async () => {
+      // Vuelve a cargar la rifa desde el backend
+      await raffleDetail.refreshRaffle();
+
+      // Opcional: cerrar el modal o limpiar la selección
+      raffleDetail.setSelectedTicket(undefined);
+    },
+  });
+
   const raffleDetail = useRaffleDetail({
     payWithWompiWidget: payment.payWithWompiWidget,
   });

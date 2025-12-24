@@ -19,16 +19,13 @@ export class Payment {
   reference!: string;
 
 
-  @Column({ type: 'decimal', precision: 10, scale: 2 })
+  @Column({ type: 'int' })
   total_amount!: number;
+
 
   @Column({ type: 'text' })
   status!: string;
 
-  @Column({ type: 'text' })
-  method!: string;
-
-  // ID real de la transacción Wompi
   @Column({ type: 'text', nullable: true })
   transaction_id!: string;
 

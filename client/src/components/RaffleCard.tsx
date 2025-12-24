@@ -47,20 +47,11 @@ export default function RaffleCard({
         viewport={{ once: true }}
       >
         <Card
-          className={`relative max-w-6xl overflow-hidden rounded-2xl border border-gold/40 bg-black/60 backdrop-blur-xl shadow-xl transition-all duration-300
-        ${isExpired ? "opacity-60 grayscale" : "hover:shadow-gold/30 hover:scale-[1.03]"}`}
+          className={`relative w-full min-w-[24rem] mx-auto overflow-hidden rounded-2xl border border-gold/40 bg-black/60 backdrop-blur-xl shadow-xl transition-all duration-300
+  ${isExpired ? "opacity-60 grayscale" : "hover:shadow-gold/30 hover:scale-[1.03]"}`}
         >
-          <div className="absolute inset-0 bg-gradient-to-br from-gold/10 via-transparent to-gold/5 pointer-events-none" />
-          {raffle.image_url && (
-            <div className="h-44 w-full overflow-hidden">
-              <img
-                src={raffle.image_url}
-                alt={raffle.title}
-                className="h-full w-full object-cover transition-transform duration-300 hover:scale-110"
-              />
-            </div>
-          )}
 
+          <div className="absolute inset-0 bg-gradient-to-br from-gold/10 via-transparent to-gold/5 pointer-events-none" />
           <CardHeader className="relative z-10 pb-1">
             <div className="flex justify-between items-center">
               <h3 className="text-xl font-bold text-gold drop-shadow-[0_0_6px_rgba(212,175,55,0.35)]">
@@ -78,9 +69,8 @@ export default function RaffleCard({
             </div>
 
             <p
-              className={`mt-2 flex items-center gap-1 text-sm font-semibold ${
-                isExpired ? "text-red-500" : "text-gold"
-              }`}
+              className={`mt-2 flex items-center gap-1 text-sm font-semibold ${isExpired ? "text-red-500" : "text-gold"
+                }`}
             >
               <Timer className="h-4 w-4" /> {timeLeft}
             </p>

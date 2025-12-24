@@ -10,7 +10,6 @@ export const useRaffleStore = create<RaffleStore>()((set, get) => ({
     getRaffles: async () => {
         const raffleService = new RaffleService();
         const raffles = await raffleService.getAllRaffles();
-        console.log("raffles", raffles);
         set({ raffles });
     },
 

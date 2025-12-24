@@ -53,6 +53,7 @@ export const usePaymentStore = create<PaymentStore>((set, get) => ({
   },
 
   createPayment: async (data, token) => {
+    console.log("data", data);
     const payment = await PaymentService.createPayment(data, token);
     set((state) => ({
       userPayments: [...state.userPayments, payment],

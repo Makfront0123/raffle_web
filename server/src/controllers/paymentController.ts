@@ -53,17 +53,40 @@ export class PaymentController {
         try {
             const userId = (req as any).user.id;
 
+            const { raffle_id, ticket_ids, reference, reservation_id } = req.body;
+
+            if (
+                !raffle_id ||
+                !ticket_ids ||
+                !Array.isArray(ticket_ids) ||
+                ticket_ids.length === 0 ||
+                !reference
+            ) {
+                return res.status(400).json({ message: "Datos incompletos o inválidos" });
+            }
+
+            // 🔥 LOG CLAVE PARA DEBUG
+            console.log("CREATE PAYMENT BODY:", {
+                raffle_id,
+                ticket_ids,
+                reservation_id,
+                reference,
+            });
+
             const payment = await this.paymentService.createPayment({
-                ...req.body,
+                raffle_id,
+                ticket_ids,
+                reservation_id, // ✅ AHORA SÍ
+                reference,
                 user_id: userId,
             });
 
             res.status(201).json(payment);
         } catch (error: any) {
-            console.log(error);
+            console.error(error);
             return res.status(500).json({
-                message: 'Error creando pago',
-                error: error.message || error
+                message: "Error creando pago",
+                error: error.message || error,
             });
         }
     }

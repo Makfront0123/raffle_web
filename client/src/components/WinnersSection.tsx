@@ -33,6 +33,18 @@ export default function WinnersSection({ winners }: { winners: Winner[] }) {
           className="grid gap-8 justify-center px-10"
           style={{ gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))" }}
         >
+          {
+            paginatedWinners.length === 0 && (
+              <div className="flex flex-col items-start justify-start">
+                <h3 className="text-center text-lg font-bold text-white/20">
+                  No hay ganadores recientes
+                </h3>
+                <p className="text-center text-sm text-white/60">
+                  ¡Próximamente!
+                </p>
+              </div>
+            )
+          }
 
           {paginatedWinners.map((w: Winner) => (
             <motion.div

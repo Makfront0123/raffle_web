@@ -13,12 +13,17 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Sidebar } from "@/components/Sidebar";
+import { useAdminSplash } from "@/hook/useAdminSplash";
+import AdminSplashScreen from "@/components/admin/adminSplashScreen";
 
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { logout } = useAuth();
   const [openSidebar, setOpenSidebar] = useState(false);
-
+  const { showSplash, adminName } = useAdminSplash();
+  if (showSplash) {
+    return <AdminSplashScreen name={adminName} />;
+  }
   return (
     <div className="flex min-h-screen bg-gray-100 text-gray-800">
       <aside className="hidden md:flex">
