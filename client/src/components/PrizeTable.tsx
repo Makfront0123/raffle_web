@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,48 +12,83 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { AuthStore } from "@/store/authStore";
-import { usePrizes } from "@/hook/usePrizes";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
-const ITEMS_PER_PAGE = 5;
+import { useState } from "react";
+import { Prizes } from "@/type/Prizes";
+import { Raffle } from "@/type/Raffle";
 
-export function PrizesTable({ prizes }: { prizes: any[] }) {
-  const [page, setPage] = useState(1);
-  const { token } = AuthStore();
-  const { deletePrize, updatePrize } = usePrizes();
+interface PrizesTableProps {
+  prizes: Prizes[];
+  raffles: Raffle[];
 
-  const totalPages = Math.ceil(prizes.length / ITEMS_PER_PAGE);
-  const start = (page - 1) * ITEMS_PER_PAGE;
-  const end = start + ITEMS_PER_PAGE;
-  const visiblePrizes = prizes.slice(start, end);
+  selectedRaffle: number | "all";
+  onRaffleChange: (value: number | "all") => void;
 
-  // Estado del modal
-  const [selectedPrize, setSelectedPrize] = useState<any | null>(null);
-  const [isEditOpen, setIsEditOpen] = useState(false);
-  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  page: number;
+  totalPages: number;
+  onPrevPage: () => void;
+  onNextPage: () => void;
 
-  const handleEdit = (prize: any) => {
-    setSelectedPrize(prize);
-    setIsEditOpen(true);
-  };
+  onUpdate: (id: number, prize: Partial<Prizes>) => void;
+  onDelete: (id: number) => void;
+}
 
-  const handleDelete = (prize: any) => {
-    setSelectedPrize(prize);
-    setIsDeleteOpen(true);
-  };
+export function PrizesTable({
+  prizes,
+  raffles,
+  selectedRaffle,
+  onRaffleChange,
+  page,
+  totalPages,
+  onPrevPage,
+  onNextPage,
+  onUpdate,
+  onDelete,
+}: PrizesTableProps) {
+  const [selectedPrize, setSelectedPrize] = useState<Prizes | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Premios Existentes</CardTitle>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle>Premios</CardTitle>
+
+        {/* 🔽 Filtro por rifa */}
+        <Select
+          value={String(selectedRaffle)}
+          onValueChange={(v) =>
+            onRaffleChange(v === "all" ? "all" : Number(v))
+          }
+        >
+          <SelectTrigger className="w-64">
+            <SelectValue placeholder="Filtrar por rifa" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todas</SelectItem>
+            {raffles.map((r) => (
+              <SelectItem key={r.id} value={String(r.id)}>
+                {r.title}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </CardHeader>
+
       <CardContent>
         {prizes.length === 0 ? (
           <p>No hay premios registrados.</p>
         ) : (
           <>
             <div className="overflow-x-auto">
-              <table className="w-full table-auto border border-gray-200">
+              <table className="w-full border border-gray-200">
                 <thead className="bg-gray-100">
                   <tr>
                     <th className="px-4 py-2 text-left">Nombre</th>
@@ -66,25 +100,32 @@ export function PrizesTable({ prizes }: { prizes: any[] }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {visiblePrizes.map((p, idx) => (
-                    <tr key={idx} className="border-t">
+                  {prizes.map((p) => (
+                    <tr key={p.id} className="border-t">
                       <td className="px-4 py-2">{p.name}</td>
                       <td className="px-4 py-2">{p.description}</td>
                       <td className="px-4 py-2">${p.value}</td>
-                      <td className="px-4 py-2">{p.raffle?.title ?? "Sin rifa"}</td>
-                      <td className="px-4 py-2">{p.provider?.name ?? "Sin proveedor"}</td>
-                      <td className="px-4 py-2 flex items-center gap-3">
+                      <td className="px-4 py-2">{p.raffle?.title}</td>
+                      <td className="px-4 py-2">{p.provider?.name}</td>
+                      <td className="px-4 py-2 flex gap-2">
                         <Button
-                          variant="destructive"
-                          onClick={() => handleDelete(p)}
-                        >
-                          Eliminar
-                        </Button>
-                        <Button
-                          className="bg-green-600 hover:bg-green-700"
-                          onClick={() => handleEdit(p)}
+                          size="sm"
+                          onClick={() => {
+                            setSelectedPrize(p);
+                            setEditOpen(true);
+                          }}
                         >
                           Editar
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => {
+                            setSelectedPrize(p);
+                            setDeleteOpen(true);
+                          }}
+                        >
+                          Eliminar
                         </Button>
                       </td>
                     </tr>
@@ -93,20 +134,18 @@ export function PrizesTable({ prizes }: { prizes: any[] }) {
               </table>
             </div>
 
-            {/* --- Paginador --- */}
+            {/* 📄 Paginador */}
             <div className="flex justify-between items-center mt-4">
-              <Button
-                variant="outline"
-                disabled={page === 1}
-                onClick={() => setPage(page - 1)}
-              >
+              <Button variant="outline" disabled={page === 1} onClick={onPrevPage}>
                 Anterior
               </Button>
-              <p>Página {page} de {totalPages}</p>
+              <p>
+                Página {page} de {totalPages}
+              </p>
               <Button
                 variant="outline"
                 disabled={page === totalPages}
-                onClick={() => setPage(page + 1)}
+                onClick={onNextPage}
               >
                 Siguiente
               </Button>
@@ -115,13 +154,13 @@ export function PrizesTable({ prizes }: { prizes: any[] }) {
         )}
       </CardContent>
 
-      {/* --- Modal Editar --- */}
-      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+      {/* ✏️ Modal editar */}
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Editar Premio</DialogTitle>
+            <DialogTitle>Editar premio</DialogTitle>
             <DialogDescription>
-              Actualiza los datos del premio seleccionado.
+              Actualiza la información del premio
             </DialogDescription>
           </DialogHeader>
 
@@ -129,8 +168,8 @@ export function PrizesTable({ prizes }: { prizes: any[] }) {
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                updatePrize(selectedPrize.id, selectedPrize, token ?? "");
-                setIsEditOpen(false);
+                onUpdate(selectedPrize.id, selectedPrize);
+                setEditOpen(false);
               }}
               className="space-y-3"
             >
@@ -139,10 +178,14 @@ export function PrizesTable({ prizes }: { prizes: any[] }) {
                 <Input
                   value={selectedPrize.name}
                   onChange={(e) =>
-                    setSelectedPrize({ ...selectedPrize, name: e.target.value })
+                    setSelectedPrize({
+                      ...selectedPrize,
+                      name: e.target.value,
+                    })
                   }
                 />
               </div>
+
               <div>
                 <Label>Descripción</Label>
                 <Input
@@ -155,6 +198,7 @@ export function PrizesTable({ prizes }: { prizes: any[] }) {
                   }
                 />
               </div>
+
               <div>
                 <Label>Valor</Label>
                 <Input
@@ -163,11 +207,12 @@ export function PrizesTable({ prizes }: { prizes: any[] }) {
                   onChange={(e) =>
                     setSelectedPrize({
                       ...selectedPrize,
-                      value: parseFloat(e.target.value),
+                      value: Number(e.target.value),
                     })
                   }
                 />
               </div>
+
               <DialogFooter>
                 <Button type="submit">Guardar</Button>
               </DialogFooter>
@@ -176,28 +221,30 @@ export function PrizesTable({ prizes }: { prizes: any[] }) {
         </DialogContent>
       </Dialog>
 
-      {/* --- Modal Eliminar --- */}
-      <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+      {/* 🗑️ Modal eliminar */}
+      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Confirmar eliminación</DialogTitle>
+            <DialogTitle>Eliminar premio</DialogTitle>
             <DialogDescription>
-              ¿Seguro que deseas eliminar el premio "{selectedPrize?.name}"?
+              ¿Seguro que deseas eliminar este premio?
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDeleteOpen(false)}>
+            <Button variant="outline" onClick={() => setDeleteOpen(false)}>
               Cancelar
             </Button>
-            <Button
-              variant="destructive"
-              onClick={() => {
-                deletePrize(selectedPrize?.id);
-                setIsDeleteOpen(false);
-              }}
-            >
-              Eliminar
-            </Button>
+            {selectedPrize && (
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  onDelete(selectedPrize.id);
+                  setDeleteOpen(false);
+                }}
+              >
+                Eliminar
+              </Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>

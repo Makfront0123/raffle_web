@@ -13,11 +13,12 @@ interface PrizeStore {
   winner: Winner | null;
   setPrizes: (prizes: Prizes[]) => void;
   setWinners: (winners: Winner[]) => void;
-  getWinner: (raffleId: number | "all") => Promise<void>;
+
   getPrizes: () => Promise<void>;
   getPrizeById: (id: number, token: string) => Promise<void>;
   addPrize: (prize: CreatePrizeDTO, token: string) => Promise<void>;
   updatePrize: (id: number, prize: Prizes, token: string) => Promise<void>;
+  getWinnersByRaffle: (raffleId: number) => Promise<void>;
   getWinners: () => Promise<void>;
   deletePrize: (id: number, token: string) => Promise<void>;
 }
@@ -30,27 +31,6 @@ export const usePrizeStore = create<PrizeStore>()((set) => ({
   setPrizes: (prizes: Prizes[]) => set({ prizes }),
   setWinners: (winners: Winner[]) => set({ winners }),
 
-  getWinner: async (raffleId: number | "all",) => {
-    try {
-      const prizeService = new PrizeService();
-      let winner: Winner | null = null;
-
-      if (raffleId === "all") {
-        const raffleService = new RaffleService();
-        const rafflesRes = await raffleService.getAllRaffles();
-        for (const r of rafflesRes) {
-          const rWinner = await prizeService.getWinner(r.id);
-          winner = winner || rWinner;
-        }
-      } else {
-        winner = await prizeService.getWinner(raffleId);
-      }
-
-      set({ winner });
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || err.message || "Error obteniendo premio");
-    }
-  },
 
   getPrizes: async () => {
     try {
@@ -96,15 +76,25 @@ export const usePrizeStore = create<PrizeStore>()((set) => ({
     }
   },
 
- getWinners: async () => {
-  try {
-    const prizeService = new PrizeService();
-    const winners = await prizeService.getWinners();
-    set({ winners });
-  } catch (err: any) {
-    toast.error(err?.message || "Error obteniendo ganadores");
-  }
-},
+  getWinnersByRaffle: async (raffleId: number) => {
+    try {
+      const prizeService = new PrizeService();
+      const winners = await prizeService.getWinnersByRaffle(raffleId);
+      set({ winners });
+    } catch (err: any) {
+      toast.error(err?.message || "Error obteniendo ganadores");
+    }
+  },
+
+  getWinners: async () => {
+    try {
+      const prizeService = new PrizeService();
+      const winners = await prizeService.getWinners();
+      set({ winners });
+    } catch (err: any) {
+      toast.error(err?.message || "Error obteniendo ganadores");
+    }
+  },
 
 
   deletePrize: async (id: number, token: string) => {

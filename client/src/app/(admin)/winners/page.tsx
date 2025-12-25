@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -8,9 +8,12 @@ import { usePrizes } from "@/hook/usePrizes";
 import { useRaffles } from "@/hook/useRaffles";
 
 const WinnersPage = () => {
-  const { winners, loading, error, filterRaffle, setFilterRaffle, setActiveRaffleId } = usePrizes();
+  const { winners, loading, error, setActiveRaffleId } = usePrizes();
+  console.log(winners);
+
   const { raffles } = useRaffles();
 
+  const [filterRaffle, setFilterRaffle] = useState<number | "all">("all");
 
   const handleFilterChange = (val: string) => {
     if (val === "all") {
@@ -22,6 +25,7 @@ const WinnersPage = () => {
       setActiveRaffleId(raffleId);
     }
   };
+
 
   return (
     <main className="flex-1 p-6 bg-gray-50 overflow-y-auto">

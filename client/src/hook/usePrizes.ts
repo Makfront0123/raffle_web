@@ -4,7 +4,6 @@ import { usePrizeStore } from "@/store/prizeStore";
 import { AuthStore } from "@/store/authStore";
 import { useEffect, useState } from "react";
 import { PrizeForm, Prizes } from "@/type/Prizes";
-import { Winner } from "@/type/Winner";
 
 export function usePrizes() {
   const { token } = AuthStore();
@@ -12,77 +11,54 @@ export function usePrizes() {
   const {
     prizes = [],
     winners = [],
-    winner = null,
     getPrizes,
     getWinners,
-    getWinner,
+    getWinnersByRaffle,
     addPrize,
     updatePrize,
     deletePrize,
   } = usePrizeStore();
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [filterRaffle, setFilterRaffle] = useState<number | "all">("all");
-  const [filteredWinners, setFilteredWinners] = useState<Winner[]>([]);
   const [activeRaffleId, setActiveRaffleId] = useState<number | null>(null);
 
-
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchPrizes = async () => {
       setLoading(true);
       try {
         await getPrizes();
-        await getPrizes();
-        await getWinners();
-
-      } catch (err) {
-        console.error(err);
-        setError("Error cargando premios o ganadores");
+      } catch {
+        setError("Error cargando premios");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
-  }, [getPrizes, getWinners, getWinner, token]);
-
-
-  useEffect(() => {
-    if (filterRaffle === "all") {
-      setFilteredWinners(winners);
-    } else {
-      setFilteredWinners(winners.filter((w) => w.raffle_id === filterRaffle));
-    }
-  }, [filterRaffle, winners]);
+    fetchPrizes();
+  }, [getPrizes]);
 
   useEffect(() => {
-    if (activeRaffleId === null) return;
-
-    const fetchWinnersForRaffle = async () => {
-      if (!token) return;
-
+    const fetchWinners = async () => {
       setLoading(true);
       try {
-        const id = activeRaffleId ?? "all";
-        await getWinners();
-        await getWinner(id);
-        setFilterRaffle(id);
-      } catch (err) {
-        console.error(err);
-        setError("Error cargando ganadores por rifa");
+        if (activeRaffleId === null) {
+          await getWinners();
+        } else {
+          await getWinnersByRaffle(activeRaffleId);
+        }
+      } catch {
+        setError("Error cargando ganadores");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchWinnersForRaffle();
-  }, [activeRaffleId, getWinners, getWinner, token]);
-
-
+    fetchWinners();
+  }, [activeRaffleId, getWinners, getWinnersByRaffle]);
 
   const createPrize = async (newPrize: PrizeForm) => {
-    if (!token) return setError("No hay token disponible");
+    if (!token) return setError("No hay token");
     try {
       await addPrize(
         {
@@ -101,19 +77,18 @@ export function usePrizes() {
     }
   };
 
-
-  const editPrize = async (id: number, updatedPrize: Prizes) => {
-    if (!token) return setError("No hay token disponible");
+  const editPrize = async (id: number, updatedPrize: Partial<Prizes>) => {
+    if (!token) return setError("No hay token");
     try {
-      await updatePrize(id, updatedPrize, token);
+      await updatePrize(id, updatedPrize as Prizes, token);
       await getPrizes();
     } catch {
       setError("Error actualizando premio");
     }
   };
 
-  const handleDeletePrize = async (id: number) => {
-    if (!token) return setError("No hay token disponible");
+  const removePrize = async (id: number) => {
+    if (!token) return setError("No hay token");
     try {
       await deletePrize(id, token);
       await getPrizes();
@@ -123,18 +98,13 @@ export function usePrizes() {
   };
 
   return {
-
     prizes,
-    winners: filteredWinners,
-    winner,
+    winners,
     loading,
     error,
-    filterRaffle,
-    setFilterRaffle,
     setActiveRaffleId,
     createPrize,
     editPrize,
-    deletePrize: handleDeletePrize,
-    updatePrize
+    deletePrize: removePrize,
   };
 }

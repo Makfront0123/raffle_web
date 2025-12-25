@@ -3,18 +3,20 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Winner } from "@/type/Winner";
+import { Raffle } from "@/type/Raffle";
+import { Dispatch, SetStateAction } from "react";
 
 interface Props {
-  showExpiredModal: any;
-  setShowExpiredModal: (v: any) => void;
-  winner: Winner | null;
+  showExpiredModal: Raffle | null;
+  setShowExpiredModal: Dispatch<SetStateAction<Raffle | null>>;
+  winners: Winner[];
   loadingWinner: boolean;
 }
 
 export default function RaffleExpiredModalPremium({
   showExpiredModal,
   setShowExpiredModal,
-  winner,
+  winners,
   loadingWinner
 }: Props) {
 
@@ -34,20 +36,22 @@ export default function RaffleExpiredModalPremium({
         </p>
 
         <div className="mt-4">
-          <h3 className="font-semibold mb-2 text-lg text-white">🏆 Ganador</h3>
+          <h3 className="font-semibold mb-2 text-lg text-white">🏆 Ganadores</h3>
 
           {
             loadingWinner ? (
               <p className="text-gold/60">Cargando ganador...</p>
-            ) : !winner ? (
+            ) : !winners ? (
               <p className="text-gold/60">Aún no hay ganador.</p>
             ) : (
-              <div className="p-4 mb-2 border border-gold/50 rounded-xl bg-yellow-400/40 shadow-md">
-                <p className="font-medium text-gold">{winner.prize_name}</p>
-                <p>🎟️ Ticket: {winner.winner_ticket?.ticket_number}</p>
-                <p>👤 {winner.winner_user?.name ?? "Usuario desconocido"}</p>
-                <p>💰 Valor: ${winner.value}</p>
-              </div>
+              winners.map((w: Winner) => (
+                <div className="p-4 mb-2 border border-gold/50 rounded-xl bg-yellow-400/40 shadow-md">
+                  <p className="font-medium text-gold">{w.prize_name}</p>
+                  <p>🎟️ Ticket: {w.winner_ticket?.ticket_number}</p>
+                  <p>👤 {w.winner_user?.name ?? "Usuario desconocido"}</p>
+                  <p>💰 Valor: ${w.value}</p>
+                </div>
+              ))
 
             )}
         </div>

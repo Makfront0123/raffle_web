@@ -7,8 +7,8 @@ export interface Winner {
   prize_id: number;
   raffle_id: number;
   raffle_title: string;
-  winner_user: User;
   prize_name: string;
-  winner_ticket: WinnerTicket;
   value: number;
+  winner_user: User;
+  winner_ticket: WinnerTicket;
 }

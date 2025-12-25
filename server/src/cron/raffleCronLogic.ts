@@ -10,7 +10,7 @@ import { PrizesService } from "../services/prizesService";
 
 const reservationsService = new ReservationService();
 const prizeService = new PrizesService();
- 
+
 export async function cleanupExpiredReservations() {
     const reservationRepo = AppDataSource.getRepository(Reservation);
     const ticketRepo = AppDataSource.getRepository(Ticket);
@@ -38,7 +38,7 @@ export async function cleanupExpiredReservations() {
     return expired.length;
 }
 
- 
+
 export async function closeExpiredRaffles(prizeServiceInjected = prizeService) {
     const raffleRepo = AppDataSource.getRepository(Raffle);
 
@@ -65,10 +65,12 @@ export async function closeExpiredRaffles(prizeServiceInjected = prizeService) {
             let winnersAssigned = 0;
 
             for (const prize of prizes) {
-                await prizeServiceInjected.selectWinner(prize.id);  
-                winnersAssigned++;
+                const winner = await prizeServiceInjected.selectWinner(prize.id);
+                if (winner) {
+                    winnersAssigned++;
+                }
             }
- 
+
             await queryRunner.manager
                 .createQueryBuilder()
                 .update(Ticket)
@@ -79,7 +81,7 @@ export async function closeExpiredRaffles(prizeServiceInjected = prizeService) {
                 })
                 .execute();
 
-          
+
             await queryRunner.manager
                 .createQueryBuilder()
                 .delete()
@@ -89,7 +91,7 @@ export async function closeExpiredRaffles(prizeServiceInjected = prizeService) {
                 })
                 .execute();
 
-        
+
             await queryRunner.manager
                 .createQueryBuilder()
                 .delete()

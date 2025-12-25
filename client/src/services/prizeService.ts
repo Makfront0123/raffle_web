@@ -42,11 +42,12 @@ export class PrizeService {
     return await response.json();
   }
 
-  async getWinner(raffleId: number): Promise<Winner | null> {
+  async getWinnersByRaffle(raffleId: number): Promise<Winner[]> {
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/prizes/${raffleId}/winner`
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/prizes/${raffleId}/winners`
     );
-    if (!response.ok) throw new Error("Error fetching winner");
+
+    if (!response.ok) throw new Error("Error fetching winners");
     return await response.json();
   }
 

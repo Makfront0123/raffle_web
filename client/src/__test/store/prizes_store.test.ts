@@ -119,7 +119,7 @@ describe("PrizeStore", () => {
       .mockResolvedValue(winnerMock as any);
 
     await act(async () => {
-      await usePrizeStore.getState().getWinners(5, "token");
+      await usePrizeStore.getState().getWinnersByRaffle(5, "token");
     });
 
     expect(usePrizeStore.getState().winners.length).toBe(1);

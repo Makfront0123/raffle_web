@@ -29,7 +29,8 @@ export default function Raffles() {
     setShowExpiredModal,
   } = useFilteredRaffles();
 
-  const { winner,setActiveRaffleId,loading: loadingWinner } = usePrizes();
+  const { winners, setActiveRaffleId, loading: loadingWinner } = usePrizes();
+
 
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -50,7 +51,7 @@ export default function Raffles() {
 
       {loading && <LoadingScreen />}
       {error && <div className="text-red-500">{error}</div>}
- 
+
       <h1 className="text-center text-4xl font-extrabold mb-12 text-gold drop-shadow-[0_0_12px_rgba(255,215,0,0.6)]">
         🎟️ Rifas Premium
       </h1>
@@ -71,7 +72,7 @@ export default function Raffles() {
         setCurrentPage={setCurrentPage}
         totalPages={totalPages}
       />
- 
+
       <div className="w-full flex justify-center mt-10">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12 mt-10">
           {paginatedRaffles.length === 0 ? (
@@ -93,9 +94,10 @@ export default function Raffles() {
       <RaffleExpiredModal
         showExpiredModal={showExpiredModal}
         setShowExpiredModal={setShowExpiredModal}
-        winner={winner}
+        winners={winners}
         loadingWinner={loadingWinner}
       />
+
 
     </div>
   );

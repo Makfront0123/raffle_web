@@ -4,31 +4,31 @@ import { PrizesService } from '../services/prizesService';
 export class PrizesController {
     constructor(private prizesService: PrizesService) { }
 
+    async getWinnersByRaffle(req: Request, res: Response) {
+        try {
+            const raffleId = Number(req.params.raffleId);
+            const winners = await this.prizesService.getWinners(raffleId);
+            res.status(200).json(winners);
+        } catch (error) {
+            res.status(500).json({ message: 'Error obteniendo ganadores por rifa', error });
+        }
+    }
     async getWinners(req: Request, res: Response) {
         try {
             const winners = await this.prizesService.getWinners();
             res.status(200).json(winners);
         } catch (error) {
-            res.status(500).json({ message: 'Error obteniendo premios', error });
+            res.status(500).json({ message: 'Error obteniendo ganadores', error });
         }
     }
 
-    async getWinner(req: Request, res: Response) {
-        try {
-            const raffleId = Number(req.params.raffleId);
-            const winner = await this.prizesService.getWinner(raffleId);
-            res.status(200).json(winner);
-        } catch (error) {
-            res.status(500).json({ message: 'Error obteniendo premios', error });
-        }
-    }
 
     async getAllPrizes(req: Request, res: Response) {
         try {
             const prizes = await this.prizesService.getAllPrizes();
             res.status(200).json(prizes);
         } catch (error: any) {
-            
+
             res.status(500).json({ message: 'Error obteniendo premios', error: error.message || error });
         }
     }
