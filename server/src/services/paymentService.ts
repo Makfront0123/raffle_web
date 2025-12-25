@@ -272,61 +272,103 @@ export class PaymentService {
   }
 
 
-
   async createWompiPayment({
     userId,
-    ticketId,
-    method,
+    raffle_id,
+    ticket_ids,
+    reservation_id,
     reference,
   }: {
     userId: number;
-    ticketId: number;
-    method: "card" | "pse";
+    raffle_id: number;
+    ticket_ids: number[];
+    reservation_id?: number;
     reference: string;
   }) {
     return await this.dataSource.transaction(async (manager) => {
+      // 1️⃣ Obtener usuario y rifa
       const user = await manager.getRepository(User).findOne({ where: { id: userId } });
       if (!user) throw new Error("Usuario no encontrado");
 
-      const ticket = await manager.getRepository(Ticket).findOne({
-        where: { id_ticket: ticketId },
-        relations: ["raffle"],
-      });
-      if (!ticket) throw new Error("Ticket no encontrado");
+      const raffle = await manager.getRepository(Raffle).findOne({ where: { id: raffle_id } });
+      if (!raffle) throw new Error("Rifa no encontrada");
 
-      if (ticket.status !== "available") {
-        throw new Error("El ticket no está disponible");
+      // 2️⃣ Obtener tickets
+      let tickets: Ticket[] = [];
+      let reservation: Reservation | null = null;
+
+      if (reservation_id) {
+        reservation = await manager.getRepository(Reservation).findOne({
+          where: { id: reservation_id },
+          relations: ["user", "raffle", "reservationTickets", "reservationTickets.ticket"],
+        });
+
+        if (!reservation) throw new Error("No se encontró la reserva");
+        if (reservation.user.id !== userId) throw new Error("La reserva no pertenece al usuario");
+
+        tickets = reservation.reservationTickets
+          .map((rt) => rt.ticket)
+          .filter((t) => ticket_ids.includes(t.id_ticket));
+
+        if (!tickets.length) throw new Error("No hay tickets válidos en la reserva");
+
+        for (const ticket of tickets) {
+          if (ticket.status === "purchased" || ticket.status === "completed") {
+            throw new Error(`El ticket ${ticket.id_ticket} ya fue comprado`);
+          }
+        }
+      } else {
+        tickets = await manager.getRepository(Ticket).find({
+          where: { id_ticket: In(ticket_ids) },
+          relations: ["raffle"],
+        });
+
+        if (!tickets.length) throw new Error("No hay tickets seleccionados");
+
+        for (const ticket of tickets) {
+          if (ticket.status !== "available") {
+            throw new Error(`El ticket ${ticket.id_ticket} no está disponible`);
+          }
+        }
       }
 
-      const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
-
+      // 3️⃣ Crear el pago local
+      const totalAmount = tickets.length * Number(raffle.price);
       const payment = manager.getRepository(Payment).create({
         user,
-        raffle: ticket.raffle,
-        total_amount: Number(ticket.raffle.price),
+        raffle,
+        total_amount: totalAmount,
         status: "pending",
         reference,
-        expires_at: expiresAt,
+        expires_at: new Date(Date.now() + 15 * 60 * 1000), // hold temporal
       });
 
       await manager.getRepository(Payment).save(payment);
 
-      const detail = manager.getRepository(PaymentDetail).create({
-        payment,
-        ticket,
-        amount: Number(ticket.raffle.price),
-      });
-      await manager.getRepository(PaymentDetail).save(detail);
+      // 4️⃣ Crear detalles y actualizar tickets
+      for (const ticket of tickets) {
+        const detail = manager.getRepository(PaymentDetail).create({
+          payment,
+          ticket,
+          amount: Number(raffle.price),
+        });
+        await manager.getRepository(PaymentDetail).save(detail);
 
-      ticket.status = "held";
-      ticket.held_until = new Date(Date.now() + 15 * 60 * 1000); // 15 minutos
+        ticket.status = "held";
+        ticket.held_until = new Date(Date.now() + 15 * 60 * 1000);
+        await manager.getRepository(Ticket).save(ticket);
+      }
 
-      await manager.getRepository(Ticket).save(ticket);
+      // 5️⃣ Eliminar reserva si aplica
+      if (reservation) {
+        await manager.getRepository(Reservation).delete(reservation.id);
+      }
 
+      // 6️⃣ Retornar datos para Wompi
       return {
         payment_id: payment.id,
         reference,
-        amount_in_cents: Number(ticket.raffle.price) * 100,
+        amount_in_cents: totalAmount * 100,
         currency: "COP",
       };
     });

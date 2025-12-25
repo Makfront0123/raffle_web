@@ -145,6 +145,88 @@ export class PaymentController {
     async createWompiPayment(req: Request, res: Response) {
         try {
             const userId = (req as any).user.id;
+            const { raffle_id, ticket_ids, method, reference, reservation_id } = req.body;
+
+            if (!raffle_id || !ticket_ids?.length || !method || !reference) {
+                return res.status(400).json({ message: "Datos incompletos o inválidos" });
+            }
+
+            const payment = await this.paymentService.createPayment({
+                raffle_id,
+                ticket_ids,
+                reservation_id,
+                reference,
+                user_id: userId,
+            });
+
+            const wompiResult = await this.paymentService.createWompiPayment({
+                userId,
+                raffle_id,
+                ticket_ids,
+                reservation_id,
+                reference,
+            });
+
+            return res.status(201).json({ payment, wompi: wompiResult });
+        } catch (error: any) {
+            console.error(error);
+            return res.status(400).json({
+                message: error.message || "Error creando pago Wompi"
+            });
+        }
+
+    }
+
+
+    async wompiWebhook(req: Request, res: Response) {
+        console.log("🔥🔥🔥 WEBHOOK WOMPI LLAMADO 🔥🔥🔥");
+        console.log("Headers:", req.headers);
+        console.log("Body:", req.body);
+
+        try {
+            const result = await this.paymentService.wompiWebhook(req, res);
+            return result;
+        } catch (error) {
+            console.log(error);
+            return res.status(500).json({ message: "Error en webhook", error });
+        }
+    }
+
+    async getWompiSignature(req: Request, res: Response) {
+        try {
+            const { reference, amount_in_cents, currency } = req.body;
+
+            if (!reference || !amount_in_cents || !currency) {
+                return res.status(400).json({ message: "Datos incompletos" });
+            }
+
+            const signature = await this.paymentService.getWompiSignature(
+                reference,
+                amount_in_cents,
+                currency
+            );
+
+            return res.json({ signature });
+
+        } catch (error: any) {
+            return res.status(500).json({
+                message: "Error generando firma",
+                error: error.message,
+            });
+        }
+    }
+
+
+
+
+
+}
+
+
+/*
+  async createWompiPayment(req: Request, res: Response) {
+        try {
+            const userId = (req as any).user.id;
             const { ticket_id, method, reference } = req.body;
 
             if (!ticket_id || !method || !reference)
@@ -210,6 +292,4 @@ export class PaymentController {
 
 
 
-
-
-}
+*/
