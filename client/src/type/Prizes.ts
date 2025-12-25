@@ -5,7 +5,7 @@ export interface Prizes {
   id: number;
   name: string;
   description: string;
-  value: string | number;
+  value: number;
   type: string;
   created_at: string;
   provider: {

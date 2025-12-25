@@ -39,7 +39,7 @@ const RaffleInfo = ({ raffle, soldPercentage }: RaffleInfoProps) => {
               isHot ? "text-red-400 animate-pulse" : "text-gold"
             }`}
           >
-            {soldPercentage}%
+            {soldPercentage.toFixed(0)}%
           </span>
         </div>
 

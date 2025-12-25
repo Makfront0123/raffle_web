@@ -2,94 +2,120 @@
 
 import { Winner } from "@/type/Winner";
 import { motion } from "framer-motion";
-import { Trophy } from "lucide-react";
-import { useState } from "react";
+import { Trophy, Crown } from "lucide-react";
+import { useState, useMemo } from "react";
 
 export default function WinnersSection({ winners }: { winners: Winner[] }) {
   const itemsPerPage = 3;
   const [page, setPage] = useState(1);
 
-  const totalPages = Math.ceil(winners.length / itemsPerPage);
-
-  const paginatedWinners = winners.slice(
-    (page - 1) * itemsPerPage,
-    page * itemsPerPage
-  );
+  const totalPages = Math.max(1, Math.ceil(winners.length / itemsPerPage));
 
   return (
-    <section id="winners" className="py-20 bg-black/80 relative rounded-lg shadow-lg">
+    <section
+      id="winners"
+      className="py-20 bg-black/80 relative rounded-2xl shadow-xl border border-gold/30"
+    >
+      {/* Background glow */}
       <div className="absolute inset-0 bg-gradient-to-b from-gold/5 to-transparent pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-6 relative z-10">
+      <div className="max-w-6xl mx-auto px-6 relative z-10">
+        {/* Header Rifa */}
         <div className="flex items-center gap-3 mb-10">
           <Trophy className="h-8 w-8 text-gold" />
-          <h2 className="text-3xl font-bold text-gold drop-shadow-xl">
-            Ganadores Recientes
+          <h2 className="text-3xl font-extrabold text-gold drop-shadow-xl">
+            Ganadores de la rifa
           </h2>
         </div>
 
+        {/* Empty state */}
+        {winners.length === 0 && (
+          <div className="text-center py-16">
+            <h3 className="text-lg font-bold text-white/30">
+              No hay ganadores aún
+            </h3>
+            <p className="text-sm text-white/50">
+              ¡Próximamente!
+            </p>
+          </div>
+        )}
 
-        <div
-          className="grid gap-8 justify-center px-10"
-          style={{ gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))" }}
-        >
-          {
-            paginatedWinners.length === 0 && (
-              <div className="flex flex-col items-start justify-start">
-                <h3 className="text-center text-lg font-bold text-white/20">
-                  No hay ganadores recientes
-                </h3>
-                <p className="text-center text-sm text-white/60">
-                  ¡Próximamente!
-                </p>
-              </div>
-            )
-          }
+        {/* Contenedor de la rifa */}
+        {winners.length > 0 && (
+          <div className="bg-black/60 border border-gold/40 rounded-2xl p-8 backdrop-blur-xl shadow-lg">
 
-          {paginatedWinners.map((w: Winner) => (
-            <motion.div
-              key={`winner-${w.prize_id}`}
-              className="bg-black/60 border border-gold/40 rounded-xl shadow-lg p-5 flex flex-col items-center text-center backdrop-blur-xl"
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4 }}
+            <div className="space-y-4">
+              {winners.map((w, index) => (
+                <motion.div
+                  key={`winner-${w.prize_id}`}
+                  initial={{ opacity: 0, x: -10 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.3, delay: index * 0.05 }}
+                  className="flex items-center justify-between bg-black/50 border border-gold/20 rounded-xl p-4"
+                >
+                  <div className="flex items-center gap-4">
+                    <span className="text-gold font-bold text-lg">
+                      #{index + 1}
+                    </span>
+
+                    <img
+                      src={
+                        w.winner_user?.picture ||
+                        "/icons/mynaui--user.png"
+                      }
+                      className="w-12 h-12 rounded-full border border-gold object-cover"
+                    />
+
+                    <div>
+                      <p className="text-gold font-semibold">
+                        {w.winner_user?.name ?? "Usuario desconocido"}
+                      </p>
+                      <p className="text-sm text-yellow-500">
+                        {w.raffle_title}
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        Ticket #{w.winner_ticket.ticket_number}
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        )}
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center gap-6 mt-10">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+              className={`px-4 py-2 rounded-lg border border-gold/40 text-gold
+                ${page === 1
+                  ? "opacity-40 cursor-not-allowed"
+                  : "hover:bg-gold/20"
+                }`}
             >
-              <img src={w.winner_user?.picture || "/icons/mynaui--user.png"}className="w-24 h-24 rounded-full border-2 border-gold object-cover shadow-md" />
-              <h3 className="text-xl text-gold font-semibold mt-4">
-                {w.winner_user?.name ?? "Usuario desconocido"}
-              </h3>
-              <p className="text-gray-300 text-sm mt-1">{w.raffle_title}</p>
-              <p className="text-gold font-bold text-lg mt-2">
-                {w.winner_ticket.ticket_number}
-              </p>
-            </motion.div>
-          ))}
-        </div>
+              ◀ Anterior
+            </button>
 
-        <div className="flex justify-center items-center gap-4 mt-10">
-          <button
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page === 1}
-            className={`px-4 py-2 rounded-lg border border-gold/40 text-gold 
-              ${page === 1 ? "opacity-40 cursor-not-allowed" : "hover:bg-gold/20"}`}
-          >
-            ◀ Anterior
-          </button>
+            <span className="text-gold font-semibold">
+              Página {page} de {totalPages}
+            </span>
 
-          <span className="text-gold font-semibold">
-            Página {page} de {totalPages}
-          </span>
-
-          <button
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            disabled={page === totalPages}
-            className={`px-4 py-2 rounded-lg border border-gold/40 text-gold
-              ${page === totalPages ? "opacity-40 cursor-not-allowed" : "hover:bg-gold/20"}`}
-          >
-            Siguiente ▶
-          </button>
-        </div>
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={page === totalPages}
+              className={`px-4 py-2 rounded-lg border border-gold/40 text-gold
+                ${page === totalPages
+                  ? "opacity-40 cursor-not-allowed"
+                  : "hover:bg-gold/20"
+                }`}
+            >
+              Siguiente ▶
+            </button>
+          </div>
+        )}
       </div>
     </section>
   );
