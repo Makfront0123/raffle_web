@@ -12,21 +12,28 @@ export function useWhatsappReceipt() {
     const sendReceipt = async ({
         phone,
         raffleName,
-        ticketNumber,
+        tickets, // 🔹 array de tickets
         amount,
     }: {
         phone: string;
         raffleName: string;
-        ticketNumber: string;
+        tickets: string[];
         amount: number;
     }) => {
         try {
-            const cleanPhone = phone.replace(/\D/g, "");
+            let cleanPhone = phone.replace(/\D/g, "");
+
+            if (!cleanPhone.startsWith("57")) {
+                cleanPhone = "57" + cleanPhone;
+            }
+
+            cleanPhone = `+${cleanPhone}`;
+
             setLoading(true);
 
             await axios.post(
                 `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/payment/whatsapp/receipt`,
-                { phone: cleanPhone, raffleName, ticketNumber, amount },
+                { phone: cleanPhone, raffleName, tickets, amount },
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,

@@ -16,7 +16,8 @@ export function useAuth() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [initialized, setInitialized] = useState(false);
-  const [showAdminSplash] = useState(false);
+  const [showAdminSplash, setShowAdminSplash] = useState(false);
+
 
 
 
@@ -28,6 +29,7 @@ export function useAuth() {
 
       const userData = await getAuthService().getUserByGoogle({ token: accessToken });
       localStorage.setItem("token", userData.token);
+
 
       const persistRes = await getAuthService().getUserByToken(userData.token);
 
@@ -41,6 +43,8 @@ export function useAuth() {
 
       if (persistRes.user.role === "admin") {
         sessionStorage.setItem("adminSplash", "true");
+        setShowAdminSplash(true);
+
         setTimeout(() => {
           router.push("/dashboard");
         }, 50);

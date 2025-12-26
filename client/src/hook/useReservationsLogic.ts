@@ -15,7 +15,7 @@ export function useReservationsLogic() {
   const { cancelReservation } = useReservationStore();
   const { raffles } = useRaffles();
   const { token } = AuthStore();
-  const { createPayment } = usePayment();
+  const { payWithWompiWidget } = usePayment();
 
   const [canceling, setCanceling] = useState<number | null>(null);
   const [page, setPage] = useState(1);
@@ -47,39 +47,27 @@ export function useReservationsLogic() {
     setCanceling(null);
   };
 
-  // Nueva firma: (reservation, raffle)
   const handleAction = async (reservation: Reservation, raffle: Raffle) => {
     if (!token) return;
-    if (!raffle) {
-      toast.error("Rifa no encontrada");
-      return;
-    }
-
-    const ticketIds = reservation.reservationTickets.map(
-      (t) => t.ticket.id_ticket
-    );
 
     try {
-      await createPayment(
-        {
-          raffle_id: raffle.id,
-          ticket_ids: ticketIds,
-          reference: `RAFFLE_${raffle.id}_TICKETS_${ticketIds.join("_")}_${Date.now()}`,
-          total_amount: ticketIds.length * Number(raffle.price),
-          reservation_id: reservation.id,
-        },
-        token
-      );
+      await payWithWompiWidget({
+        raffle,
+        tickets: reservation.reservationTickets.map(
+          (t) => t.ticket // ✅ Ticket completo
+        ),
+        reservation_id: reservation.id, // 🔥 CLAVE
+      });
 
       toast.success("Pago de reserva registrado ✅");
 
-      // Refresca reservas y UI
       await fetchReservations();
     } catch (err) {
       console.error(err);
       toast.error("Error creando pago");
     }
   };
+
 
   return {
     reservations,

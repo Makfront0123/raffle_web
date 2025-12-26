@@ -4,6 +4,8 @@ import { useState } from "react";
 import { paginate } from "@/app/utils/paginate";
 import MyTicketsView from "@/components/user/tickets/MyTicketsView";
 import { usePayment } from "@/hook/usePayment";
+import { Payment } from "@/type/Payment";
+import { Raffle } from "@/type/Raffle";
 
 export default function MyTickets() {
   const { userPayments, loading } = usePayment();
@@ -15,20 +17,20 @@ export default function MyTickets() {
   if (loading) return <div>Cargando pagos...</div>;
 
   const completedPayments = userPayments.filter(
-    (p) => p.status === "completed" && p.raffle
+    (p: Payment) => p.status === "completed" && p.raffle
   );
 
 
   const uniqueRaffles = Array.from(
     new Map(
       completedPayments
-        .map((p) => p.raffle)
+        .map((p: Payment) => p.raffle)
         .filter(Boolean)
-        .map((r) => [r.id, r])
+        .map((r: Raffle) => [r.id, r])
     ).values()
   );
 
-  const filteredPayments = completedPayments.filter((payment) => {
+  const filteredPayments = completedPayments.filter((payment:Payment) => {
     const matchesRaffle =
       filterRaffle === "all" || payment.raffle.id === filterRaffle;
 

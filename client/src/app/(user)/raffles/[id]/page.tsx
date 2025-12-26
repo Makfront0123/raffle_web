@@ -71,14 +71,14 @@ export default function RaffleDetailPage() {
 
 
       {payment.loading && <LoadingScreen />}
-
       <PaymentSuccessModal
         open={payment.successModalOpen}
         onClose={() => payment.setSuccessModalOpen(false)}
         raffleName={payment.paymentInfo?.raffleName}
-        ticketNumber={payment.paymentInfo?.ticketNumber}
+        tickets={payment.paymentInfo?.tickets}
         amount={raffleDetail.raffle?.price ?? 0}
       />
+
     </div>
   );
 }

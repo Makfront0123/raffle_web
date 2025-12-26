@@ -25,18 +25,18 @@ export class PaymentService {
   async sendWhatsappReceipt({
     phone,
     raffleName,
-    ticketNumber,
+    tickets,
     amount,
   }: {
     phone: string;
     raffleName: string;
-    ticketNumber: string;
+    tickets: string[]; // ✅
     amount: number;
   }) {
     await this.whatsappService.sendReceipt({
       phone,
       raffleName,
-      ticketNumber,
+      tickets,
       amount,
     });
   }
@@ -294,72 +294,145 @@ export class PaymentService {
     reference: string;
   }) {
     return await this.dataSource.transaction(async (manager) => {
-      // 1️⃣ Obtener usuario y rifa
-      const user = await manager.getRepository(User).findOne({ where: { id: userId } });
+      /** =========================
+       *  1. Usuario y rifa
+       * ========================= */
+      const user = await manager.getRepository(User).findOne({
+        where: { id: userId },
+      });
       if (!user) throw new Error("Usuario no encontrado");
 
-      const raffle = await manager.getRepository(Raffle).findOne({ where: { id: raffle_id } });
+      const raffle = await manager.getRepository(Raffle).findOne({
+        where: { id: raffle_id },
+      });
       if (!raffle) throw new Error("Rifa no encontrada");
 
-      // 2️⃣ Obtener tickets
+      /** =========================
+       *  2. Blindaje: tickets reservados sin reservation_id
+       * ========================= */
+      const heldTickets = await manager.getRepository(Ticket).find({
+        where: {
+          id_ticket: In(ticket_ids),
+          status: In(["held", "reserved"]),
+        },
+      });
+
+      if (heldTickets.length && !reservation_id) {
+        throw new Error(
+          "Hay tickets reservados. El pago debe realizarse desde una reserva"
+        );
+      }
+
+      /** =========================
+       *  3. Obtener tickets
+       * ========================= */
       let tickets: Ticket[] = [];
       let reservation: Reservation | null = null;
 
+      // 🔹 CASO A: pago desde reserva (IGUAL a createPayment)
       if (reservation_id) {
         reservation = await manager.getRepository(Reservation).findOne({
           where: { id: reservation_id },
-          relations: ["user", "raffle", "reservationTickets", "reservationTickets.ticket"],
+          relations: [
+            "user",
+            "raffle",
+            "reservationTickets",
+            "reservationTickets.ticket",
+          ],
         });
 
         if (!reservation) throw new Error("No se encontró la reserva");
-        if (reservation.user.id !== userId) throw new Error("La reserva no pertenece al usuario");
+        if (reservation.user.id !== userId)
+          throw new Error("La reserva no pertenece al usuario");
 
         tickets = reservation.reservationTickets
           .map((rt) => rt.ticket)
           .filter((t) => ticket_ids.includes(t.id_ticket));
 
-        if (!tickets.length) throw new Error("No hay tickets válidos en la reserva");
+        if (!tickets.length)
+          throw new Error("No hay tickets válidos en la reserva");
 
         for (const ticket of tickets) {
+          const belongsToReservation = reservation.reservationTickets.some(
+            (rt) => rt.ticket.id_ticket === ticket.id_ticket
+          );
+
+          if (!belongsToReservation) {
+            throw new Error(
+              `El ticket ${ticket.id_ticket} no pertenece a esta reserva`
+            );
+          }
+
+          // ❌ available nunca es válido en reserva
+          if (ticket.status === "available") {
+            throw new Error(
+              `El ticket ${ticket.id_ticket} no pertenece a esta reserva`
+            );
+          }
+
+          // ❌ ya comprado
           if (ticket.status === "purchased" || ticket.status === "completed") {
             throw new Error(`El ticket ${ticket.id_ticket} ya fue comprado`);
           }
+
+          // ❌ hold expirado
+          if (
+            ticket.status === "held" &&
+            ticket.held_until &&
+            ticket.held_until < new Date()
+          ) {
+            throw new Error(
+              `El ticket ${ticket.id_ticket} tiene el hold expirado`
+            );
+          }
         }
-      } else {
+      }
+
+      // 🔹 CASO B: compra directa
+      else {
         tickets = await manager.getRepository(Ticket).find({
           where: { id_ticket: In(ticket_ids) },
           relations: ["raffle"],
         });
 
-        if (!tickets.length) throw new Error("No hay tickets seleccionados");
+        if (!tickets.length)
+          throw new Error("No hay tickets seleccionados");
 
         for (const ticket of tickets) {
           if (ticket.status !== "available") {
-            throw new Error(`El ticket ${ticket.id_ticket} no está disponible`);
+            throw new Error(
+              `El ticket ${ticket.id_ticket} no está disponible`
+            );
           }
         }
       }
 
-      // 3️⃣ Crear el pago local
+      /** =========================
+       *  4. Crear pago (pendiente)
+       * ========================= */
       const totalAmount = tickets.length * Number(raffle.price);
+
       const payment = manager.getRepository(Payment).create({
         user,
         raffle,
         total_amount: totalAmount,
         status: "pending",
         reference,
-        expires_at: new Date(Date.now() + 15 * 60 * 1000), // hold temporal
+        expires_at: new Date(Date.now() + 15 * 60 * 1000), // 15 min
       });
 
       await manager.getRepository(Payment).save(payment);
 
-      // 4️⃣ Crear detalles y actualizar tickets
+      /** =========================
+       *  5. Crear detalles y pasar tickets a HOLD
+       * ========================= */
       for (const ticket of tickets) {
         const detail = manager.getRepository(PaymentDetail).create({
           payment,
           ticket,
           amount: Number(raffle.price),
         });
+
         await manager.getRepository(PaymentDetail).save(detail);
 
         ticket.status = "held";
@@ -367,12 +440,16 @@ export class PaymentService {
         await manager.getRepository(Ticket).save(ticket);
       }
 
-      // 5️⃣ Eliminar reserva si aplica
+      /** =========================
+       *  6. Eliminar reserva
+       * ========================= */
       if (reservation) {
         await manager.getRepository(Reservation).delete(reservation.id);
       }
 
-      // 6️⃣ Retornar datos para Wompi
+      /** =========================
+       *  7. Respuesta Wompi
+       * ========================= */
       return {
         payment_id: payment.id,
         reference,
@@ -381,6 +458,7 @@ export class PaymentService {
       };
     });
   }
+
 
 
   async wompiWebhook(req: Request, res: Response) {

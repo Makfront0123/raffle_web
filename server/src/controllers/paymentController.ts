@@ -22,19 +22,24 @@ export class PaymentController {
             res.status(500).json({ message: 'Error obteniendo pagos', error });
         }
     }
-
     async sendWhatsappReceipt(req: Request, res: Response) {
         try {
-            const { phone, raffleName, ticketNumber, amount } = req.body;
+            const { phone, raffleName, tickets, amount } = req.body;
 
-            if (!phone || !raffleName || !ticketNumber || !amount) {
+            if (
+                !phone ||
+                !raffleName ||
+                !Array.isArray(tickets) ||
+                tickets.length === 0 ||
+                !amount
+            ) {
                 return res.status(400).json({ message: "Datos incompletos" });
             }
 
             await this.paymentService.sendWhatsappReceipt({
                 phone,
                 raffleName,
-                ticketNumber,
+                tickets,
                 amount,
             });
 
@@ -47,6 +52,8 @@ export class PaymentController {
             });
         }
     }
+
+
 
 
     async createPayment(req: Request, res: Response) {
@@ -151,14 +158,6 @@ export class PaymentController {
                 return res.status(400).json({ message: "Datos incompletos o inválidos" });
             }
 
-            const payment = await this.paymentService.createPayment({
-                raffle_id,
-                ticket_ids,
-                reservation_id,
-                reference,
-                user_id: userId,
-            });
-
             const wompiResult = await this.paymentService.createWompiPayment({
                 userId,
                 raffle_id,
@@ -167,14 +166,14 @@ export class PaymentController {
                 reference,
             });
 
-            return res.status(201).json({ payment, wompi: wompiResult });
+            return res.status(201).json(wompiResult);
+
         } catch (error: any) {
             console.error(error);
             return res.status(400).json({
-                message: error.message || "Error creando pago Wompi"
+                message: error.message || "Error creando pago Wompi",
             });
         }
-
     }
 
 

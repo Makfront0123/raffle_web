@@ -5,12 +5,12 @@ import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useCountdown } from "@/hook/useCountdown";
 import { toast } from "sonner";
+
 import { Raffle } from "@/type/Raffle";
 import { Reservation } from "@/type/Reservation";
-import RaffleTicketModal from "@/components/user/raffles/RaffleTickedModal";
 import { Ticket } from "@/type/Ticket";
-import { useReservationsLogic } from "@/hook/useReservationsLogic";
-import { Payment } from "@/type/Payment";
+
+import RaffleTicketModal from "@/components/user/raffles/RaffleTickedModal";
 
 export default function ReservationCard({
   reservation,
@@ -27,7 +27,8 @@ export default function ReservationCard({
 }) {
   const [open, setOpen] = useState(false);
   const countdown = useCountdown(reservation.expires_at);
-  const ticket = reservation.reservationTickets?.[0]?.ticket;
+
+  const rawTicket = reservation.reservationTickets?.[0]?.ticket;
 
   useEffect(() => {
     if (countdown === "Expirada" || countdown === "00:00") {
@@ -35,33 +36,44 @@ export default function ReservationCard({
     }
   }, [countdown, reservation.id]);
 
-  if (!ticket || !raffle) return null;
-  const ticketForModal: Ticket = {
-    ...ticket,
-    raffle: {
-      id: raffle.id,
-      title: raffle.title,
-      description: raffle.description,
-      total_numbers: raffle.total_numbers,
-      price: String(raffle.price),
-    },
-  };
+  // ⛔ seguridad
+  if (!rawTicket || !raffle) return null;
 
+  /**
+   * 🔥 CONVERSIÓN CLAVE
+   * rawTicket ≠ Ticket (frontend)
+   * aquí se construye el Ticket correcto
+   */
+  const ticketForModal: Ticket = {
+    id_ticket: rawTicket.id_ticket,
+    ticket_number: rawTicket.ticket_number,
+    status: rawTicket.status,
+    raffle: raffle, // ✅ requerido por el tipo Ticket
+  };
 
   return (
     <>
       <Card className="p-8 bg-black text-white border border-gold rounded-2xl shadow-xl hover:scale-[1.02] transition-all">
         <CardHeader>
-          <h3 className="font-semibold text-xl text-gold">{raffle.title}</h3>
+          <h3 className="font-semibold text-xl text-gold">
+            {raffle.title}
+          </h3>
+
           <p className="text-sm text-white/60">
-            Ticket #{ticket.ticket_number} — {ticket.status}
+            Ticket #{rawTicket.ticket_number} — {rawTicket.status}
           </p>
-          <p className="text-sm text-white/70">{raffle.description}</p>
+
+          <p className="text-sm text-white/70">
+            {raffle.description}
+          </p>
         </CardHeader>
 
         <CardContent>
           <p className="text-white/80">
-            ⏳ Expira en: <span className="font-bold text-gold">{countdown}</span>
+            ⏳ Expira en:{" "}
+            <span className="font-bold text-gold">
+              {countdown}
+            </span>
           </p>
 
           <div className="flex mt-6 gap-4">
@@ -70,10 +82,12 @@ export default function ReservationCard({
               disabled={canceling === reservation.id}
               onClick={() => onCancel(reservation.id)}
             >
-              {canceling === reservation.id ? "Cancelando..." : "Cancelar"}
+              {canceling === reservation.id
+                ? "Cancelando..."
+                : "Cancelar"}
             </Button>
 
-            {ticket.status === "reserved" && (
+            {rawTicket.status === "reserved" && (
               <Button
                 className="bg-gold text-white hover:bg-gold/80"
                 onClick={() => setOpen(true)}
@@ -88,14 +102,13 @@ export default function ReservationCard({
       <RaffleTicketModal
         open={open}
         setOpen={setOpen}
-        tickets={[ticketForModal]}   // ✅
-        raffle={raffle}
+        tickets={[ticketForModal]}   // ✅ Ticket válido
+        raffle={raffle}              // ✅ Raffle completo
         handleAction={async () => {
           await onPay(reservation, raffle);
           setOpen(false);
         }}
       />
-
     </>
   );
 }

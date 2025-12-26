@@ -12,9 +12,11 @@ export interface PaymentCreateDto {
 export interface WidgetPaymentDto {
   method: string;
   raffle_id: number;
-  ticket_id: number;
+  ticket_ids: number[];
   card_token?: string;
   reference: string;
+  total_amount: number;
+  reservation_id?: number;
 }
 
 export interface Payment {
@@ -32,4 +34,11 @@ export interface TicketDetail {
   id: number;
   amount: string;
   ticket: Ticket;
+}
+
+
+export interface PaymentTicket {
+  id_ticket: number;
+  ticket_number: string;
+  status: string;
 }

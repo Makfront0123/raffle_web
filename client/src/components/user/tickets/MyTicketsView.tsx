@@ -83,21 +83,25 @@ export default function MyTicketsView({
                 <td colSpan={5}>No hay resultados</td>
               </tr>
             ) : (
-              currentPayments.map(payment =>
-                payment.details.map(detail => (
-                  <tr key={detail.ticket.id_ticket} className="border-t">
-                    <td className="px-4 py-2">{payment.raffle.title}</td>
-                    <td className="px-4 py-2">{detail.ticket.ticket_number}</td>
-                    <td className="px-4 py-2">${payment.total_amount}</td>
-                    <td className="px-4 py-2">
-                      {new Date(payment.created_at).toLocaleDateString()}
-                    </td>
-                    <td className="capitalize">{payment.status}</td>
-                  </tr>
-                ))
-              )
+              currentPayments.map(payment => (
+                <tr key={payment.id} className="border-t align-top">
+                  <td className="px-4 py-2">{payment.raffle.title}</td>
+
+                  {/* Agrupamos los números de ticket */}
+                  <td className="px-4 py-2">
+                    {payment.details.map(d => d.ticket.ticket_number).join(", ")}
+                  </td>
+
+                  <td className="px-4 py-2">${payment.total_amount}</td>
+                  <td className="px-4 py-2">
+                    {new Date(payment.created_at).toLocaleDateString()}
+                  </td>
+                  <td className="capitalize">{payment.status}</td>
+                </tr>
+              ))
             )}
           </tbody>
+
 
         </table>
       </div>

@@ -1,98 +1,136 @@
 "use client";
 
-import { flushSync } from "react-dom";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { usePaymentStore } from "@/store/paymentStore";
 import { AuthStore } from "@/store/authStore";
-import { Payment } from "@/type/Payment";
-import { useState, useEffect } from "react";
-import { Ticket } from "@/type/Ticket";
 import { Raffle } from "@/type/Raffle";
+import { PaymentTicket } from "@/type/Payment";
 
 interface UsePaymentProps {
   onPaymentSuccess?: () => Promise<void>;
 }
 
 export function usePayment({ onPaymentSuccess }: UsePaymentProps = {}) {
-  const { userPayments, getPaymentsUser, widgetPayment, getWompiSignature, createPayment } =
-    usePaymentStore();
-  const { token, user } = AuthStore();
+  const {
+    userPayments,
+    getPaymentsUser,
+    widgetPayment,
+    getWompiSignature,
+    loading,
+  } = usePaymentStore();
 
-  const [loading, setLoading] = useState(false);
+  const { token } = AuthStore();
+
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const [paymentInfo, setPaymentInfo] = useState<{
     raffleName?: string;
-    ticketNumber?: string;
+    tickets?: string[];
   } | null>(null);
 
+  /** 🔹 Cargar pagos del usuario */
   useEffect(() => {
-    if (!token || !user?.id) return;
-    getPaymentsUser(token).catch(() => console.error("Error cargando pagos"));
-  }, [token, user?.id, getPaymentsUser]);
+    if (token) getPaymentsUser(token);
+  }, [token, getPaymentsUser]);
+
+  /** 🔹 Script Wompi */
+  const loadWompiScript = () =>
+    new Promise<void>((resolve) => {
+      if ((window as any).WidgetCheckout) return resolve();
+      const script = document.createElement("script");
+      script.src = "https://checkout.wompi.co/widget.js";
+      script.async = true;
+      script.onload = () => resolve();
+      document.body.appendChild(script);
+    });
 
   const payWithWompiWidget = async ({
     tickets,
     raffle,
+    reservation_id,
   }: {
-    tickets: Ticket[];
+    tickets: PaymentTicket[];
     raffle: Raffle;
+    reservation_id?: number;
   }) => {
-
     if (!token) {
       toast.error("Debes iniciar sesión");
       return;
     }
 
     try {
-      setLoading(true);
+      const reference = `RAFFLE_${raffle.id}_${Date.now()}`;
+      const amountInCents = raffle.price * tickets.length * 100;
 
-      const ticketIds = tickets.map(t => t.id_ticket);
-
-      const reference = `RAFFLE_${raffle.id}_TICKETS_${ticketIds.join("-")}_${Date.now()}`;
-
-      await createPayment(
+      /** 1️⃣ Crear pago */
+      await widgetPayment(
         {
+          method: "wompi",
           raffle_id: raffle.id,
-          ticket_ids: ticketIds,
+          ticket_ids: tickets.map((t) => t.id_ticket),
+          reservation_id,
           reference,
           total_amount: raffle.price * tickets.length,
         },
         token
       );
 
+      /** 2️⃣ Obtener firma */
+      const { signature } = await getWompiSignature(
+        {
+          reference,
+          amount_in_cents: amountInCents,
+          currency: "COP",
+        },
+        token
+      );
 
+      await loadWompiScript();
 
-      // Simulamos un pago aprobado directamente
-      flushSync(() => {
-        setPaymentInfo({
-          raffleName: raffle.title,
-          ticketNumber: tickets.map(t => t.ticket_number).join(", "),
-        });
-
-        setSuccessModalOpen(true);
+      /** 3️⃣ Abrir Widget */
+      const checkout = new (window as any).WidgetCheckout({
+        currency: "COP",
+        amountInCents,
+        reference,
+        publicKey: process.env.NEXT_PUBLIC_WOMPI_PUBLIC_KEY,
+        signature: { integrity: signature },
       });
 
-      toast.success("Pago aprobado (simulado)");
+      checkout.open((result: any) => {
+        const tx = result?.transaction;
+        if (!tx) return;
 
-      // Refrescamos la rifa si hay callback
-      if (onPaymentSuccess) await onPaymentSuccess();
+        if (tx.status === "APPROVED") {
+          toast.success("Pago aprobado ✅");
 
-    } catch (error) {
-      console.error(error);
-      toast.error("Error creando pago de prueba");
-    } finally {
-      setLoading(false);
+          /** Guardar info para modal */
+          setPaymentInfo({
+            raffleName: raffle.title,
+            tickets: tickets.map((t) => t.ticket_number), // ✅ array de tickets
+          });
+
+          setSuccessModalOpen(true);
+
+          getPaymentsUser(token); // refresca tickets
+          onPaymentSuccess?.();
+        }
+
+        if (tx.status === "DECLINED") toast.error("Pago rechazado ❌");
+        if (tx.status === "ERROR") toast.error("Error en el pago ⚠️");
+      });
+    } catch (e) {
+      console.error(e);
+      toast.error("Error iniciando pago");
     }
   };
 
   return {
-    userPayments,
     loading,
+    userPayments,
     payWithWompiWidget,
     successModalOpen,
     setSuccessModalOpen,
     paymentInfo,
-    createPayment
   };
 }
 

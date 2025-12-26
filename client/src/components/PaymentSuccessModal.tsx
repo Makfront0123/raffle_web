@@ -6,13 +6,11 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle, Send } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useWhatsappReceipt } from "@/hook/useSendWhatsappReceipt";
-
-
 interface Props {
   open: boolean;
   onClose: () => void;
   raffleName?: string;
-  ticketNumber?: string;
+  tickets?: string[]; // 🔹 array de tickets
   amount: number;
 }
 
@@ -20,21 +18,20 @@ export function PaymentSuccessModal({
   open,
   onClose,
   raffleName,
-  ticketNumber,
+  tickets,
   amount,
 }: Props) {
   const [phone, setPhone] = useState("");
-
   const { sendReceipt, loading, sent } = useWhatsappReceipt();
 
   const handleSendReceipt = async () => {
-    if (!phone || !raffleName || !ticketNumber) return;
+    if (!phone || !raffleName || !tickets || tickets.length === 0) return;
 
     try {
       await sendReceipt({
         phone,
         raffleName,
-        ticketNumber,
+        tickets,
         amount,
       });
     } catch (err) {
@@ -49,14 +46,9 @@ export function PaymentSuccessModal({
           <DialogTitle>Pago exitoso</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col items-center text-center gap-5 py-6">
-
           <CheckCircle className="w-20 h-20 text-yellow-400" />
-
           <h2 className="text-2xl font-extrabold">¡Compra exitosa!</h2>
-
-          <p className="text-gray-300">
-            Tu pago fue procesado correctamente.
-          </p>
+          <p className="text-gray-300">Tu pago fue procesado correctamente.</p>
 
           {!sent ? (
             <div className="w-full mt-4 space-y-3">
