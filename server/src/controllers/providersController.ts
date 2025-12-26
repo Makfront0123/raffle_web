@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { ProviderService } from '../services/providerService';
 
 export class ProviderController {
-  constructor(private providerService: ProviderService) {}
+  constructor(private providerService: ProviderService) { }
 
   getAll = async (req: Request, res: Response) => {
     try {
@@ -31,8 +31,16 @@ export class ProviderController {
     const provider = await this.providerService.getProviderById(
       Number(req.params.id)
     );
+
+    if (!provider) {
+      return res.status(404).json({
+        message: 'No se encontró el proveedor'
+      });
+    }
+
     res.status(200).json(provider);
   };
+
 
   update = async (req: Request, res: Response) => {
     const provider = await this.providerService.updateProvider(

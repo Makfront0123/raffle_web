@@ -1,14 +1,13 @@
 "use client";
-
 import RaffleCard from "@/components/RaffleCard";
-
 import LoadingScreen from "@/components/LoadingScreen";
-import { useFilteredRaffles } from "@/hook/useFilteredRaffles";
 import { usePrizes } from "@/hook/usePrizes";
 import RaffleExpiredModal from "@/components/user/raffles/RaffleExpiredModal";
 import { useState, useEffect } from "react";
 import RaffleFilters from "@/components/user/raffles/RafflesFilters";
 import RafflePagination from "@/components/user/raffles/RafflesPagination";
+import { Raffle } from "@/type/Raffle";
+import { useFilteredRaffles } from "@/hook/useFilteredRaffles";
 
 
 
@@ -29,7 +28,7 @@ export default function Raffles() {
     setShowExpiredModal,
   } = useFilteredRaffles();
 
-  const { winners, setActiveRaffleId, loading: loadingWinner } = usePrizes();
+  const { winners, loading: loadingWinner } = usePrizes();
 
 
 
@@ -41,10 +40,6 @@ export default function Raffles() {
     (currentPage - 1) * rafflesPerPage,
     currentPage * rafflesPerPage
   );
-
-  useEffect(() => {
-    if (showExpiredModal?.id) setActiveRaffleId(showExpiredModal.id);
-  }, [showExpiredModal]);
 
   return (
     <div className="w-full min-h-screen px-6 py-16 bg-gradient-to-b from-black via-yellow-500 to-black text-white">
@@ -80,7 +75,7 @@ export default function Raffles() {
               No se encontraron rifas 😢
             </p>
           ) : (
-            paginatedRaffles.map((raffle) => (
+            paginatedRaffles.map((raffle: Raffle) => (
               <RaffleCard
                 key={raffle.id}
                 raffle={raffle}

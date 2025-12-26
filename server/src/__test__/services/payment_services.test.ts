@@ -5,7 +5,7 @@ jest.mock("typeorm", () => {
   const actual = jest.requireActual("typeorm");
   return {
     ...actual,
-    In: jest.fn((v) => v), 
+    In: jest.fn((v) => v),
   };
 });
 
@@ -33,7 +33,6 @@ describe("PaymentService", () => {
       getMany: jest.fn().mockResolvedValue([]),
     };
 
-    
     mockUserRepo = { findOne: jest.fn() };
     mockRaffleRepo = { findOne: jest.fn() };
     mockTicketRepo = { find: jest.fn(), save: jest.fn() };
@@ -43,7 +42,6 @@ describe("PaymentService", () => {
     };
     mockPaymentRepo = { create: jest.fn(), save: jest.fn() };
     mockPaymentDetailRepo = { create: jest.fn(), save: jest.fn() };
-
 
     manager = {
       getRepository: jest.fn((entity) => {
@@ -71,7 +69,6 @@ describe("PaymentService", () => {
     paymentService = new PaymentService(mockDataSource);
   });
 
-
   test("lanza error si el usuario no existe", async () => {
     mockUserRepo.findOne.mockResolvedValue(null);
 
@@ -80,10 +77,10 @@ describe("PaymentService", () => {
         user_id: 1,
         raffle_id: 10,
         ticket_ids: [1, 2],
+        reference: "REF-123",
       })
     ).rejects.toThrow("No se encontró el usuario");
   });
-
 
   test("lanza error si la rifa no existe", async () => {
     mockUserRepo.findOne.mockResolvedValue({ id: 1 });
@@ -94,6 +91,7 @@ describe("PaymentService", () => {
         user_id: 1,
         raffle_id: 10,
         ticket_ids: [1, 2],
+        reference: "REF-123",
       })
     ).rejects.toThrow("No se encontró la rifa");
   });
@@ -108,10 +106,10 @@ describe("PaymentService", () => {
         user_id: 1,
         raffle_id: 10,
         ticket_ids: [99],
+        reference: "REF-123",
       })
     ).rejects.toThrow("No hay tickets seleccionados");
   });
-
 
   test("procesa un pago exitoso", async () => {
     const user = { id: 1 };
@@ -119,7 +117,7 @@ describe("PaymentService", () => {
 
     const tickets = [
       { id_ticket: 1, raffleId: 10, status: "available", ticket_number: 101 },
-      { id_ticket: 2, raffleId: 10, status: "reserved", ticket_number: 102 },
+      { id_ticket: 2, raffleId: 10, status: "available", ticket_number: 102 },
     ];
 
     mockUserRepo.findOne.mockResolvedValue(user);
@@ -142,7 +140,9 @@ describe("PaymentService", () => {
       user_id: 1,
       raffle_id: 10,
       ticket_ids: [1, 2],
+      reference: "REF-123",
     });
+
 
     expect(res).toEqual({
       message: "Pago registrado correctamente",

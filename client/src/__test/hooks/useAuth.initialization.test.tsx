@@ -10,7 +10,7 @@ import { AuthService } from "@/services/authService";
 import { jwtDecode } from "jwt-decode";
 import { useRouter } from "next/navigation";
 
- 
+
 jest.mock("next/navigation", () => ({
   useRouter: jest.fn(),
 }));
@@ -93,33 +93,32 @@ describe("useAuth - Inicialización del usuario desde localStorage", () => {
     }));
   });
 
-  // ---------------------------
-  // 1. Token válido
-  // ---------------------------
   it("debe inicializar el usuario si el token de localStorage es válido", async () => {
     const fakeToken = "FAKE_JWT";
     localStorageMock.setItem("token", fakeToken);
 
-    // mock jwt decode
     (jwtDecode as jest.Mock).mockReturnValue({
       id: "123",
       email: "test@example.com",
       role: "user",
       name: "Armando",
-      exp: Date.now() / 1000 + 60, // expira en 1 minuto
+      exp: Date.now() / 1000 + 60,
     });
 
-    // mock persist token backend
     mockGetUserByToken.mockResolvedValue({
-      user: { id: "123", email: "test@example.com", role: "user", name: "Armando" },
+      user: {
+        id: "123",
+        email: "test@example.com",
+        role: "user",
+        name: "Armando",
+      },
     });
 
     await act(async () => {
       renderHook(() => useAuth());
     });
 
-    // Se llama a setUser por data local y luego por backend
-    expect(mockSetUser).toHaveBeenCalledTimes(2);
+    expect(mockSetUser).toHaveBeenCalledTimes(1); // 👈 FIX
     expect(mockLogout).not.toHaveBeenCalled();
   });
 

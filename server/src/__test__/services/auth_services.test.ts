@@ -1,4 +1,3 @@
-
 import jwt from "jsonwebtoken";
 import { AuthService } from "../../services/authService";
 
@@ -27,6 +26,10 @@ describe("AuthService", () => {
 
         const mockCreatedUser = { id: 1, email: "test@mail.com" };
         mockUserRepo.createUser.mockResolvedValue(mockCreatedUser);
+        mockUserRepo.findById.mockResolvedValue({
+            ...mockCreatedUser,
+            role: { id: 2, name: "Usuario" },
+        });
 
         const result = await authService.findOrCreateUser({
             name: "Test",
@@ -34,13 +37,20 @@ describe("AuthService", () => {
             picture: "img.png",
         });
 
-        expect(mockUserRepo.findByEmail).toHaveBeenCalledWith("test@mail.com");
+        expect(mockUserRepo.findByEmail).toHaveBeenCalledWith(
+            "test@mail.com",
+            expect.any(Object)
+        );
         expect(mockUserRepo.createUser).toHaveBeenCalled();
-        expect(result).toEqual({ user: mockCreatedUser, isNew: true });
+        expect(result).toEqual({ user: { ...mockCreatedUser, role: { id: 2, name: "Usuario" } }, isNew: true });
     });
 
     test("retorna usuario existente sin crearlo", async () => {
-        const mockUser = { id: 2, email: "old@mail.com" };
+        const mockUser = {
+            id: 2,
+            email: "old@mail.com",
+            role: { id: 2, name: "Usuario" },
+        };
         mockUserRepo.findByEmail.mockResolvedValue(mockUser);
 
         const result = await authService.findOrCreateUser({
@@ -48,11 +58,13 @@ describe("AuthService", () => {
             email: "old@mail.com",
         });
 
-        expect(mockUserRepo.findByEmail).toHaveBeenCalledWith("old@mail.com");
+        expect(mockUserRepo.findByEmail).toHaveBeenCalledWith(
+            "old@mail.com",
+            expect.any(Object)
+        );
         expect(mockUserRepo.createUser).not.toHaveBeenCalled();
         expect(result).toEqual({ user: mockUser, isNew: false });
     });
-
 
     test("getUserById retorna usuario", async () => {
         const mockUser = { id: 10 };
@@ -62,7 +74,6 @@ describe("AuthService", () => {
         expect(result).toEqual(mockUser);
     });
 
- 
     test("getUserByToken decodifica token y busca usuario", async () => {
         mockJwtVerify.mockReturnValue({ id: 99 });
         mockUserRepo.findById.mockResolvedValue({ id: 99 });
@@ -82,7 +93,6 @@ describe("AuthService", () => {
             "Token inválido o expirado"
         );
     });
-
 
     test("verifyRefreshToken retorna true si es válido", async () => {
         mockJwtVerify.mockReturnValue(true);

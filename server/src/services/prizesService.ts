@@ -139,9 +139,10 @@ export class PrizesService {
             relations: ['winner_ticket'],
         });
 
-        const excludedTicketIds = usedPrizes
+        const excludedTicketIds = (usedPrizes || [])
             .map(p => p.winner_ticket?.id_ticket)
             .filter(Boolean);
+
 
         const ticketsQB = this.ticketRepo
             .createQueryBuilder('ticket')
@@ -155,9 +156,9 @@ export class PrizesService {
         const validTickets = await ticketsQB.getMany();
 
         if (validTickets.length === 0) {
-            // No hay tickets disponibles sin repetir ganador
-            return null;
+            throw new Error("No hay tickets comprados para esta rifa");
         }
+
 
         const winnerTicket =
             validTickets[Math.floor(Math.random() * validTickets.length)];

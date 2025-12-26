@@ -39,3 +39,4 @@ export interface CreatePrizeDTO {
   raffleId: number;
   providerId: number;
 }
+

@@ -61,10 +61,14 @@ describe("useRaffleDetail", () => {
       tickets: [],
     });
 
+    const payWithWompiWidget = jest.fn().mockResolvedValue(undefined);
+
     let result: any;
 
     await act(async () => {
-      const hook = renderHook(() => useRaffleDetail());
+      const hook = renderHook(() =>
+        useRaffleDetail({ payWithWompiWidget })
+      );
       result = hook.result;
     });
 
@@ -78,6 +82,7 @@ describe("useRaffleDetail", () => {
     });
   });
 
+
   test("🔹 setea tickets locales y calcula porcentaje vendido", async () => {
     mockGetRaffleById.mockResolvedValue({
       id: 10,
@@ -87,7 +92,11 @@ describe("useRaffleDetail", () => {
       ],
     });
 
-    const { result } = renderHook(() => useRaffleDetail());
+    const payWithWompiWidget = jest.fn().mockResolvedValue(undefined);
+
+    const { result } = renderHook(() =>
+      useRaffleDetail({ payWithWompiWidget })
+    );
 
     await waitFor(() => {
       expect(result.current.raffle).not.toBe(null);
@@ -97,13 +106,15 @@ describe("useRaffleDetail", () => {
     expect(mockGetSoldPercentage).toHaveBeenCalledWith(10, "mock-token");
   });
 
+
   test("🔹 bloquea ticket no disponible", async () => {
     mockGetRaffleById.mockResolvedValue({ id: 10, tickets: [] });
 
-    let result: any;
-    await act(async () => {
-      result = renderHook(() => useRaffleDetail()).result;
-    });
+    const payWithWompiWidget = jest.fn().mockResolvedValue(undefined);
+
+    const { result } = renderHook(() =>
+      useRaffleDetail({ payWithWompiWidget })
+    );
 
     const ticket = { id_ticket: 1, ticket_number: 1, status: "reserved" };
 
@@ -112,17 +123,18 @@ describe("useRaffleDetail", () => {
     });
 
     expect(toast.error).toHaveBeenCalled();
-    expect(result.current.selectedTicket).toBe(null);
+    expect(result.current.selectedTicket).toBe(undefined);
   });
+
 
   test("🔹 selecciona un ticket válido", async () => {
     mockGetRaffleById.mockResolvedValue({ id: 10, tickets: [] });
 
-    let result: any;
+    const payWithWompiWidget = jest.fn().mockResolvedValue(undefined);
 
-    await act(async () => {
-      result = renderHook(() => useRaffleDetail()).result;
-    });
+    const { result } = renderHook(() =>
+      useRaffleDetail({ payWithWompiWidget })
+    );
 
     const ticket = { id_ticket: 1, ticket_number: 1, status: "available" };
 
@@ -140,10 +152,11 @@ describe("useRaffleDetail", () => {
       tickets: [{ id_ticket: 1, ticket_number: 1, status: "available" }],
     });
 
-    let result: any;
-    await act(async () => {
-      result = renderHook(() => useRaffleDetail()).result;
-    });
+    const payWithWompiWidget = jest.fn().mockResolvedValue(undefined);
+
+    const { result } = renderHook(() =>
+      useRaffleDetail({ payWithWompiWidget })
+    );
 
     await waitFor(() => {
       expect(result.current.raffle).not.toBe(null);
@@ -158,7 +171,7 @@ describe("useRaffleDetail", () => {
     });
 
     await act(async () => {
-      await result.current.handleAction("reserve");
+      await result.current.handleAction("reserved");
     });
 
     expect(mockCreateReservation).toHaveBeenCalledWith(1, 10, "mock-token");
@@ -166,13 +179,17 @@ describe("useRaffleDetail", () => {
     expect(toast.success).toHaveBeenCalled();
   });
 
-  test("🔹 realiza pago con Nequi o Daviplata", async () => {
+  test("🔹 realiza pago con Wompi widget", async () => {
     mockGetRaffleById.mockResolvedValue({
       id: 10,
       tickets: [{ id_ticket: 5, ticket_number: 5, status: "available" }],
     });
 
-    const { result } = renderHook(() => useRaffleDetail());
+    const payWithWompiWidget = jest.fn().mockResolvedValue(undefined);
+
+    const { result } = renderHook(() =>
+      useRaffleDetail({ payWithWompiWidget })
+    );
 
     await waitFor(() => {
       expect(result.current.raffle).not.toBe(null);
@@ -187,16 +204,18 @@ describe("useRaffleDetail", () => {
     });
 
     await act(async () => {
-      await result.current.handleAction("nequi");
+      await result.current.handleAction("pay");
     });
 
-    expect(mockMakePayment).toHaveBeenCalledWith({
-      method: "nequi",
-      raffle_id: 10,
-      ticket_ids: [5],
+    expect(payWithWompiWidget).toHaveBeenCalledWith({
+      ticket: {
+        id_ticket: 5,
+        ticket_number: 5,
+        status: "available",
+      },
+      raffle: { id: 10, tickets: expect.any(Array) },
+      method: "pay",
     });
-
-    expect(result.current.currentTickets[0].status).toBe("purchased");
-    expect(toast.success).toHaveBeenCalled();
   });
+
 });

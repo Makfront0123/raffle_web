@@ -40,7 +40,7 @@ describe("PrizeStore", () => {
       .mockResolvedValue([fullPrize]);
 
     await act(async () => {
-      await usePrizeStore.getState().getPrizes("token");
+      await usePrizeStore.getState().getPrizes();
     });
 
     expect(usePrizeStore.getState().prizes.length).toBe(1);
@@ -119,9 +119,10 @@ describe("PrizeStore", () => {
       .mockResolvedValue(winnerMock as any);
 
     await act(async () => {
-      await usePrizeStore.getState().getWinnersByRaffle(5, "token");
+      await usePrizeStore.getState().getWinners();
     });
 
     expect(usePrizeStore.getState().winners.length).toBe(1);
   });
+
 });

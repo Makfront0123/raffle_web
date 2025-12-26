@@ -263,11 +263,19 @@ export class PaymentService {
         await manager.getRepository(Reservation).delete(reservation.id);
       }
 
+      const responseTickets = tickets.map((t) => ({
+        id: t.id_ticket,
+        number: t.ticket_number,
+        status: t.status,
+      }));
+
       return {
         message: "Pago registrado correctamente",
         payment_id: paymentEntity.id,
         total_amount: totalAmount,
+        tickets: responseTickets,
       };
+
     });
   }
 

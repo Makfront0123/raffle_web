@@ -1,72 +1,170 @@
 /**
- * Los mocks deben ir ANTES de los imports reales
+ * @jest-environment jsdom
  */
-jest.mock("@radix-ui/react-dialog", () => {
-  const original = jest.requireActual("@radix-ui/react-dialog");
-
-  return {
-    ...original,
-    DialogContent: ({ children }: any) => <div>{children}</div>,
-  };
-});
-
-jest.mock("@/hook/useFilteredRaffles", () => ({
-  useFilteredRaffles: jest.fn()
-}));
-
-jest.mock("@/hook/usePrizes", () => ({
-  usePrizes: jest.fn()
-}));
-
-import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
+
 import { useFilteredRaffles } from "@/hook/useFilteredRaffles";
 import { usePrizes } from "@/hook/usePrizes";
 import Raffles from "@/app/(user)/raffles/page";
- 
-/** Tipado estricto de mocks */
-const mockUseFilteredRaffles = useFilteredRaffles as jest.MockedFunction<
-  typeof useFilteredRaffles
->;
-const mockUsePrizes = usePrizes as jest.MockedFunction<typeof usePrizes>;
 
-/** Mock de datos Raffle */
-const mockRaffles = [
-  {
-    id: 1,
-    title: "Rifa 1",
-    description: "Desc 1",
-    price: 100,
-    end_date: "2025-01-01",
-    digits: 4,
-    total_numbers: 100,
-    status: "active",
-    created_at: "2025-01-01",
-    tickets: [],
-    prizes: []
-  },
-  {
-    id: 2,
-    title: "Rifa 2",
-    description: "Desc 2",
-    price: 200,
-    end_date: "2025-01-01",
-    digits: 4,
-    total_numbers: 100,
-    status: "ended",
-    created_at: "2025-01-01",
-    tickets: [],
-    prizes: []
+// Mock de hooks
+jest.mock("@/hook/useFilteredRaffles");
+jest.mock("@/hook/usePrizes");
+
+// Mock router de Next
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: jest.fn(),
+    replace: jest.fn(),
+    prefetch: jest.fn(),
+    pathname: '/',
+  }),
+}));
+
+// Mock componentes que usan framer-motion u otros efectos pesados
+jest.mock('@/components/RaffleCard', () => (props: any) => (
+  <div data-testid="raffle-card">{props.raffle.title}</div>
+));
+
+jest.mock('@/components/user/raffles/RafflesPagination', () => (props: any) => (
+  <div data-testid="raffle-pagination" />
+));
+
+jest.mock('@/components/user/raffles/RaffleExpiredModal', () => (props: any) => (
+  <div data-testid="raffle-expired-modal">
+    {props.winners?.map((w: any) => w.name)}
+  </div>
+));
+
+jest.mock('@/components/user/raffles/RafflesFilters', () => (props: any) => <div data-testid="raffle-filters" />);
+
+beforeAll(() => {
+  class IntersectionObserverMock implements IntersectionObserver {
+    root: Element | null = null;
+    rootMargin: string = "";
+    thresholds: ReadonlyArray<number> = [];
+
+    constructor(callback: IntersectionObserverCallback, options?: IntersectionObserverInit) { }
+
+    disconnect(): void { }
+    observe(target: Element): void { }
+    unobserve(target: Element): void { }
+    takeRecords(): IntersectionObserverEntry[] { return []; }
+    readonly [Symbol.toStringTag]: string = "IntersectionObserver";
   }
-];
+
+  Object.defineProperty(global, "IntersectionObserver", {
+    writable: true,
+    configurable: true,
+    value: IntersectionObserverMock,
+  });
+});
 
 describe("Raffles UI", () => {
+  const mockSetShowExpiredModal = jest.fn();
+
   beforeEach(() => {
     jest.clearAllMocks();
+  });
 
-    /** Mock principal: useFilteredRaffles */
-    mockUseFilteredRaffles.mockReturnValue({
-      raffles: mockRaffles,
+  it("Renderiza título principal", () => {
+    (useFilteredRaffles as jest.Mock).mockReturnValue({
+      filteredRaffles: [],
+      loading: false,
+      error: null,
+      search: "",
+      setSearch: jest.fn(),
+      filterPrize: "all",
+      setFilterPrize: jest.fn(),
+      sortBy: "recent",
+      setSortBy: jest.fn(),
+      tab: "active",
+      setTab: jest.fn(),
+      showExpiredModal: null,
+      setShowExpiredModal: mockSetShowExpiredModal,
+      winners: [],
+      loadingWinner: false,
+    });
+
+    (usePrizes as jest.Mock).mockReturnValue({
+      winners: [],
+      loading: false,
+      error: null,
+      setActiveRaffleId: jest.fn(),
+    });
+
+    render(<Raffles />);
+    expect(screen.getByText("🎟️ Rifas Premium")).toBeInTheDocument();
+  });
+
+  it("Muestra loader cuando loading es true", () => {
+    (useFilteredRaffles as jest.Mock).mockReturnValue({
+      filteredRaffles: [],
+      loading: true,
+      error: null,
+      search: "",
+      setSearch: jest.fn(),
+      filterPrize: "all",
+      setFilterPrize: jest.fn(),
+      sortBy: "recent",
+      setSortBy: jest.fn(),
+      tab: "active",
+      setTab: jest.fn(),
+      showExpiredModal: null,
+      setShowExpiredModal: mockSetShowExpiredModal,
+      winners: [],
+      loadingWinner: false,
+    });
+
+    (usePrizes as jest.Mock).mockReturnValue({
+      winners: [],
+      loading: false,
+      error: null,
+      setActiveRaffleId: jest.fn(),
+    });
+
+    render(<Raffles />);
+    expect(screen.getByText(/cargando/i)).toBeInTheDocument();
+  });
+
+  it("Muestra error cuando hay error", () => {
+    (useFilteredRaffles as jest.Mock).mockReturnValue({
+      filteredRaffles: [],
+      loading: false,
+      error: "Error cargando rifas",
+      search: "",
+      setSearch: jest.fn(),
+      filterPrize: "all",
+      setFilterPrize: jest.fn(),
+      sortBy: "recent",
+      setSortBy: jest.fn(),
+      tab: "active",
+      setTab: jest.fn(),
+      showExpiredModal: null,
+      setShowExpiredModal: mockSetShowExpiredModal,
+      winners: [],
+      loadingWinner: false,
+    });
+
+    (usePrizes as jest.Mock).mockReturnValue({
+      winners: [],
+      loading: false,
+      error: null,
+      setActiveRaffleId: jest.fn(),
+    });
+
+    render(<Raffles />);
+    expect(screen.getByText("Error cargando rifas")).toBeInTheDocument();
+  });
+
+  it("Renderiza rifas paginadas", () => {
+    const mockRaffles = [
+      { id: 1, title: "Rifa 1", description: "Desc 1", status: "active", prizes: [], price: 1000, end_date: new Date().toISOString(), created_at: new Date().toISOString() },
+      { id: 2, title: "Rifa 2", description: "Desc 2", status: "active", prizes: [], price: 2000, end_date: new Date().toISOString(), created_at: new Date().toISOString() },
+      { id: 3, title: "Rifa 3", description: "Desc 3", status: "active", prizes: [], price: 3000, end_date: new Date().toISOString(), created_at: new Date().toISOString() },
+    ];
+
+    (useFilteredRaffles as jest.Mock).mockReturnValue({
       filteredRaffles: mockRaffles,
       loading: false,
       error: null,
@@ -76,83 +174,56 @@ describe("Raffles UI", () => {
       setFilterPrize: jest.fn(),
       sortBy: "recent",
       setSortBy: jest.fn(),
-
-      /** 🔥 Importante: ahora tab incluye "all" */
       tab: "active",
       setTab: jest.fn(),
-
       showExpiredModal: null,
-      setShowExpiredModal: jest.fn()
+      setShowExpiredModal: mockSetShowExpiredModal,
+      winners: [],
+      loadingWinner: false,
     });
 
-    /** Mock principal: usePrizes */
-    mockUsePrizes.mockReturnValue({
-      prizes: [],
+    (usePrizes as jest.Mock).mockReturnValue({
       winners: [],
       loading: false,
       error: null,
-      filterRaffle: "all",
-      setFilterRaffle: jest.fn(),
       setActiveRaffleId: jest.fn(),
-      createPrize: jest.fn(),
-      editPrize: jest.fn(),
-      deletePrize: jest.fn(),
-      updatePrize: jest.fn()
     });
-  });
 
-  test("Renderiza título principal", () => {
-    render(<Raffles />);
-    expect(screen.getByText("🎟️ Explora nuestras rifas")).toBeInTheDocument();
-  });
-
-  test("Renderiza rifas paginadas", () => {
     render(<Raffles />);
     expect(screen.getByText("Rifa 1")).toBeInTheDocument();
     expect(screen.getByText("Rifa 2")).toBeInTheDocument();
+    expect(screen.getByText("Rifa 3")).toBeInTheDocument();
   });
 
-  test("Abre modal cuando showExpiredModal tiene datos", () => {
-    mockUseFilteredRaffles.mockReturnValueOnce({
-      ...mockUseFilteredRaffles(),
-      showExpiredModal: mockRaffles[1] // Rifa 2
+  it("Abre modal cuando showExpiredModal tiene datos", () => {
+    const mockRaffle = { id: 1, title: "Rifa 1", description: "Desc", status: "ended", prizes: [], price: 1000, end_date: new Date().toISOString(), created_at: new Date().toISOString() };
+
+    (useFilteredRaffles as jest.Mock).mockReturnValue({
+      filteredRaffles: [mockRaffle],
+      loading: false,
+      error: null,
+      search: "",
+      setSearch: jest.fn(),
+      filterPrize: "all",
+      setFilterPrize: jest.fn(),
+      sortBy: "recent",
+      setSortBy: jest.fn(),
+      tab: "active",
+      setTab: jest.fn(),
+      showExpiredModal: mockRaffle,
+      setShowExpiredModal: mockSetShowExpiredModal,
+      winners: [{ id: 1, name: "Ganador" }],
+      loadingWinner: false,
+    });
+
+    (usePrizes as jest.Mock).mockReturnValue({
+      winners: [{ id: 1, name: "Ganador" }],
+      loading: false,
+      error: null,
+      setActiveRaffleId: jest.fn(),
     });
 
     render(<Raffles />);
-
-    // El modal aparece
-    expect(screen.getByText("Rifa finalizada")).toBeInTheDocument();
-
-    // Todas las instancias de "Rifa 2"
-    const titles = screen.getAllByText("Rifa 2");
-
-    // Aseguramos que realmente hay 2
-    expect(titles.length).toBeGreaterThanOrEqual(2);
-
-    // O puedes validar SOLO el del modal:
-    expect(
-      screen.getByText((content, element) =>
-        content === "Rifa 2" && element?.tagName.toLowerCase() === "strong"
-      )
-    ).toBeInTheDocument();
-  });
-
-
-  test("Llama setActiveRaffleId cuando modal se abre", () => {
-    const setActive = jest.fn();
-
-    mockUseFilteredRaffles.mockReturnValueOnce({
-      ...mockUseFilteredRaffles(),
-      showExpiredModal: mockRaffles[1]
-    });
-
-    mockUsePrizes.mockReturnValueOnce({
-      ...mockUsePrizes(),
-      setActiveRaffleId: setActive
-    });
-
-    render(<Raffles />);
-
-    expect(setActive).toHaveBeenCalledWith(2);
+    expect(screen.getByText("Ganador")).toBeInTheDocument();
   });
 });

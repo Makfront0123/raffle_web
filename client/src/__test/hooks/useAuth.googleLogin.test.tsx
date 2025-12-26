@@ -62,20 +62,28 @@ beforeEach(() => {
     Storage.prototype.setItem = jest.fn();
 });
 
+jest.useFakeTimers();
+
 test("loginWithGoogle → ejecuta OAuth, obtiene usuario, guarda token y redirige", async () => {
     const mockPush = jest.fn();
     (useRouter as jest.Mock).mockReturnValue({ push: mockPush });
 
+    const mockGetUserByGoogle = jest.fn().mockResolvedValue({
+        token: "jwt-test-token",
+    });
+
+    const mockGetUserByToken = jest.fn().mockResolvedValue({
+        user: {
+            id: "1",
+            name: "Armando Tester",
+            role: "admin",
+            email: "test@test.com",
+        },
+    });
+
     (AuthService as jest.Mock).mockImplementation(() => ({
-        getUserByGoogle: jest.fn().mockResolvedValue({
-            user: {
-                id: "1",
-                name: "Armando Tester",
-                role: "admin",
-                email: "test@test.com",
-            },
-            token: "jwt-test-token",
-        }),
+        getUserByGoogle: mockGetUserByGoogle,
+        getUserByToken: mockGetUserByToken,
     }));
 
     const { result } = renderHook(() => useAuth());
@@ -84,13 +92,16 @@ test("loginWithGoogle → ejecuta OAuth, obtiene usuario, guarda token y redirig
         result.current.loginWithGoogle();
     });
 
-    expect(
-        (AuthService as jest.Mock).mock.calls[0][0]?.getUserByGoogle ??
-        (AuthService as jest.Mock).mock.results[0].value.getUserByGoogle
-    ).toHaveBeenCalledWith({ token: "test-google-token" });
+    act(() => {
+        jest.runAllTimers();
+    });
 
+    expect(mockGetUserByGoogle).toHaveBeenCalledWith({
+        token: "test-google-token",
+    });
 
-    // 2️⃣ Estado guardado
+    expect(mockGetUserByToken).toHaveBeenCalledWith("jwt-test-token");
+
     expect(mockSetUser).toHaveBeenCalledWith(
         {
             id: "1",
@@ -101,15 +112,12 @@ test("loginWithGoogle → ejecuta OAuth, obtiene usuario, guarda token y redirig
         "jwt-test-token"
     );
 
-    // 3️⃣ Token en localStorage
     expect(localStorage.setItem).toHaveBeenCalledWith(
         "token",
         "jwt-test-token"
     );
 
-    // 4️⃣ Toast
     expect(toast.success).toHaveBeenCalled();
-
-    // 5️⃣ Redirección
     expect(mockPush).toHaveBeenCalledWith("/dashboard");
 });
+

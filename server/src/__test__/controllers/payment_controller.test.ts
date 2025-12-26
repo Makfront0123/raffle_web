@@ -38,21 +38,35 @@ describe("PaymentController", () => {
     });
 
     test("createPayment usa user.id y crea pago", async () => {
-        req.body = { amount: 100 };
+        req.body = {
+            raffle_id: 10,
+            ticket_ids: [1, 2],
+            reference: "REF-123",
+        };
         (req as any).user = { id: 99 };
 
-        mockService.createPayment.mockResolvedValue({ id: 1, user_id: 99 } as any);
+        const serviceResponse = {
+            message: "Pago registrado correctamente",
+            payment_id: 1,
+            total_amount: 200,
+        };
+
+        mockService.createPayment.mockResolvedValue(serviceResponse as any);
 
         await controller.createPayment(req as Request, res as Response);
 
         expect(mockService.createPayment).toHaveBeenCalledWith({
-            amount: 100,
+            raffle_id: 10,
+            ticket_ids: [1, 2],
+            reference: "REF-123",
+            reservation_id: undefined,
             user_id: 99,
         });
 
         expect(res.status).toHaveBeenCalledWith(201);
-        expect(res.json).toHaveBeenCalledWith({ id: 1, user_id: 99 });
+        expect(res.json).toHaveBeenCalledWith(serviceResponse);
     });
+
 
     test("getPaymentById devuelve 404 si no existe", async () => {
         req.params = { id: "10" };

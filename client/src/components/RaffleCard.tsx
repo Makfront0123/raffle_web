@@ -30,15 +30,19 @@ export default function RaffleCard({
   const { token } = AuthStore();
   const [openAuth, setOpenAuth] = useState(false);
 
-  /* 🏆 Premio principal */
+  /* 🏆 Premio principal seguro */
   const mainPrize: Prizes | null =
-    raffle.prizes?.reduce((max: Prizes, p: Prizes) =>
-      Number(p.value) > Number(max.value) ? p : max
-    ) ?? null;
+    raffle.prizes && raffle.prizes.length > 0
+      ? raffle.prizes.reduce((max: Prizes, p: Prizes) =>
+          Number(p.value) > Number(max.value) ? p : max
+        )
+      : null;
 
   /* 🎁 Premios secundarios (máx 3) */
   const secondaryPrizes: Prizes[] =
-    raffle.prizes?.filter((p: Prizes) => p.id !== mainPrize?.id) ?? [];
+    raffle.prizes && raffle.prizes.length > 0
+      ? raffle.prizes.filter((p: Prizes) => p.id !== mainPrize?.id)
+      : [];
 
   const visibleSecondary = secondaryPrizes.slice(0, 3);
   const extraCount = secondaryPrizes.length - visibleSecondary.length;
