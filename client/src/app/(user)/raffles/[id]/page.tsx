@@ -15,7 +15,8 @@ export default function RaffleDetailPage() {
   const payment = usePayment({
     onPaymentSuccess: async () => {
       await raffleDetail.refreshRaffle();
-      raffleDetail.setSelectedTicket(undefined);
+      raffleDetail.setSelectedTickets([]);
+
     },
   });
 
@@ -32,9 +33,23 @@ export default function RaffleDetailPage() {
 
       <RaffleTicketsGrid
         tickets={raffleDetail.currentTickets}
+        selectedTickets={raffleDetail.selectedTickets}
         getColor={raffleDetail.getTicketColor}
         handleSelect={raffleDetail.handleTicketSelect}
       />
+      <div className="text-sm text-gold mt-3">
+        {raffleDetail.selectedTickets.length} / 5 tickets seleccionados
+      </div>
+      {raffleDetail.selectedTickets.length > 0 && (
+        <button
+          onClick={() => raffleDetail.setOpen(true)}
+          className="mt-4 bg-yellow-500 text-white font-bold px-6 py-2 rounded-md hover:bg-gold/80 transition"
+        >
+          Continuar con {raffleDetail.selectedTickets.length} ticket(s)
+        </button>
+      )}
+
+
 
       <RaffleLegend />
 
@@ -44,15 +59,16 @@ export default function RaffleDetailPage() {
         setCurrentPage={raffleDetail.setPage}
       />
 
-      {raffleDetail.selectedTicket && (
+      {raffleDetail.selectedTickets.length > 0 && (
         <RaffleTicketModal
           open={raffleDetail.open}
           setOpen={raffleDetail.setOpen}
-          ticket={raffleDetail.selectedTicket}
+          tickets={raffleDetail.selectedTickets}
           raffle={raffleDetail.raffle}
           handleAction={raffleDetail.handleAction}
         />
       )}
+
 
       {payment.loading && <LoadingScreen />}
 

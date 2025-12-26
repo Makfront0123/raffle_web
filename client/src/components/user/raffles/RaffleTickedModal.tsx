@@ -7,23 +7,33 @@ import { Raffle } from "@/type/Raffle";
 interface Props {
   open: boolean;
   setOpen: (v: boolean) => void;
-  ticket: Ticket;
+  tickets: Ticket[];
   raffle: Raffle;
   handleAction: (type: "pay" | "reserved") => void;
 }
 
-export default function RaffleTicketModal({ open, setOpen, ticket, raffle, handleAction }: Props) {
-  if (!ticket) return null;
-  const canReserve = ticket.status === "available";
+
+export default function RaffleTicketModal({ open, setOpen, tickets, raffle, handleAction }: Props) {
+  if (!tickets || tickets.length === 0) return null;
+
+  const totalAmount = raffle.price * tickets.length;
+  const canReserve = tickets.every(t => t.status === "available");
+
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="bg-[#0B0B0B] border border-gold/40 text-white">
         <DialogHeader>
           <DialogTitle className="text-gold text-xl">
-            Ticket #{ticket.ticket_number}
+            {tickets.length === 1
+              ? `Ticket #${tickets[0].ticket_number}`
+              : `${tickets.length} tickets seleccionados`}
           </DialogTitle>
-          <p className="text-sm text-white/60">Precio: ${raffle.price}</p>
+
+          <p className="text-sm text-white/60 mt-2">
+            Total: ${totalAmount.toLocaleString()}
+          </p>
+
         </DialogHeader>
 
         <p className="text-white/80 text-sm mt-2">
@@ -35,7 +45,7 @@ export default function RaffleTicketModal({ open, setOpen, ticket, raffle, handl
             onClick={() => handleAction("pay")}
             className="bg-gold text-white font-bold hover:bg-gold/80"
           >
-            Pagar
+            Pagar {tickets.length > 1 && `(${tickets.length})`}
           </Button>
 
           {canReserve && (
@@ -44,9 +54,10 @@ export default function RaffleTicketModal({ open, setOpen, ticket, raffle, handl
               variant="outline"
               className="border-gold text-yellow-500"
             >
-              Reservar Ticket
+              Reservar tickets
             </Button>
           )}
+
         </div>
 
         <DialogFooter>

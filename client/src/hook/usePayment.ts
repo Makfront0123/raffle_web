@@ -6,6 +6,8 @@ import { usePaymentStore } from "@/store/paymentStore";
 import { AuthStore } from "@/store/authStore";
 import { Payment } from "@/type/Payment";
 import { useState, useEffect } from "react";
+import { Ticket } from "@/type/Ticket";
+import { Raffle } from "@/type/Raffle";
 
 interface UsePaymentProps {
   onPaymentSuccess?: () => Promise<void>;
@@ -29,12 +31,13 @@ export function usePayment({ onPaymentSuccess }: UsePaymentProps = {}) {
   }, [token, user?.id, getPaymentsUser]);
 
   const payWithWompiWidget = async ({
-    ticket,
+    tickets,
     raffle,
   }: {
-    ticket: any;
-    raffle: any;
+    tickets: Ticket[];
+    raffle: Raffle;
   }) => {
+
     if (!token) {
       toast.error("Debes iniciar sesión");
       return;
@@ -43,26 +46,29 @@ export function usePayment({ onPaymentSuccess }: UsePaymentProps = {}) {
     try {
       setLoading(true);
 
-      const reference = `RAFFLE_${raffle.id}_TICKET_${ticket.id_ticket}_${Date.now()}`;
+      const ticketIds = tickets.map(t => t.id_ticket);
 
-      // Creamos el pago en el backend usando createPayment
+      const reference = `RAFFLE_${raffle.id}_TICKETS_${ticketIds.join("-")}_${Date.now()}`;
+
       await createPayment(
         {
           raffle_id: raffle.id,
-          ticket_ids: [ticket.id_ticket], // ✅ ahora es un número
+          ticket_ids: ticketIds,
           reference,
-          total_amount: raffle.price,
+          total_amount: raffle.price * tickets.length,
         },
         token
       );
+
 
 
       // Simulamos un pago aprobado directamente
       flushSync(() => {
         setPaymentInfo({
           raffleName: raffle.title,
-          ticketNumber: ticket.ticket_number,
+          ticketNumber: tickets.map(t => t.ticket_number).join(", "),
         });
+
         setSuccessModalOpen(true);
       });
 

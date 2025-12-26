@@ -8,18 +8,21 @@ import { useRaffleStore } from "@/store/raffleStore";
 import { useReservationStore } from "@/store/reservationStore";
 import { useTicketStore } from "@/store/ticketStore";
 import { Ticket } from "@/type/Ticket";
+import { Raffle } from "@/type/Raffle";
 
 interface Props {
   payWithWompiWidget: (args: {
-    ticket: Ticket;
-    raffle: any;
+    tickets: Ticket[];
+    raffle: Raffle;
     method: "pay";
   }) => Promise<void>;
 }
 
+
 export function useRaffleDetail({ payWithWompiWidget }: Props) {
   const params = useParams<{ id: string }>();
   const id = Number(params?.id);
+  const MAX_TICKETS = 5;
 
   const { token } = AuthStore();
   const { raffles, getRaffleById } = useRaffleStore();
@@ -28,7 +31,7 @@ export function useRaffleDetail({ payWithWompiWidget }: Props) {
 
   const [raffle, setRaffle] = useState<any>(null);
   const [localTickets, setLocalTickets] = useState<Ticket[]>([]);
-  const [selectedTicket, setSelectedTicket] = useState<Ticket>();
+  const [selectedTickets, setSelectedTickets] = useState<Ticket[]>([]);
   const [open, setOpen] = useState(false);
   const [page, setPage] = useState(1);
 
@@ -78,37 +81,58 @@ export function useRaffleDetail({ payWithWompiWidget }: Props) {
       toast.error("Este ticket no está disponible");
       return;
     }
-    setSelectedTicket(ticket);
-    setOpen(true);
+
+    setSelectedTickets((prev) => {
+      const exists = prev.some(t => t.id_ticket === ticket.id_ticket);
+ 
+      if (exists) {
+        return prev.filter(t => t.id_ticket !== ticket.id_ticket);
+      }
+      if (prev.length >= MAX_TICKETS) {
+        toast.error(`Máximo ${MAX_TICKETS} tickets por compra`);
+        return prev;
+      }
+
+      return [...prev, ticket];
+    });
   };
 
+
+
   const handleAction = async (action: "pay" | "reserved") => {
-    if (!selectedTicket || !raffle) return;
+    if (!raffle || selectedTickets.length === 0) return;
 
     if (action === "reserved") {
       try {
-        await createReservation(selectedTicket.id_ticket, raffle.id, token!);
-        toast.success("Ticket reservado 🕒");
+        await Promise.all(
+          selectedTickets.map(t =>
+            createReservation(t.id_ticket, raffle.id, token!)
+          )
+        );
+
+        toast.success("Tickets reservados 🕒");
         setOpen(false);
 
-        setLocalTickets((prev) =>
-          prev.map((t) =>
-            t.id_ticket === selectedTicket.id_ticket
+        setLocalTickets(prev =>
+          prev.map(t =>
+            selectedTickets.some(s => s.id_ticket === t.id_ticket)
               ? { ...t, status: "reserved" }
               : t
           )
         );
+
+        setSelectedTickets([]);
       } catch {
         toast.error("No se pudo reservar");
       }
       return;
     }
-
     setOpen(false);
+
     await payWithWompiWidget({
-      ticket: selectedTicket,
+      tickets: selectedTickets,
       raffle,
-      method: action,
+      method: "pay",
     });
   };
 
@@ -118,14 +142,14 @@ export function useRaffleDetail({ payWithWompiWidget }: Props) {
     setPage,
     totalPages,
     currentTickets,
-    selectedTicket,
-    setSelectedTicket,
     open,
+    setSelectedTickets,
     setOpen,
     getTicketColor,
-    handleTicketSelect,
     handleAction,
     soldPercentage,
     refreshRaffle,
+    handleTicketSelect,
+    selectedTickets,
   };
 }

@@ -16,7 +16,7 @@ export function useAuth() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [initialized, setInitialized] = useState(false);
-  const [showAdminSplash, setShowAdminSplash] = useState(false);
+  const [showAdminSplash] = useState(false);
 
 
 
