@@ -62,8 +62,8 @@ export default function WinnersSection({ winners }: { winners: Winner[] }) {
                     <Image
                       alt="avatar"
                       src={w.winner_user?.picture || "/icons/mynaui--user.png"}
-                      width={48}   // 12 * 4 = 48px
-                      height={48}  // 12 * 4 = 48px
+                      width={48}
+                      height={48}
                       className="rounded-full border border-gold object-cover"
                     />
 
