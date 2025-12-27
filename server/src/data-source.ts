@@ -23,7 +23,7 @@ export const AppDataSource = new DataSource({
     password: process.env.DB_PASSWORD,
     database: process.env.DB_DATABASE,
     entities: [User, Role, Raffle, Ticket, Payment, Prize, Provider, PaymentDetail, Reservation, ReservationTicket],
-    synchronize: false, // ❌ En producción, siempre falso
+    synchronize: true, // ❌ En producción, siempre falso
     migrations: ["src/migrations/*.ts"],
     logging: true,
 });
