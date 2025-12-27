@@ -13,10 +13,10 @@ export class Prize {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @ManyToOne(() => Raffle, raffle => raffle.prizes, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Raffle, (raffle:Raffle) => raffle.prizes, { onDelete: 'CASCADE' })
   raffle!: Raffle;
 
-  @ManyToOne(() => Provider, provider => provider.prizes, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Provider, (provider:Provider) => provider.prizes, { onDelete: 'CASCADE' })
   provider!: Provider;
 
   @Column({
