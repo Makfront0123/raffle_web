@@ -1,7 +1,7 @@
 import { AppDataSource } from "../data-source";
 import { Reservation } from "../entities/reservation.entity";
 import { ReservationTicket } from "../entities/reservation_ticket.entity";
-import { Ticket } from "../entities/ticket.entity";
+import { Ticket, TicketStatus } from "../entities/ticket.entity";
 import { In, LessThan } from "typeorm";
 import { Raffle } from "../entities/raffle.entity";
 
@@ -50,7 +50,7 @@ export class ReservationService {
       if (invalidTickets.length > 0) {
         throw new Error('Uno o más tickets no pertenecen a esta rifa.');
       }
-      const unavailable = tickets.filter((t: Ticket) => t.status !== 'available');
+      const unavailable = tickets.filter((t: Ticket) => t.status !== TicketStatus.AVAILABLE);
       if (unavailable.length > 0) {
         throw new Error('Uno o más tickets ya no están disponibles.');
       }
@@ -110,7 +110,7 @@ export class ReservationService {
 
       for (const reservation of expired) {
         for (const resTicket of reservation.reservationTickets) {
-          resTicket.ticket.status = "available";
+          resTicket.ticket.status = TicketStatus.AVAILABLE;
           await queryRunner.manager.save(resTicket.ticket);
         }
 

@@ -9,6 +9,7 @@ import { useReservationStore } from "@/store/reservationStore";
 import { useTicketStore } from "@/store/ticketStore";
 import { Ticket } from "@/type/Ticket";
 import { Raffle } from "@/type/Raffle";
+import { TicketStatusEnum } from "@/type/Payment";
 
 interface Props {
   payWithWompiWidget: (args: {
@@ -77,14 +78,14 @@ export function useRaffleDetail({ payWithWompiWidget }: Props) {
   };
 
   const handleTicketSelect = (ticket: Ticket) => {
-    if (ticket.status !== "available") {
+    if (ticket.status !== TicketStatusEnum.AVAILABLE) {
       toast.error("Este ticket no está disponible");
       return;
     }
 
     setSelectedTickets((prev) => {
       const exists = prev.some(t => t.id_ticket === ticket.id_ticket);
- 
+
       if (exists) {
         return prev.filter(t => t.id_ticket !== ticket.id_ticket);
       }
@@ -116,7 +117,7 @@ export function useRaffleDetail({ payWithWompiWidget }: Props) {
         setLocalTickets(prev =>
           prev.map(t =>
             selectedTickets.some(s => s.id_ticket === t.id_ticket)
-              ? { ...t, status: "reserved" }
+              ? { ...t, status: TicketStatusEnum.RESERVED }
               : t
           )
         );

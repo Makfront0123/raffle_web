@@ -1,10 +1,10 @@
 import cron from "node-cron";
 import { AppDataSource } from "../data-source";
-import { Payment } from "../entities/payment.entity";
-import { Ticket } from "../entities/ticket.entity";
+import { Payment, PaymentStatus } from "../entities/payment.entity";
+import { Ticket, TicketStatus } from "../entities/ticket.entity";
 import { LessThan } from "typeorm";
 
- 
+
 export const cleanupExpiredPayments = async (): Promise<number> => {
     const now = new Date();
 
@@ -13,18 +13,18 @@ export const cleanupExpiredPayments = async (): Promise<number> => {
 
     const expiredPayments = await paymentRepo.find({
         where: {
-            status: "pending",
+            status: PaymentStatus.PENDING,
             expires_at: LessThan(now),
         },
         relations: ["details", "details.ticket"],
     });
 
     for (const payment of expiredPayments) {
-        payment.status = "expired";
+        payment.status = PaymentStatus.EXPIRED;
         await paymentRepo.save(payment);
 
         for (const detail of payment.details) {
-            detail.ticket.status = "available";
+            detail.ticket.status = TicketStatus.AVAILABLE;
             detail.ticket.held_until = null;
             await ticketRepo.save(detail.ticket);
         }
@@ -33,7 +33,7 @@ export const cleanupExpiredPayments = async (): Promise<number> => {
     return expiredPayments.length;
 };
 
- 
+
 export const schedulePaymentCleanup = () => {
     cron.schedule("*/2 * * * *", async () => {
         console.log("⏰ Revisando pagos expirados...");

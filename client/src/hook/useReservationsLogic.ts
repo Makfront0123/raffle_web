@@ -9,6 +9,8 @@ import { toast } from "sonner";
 import { useRaffles } from "./useRaffles";
 import { Reservation } from "@/type/Reservation";
 import { Raffle } from "@/type/Raffle";
+import { Ticket } from "@/type/Ticket";
+import { TicketStatusEnum } from "@/type/Payment";
 
 export function useReservationsLogic() {
   const { reservations, loading, error, fetchReservations } = useReservation();
@@ -51,13 +53,19 @@ export function useReservationsLogic() {
     if (!token) return;
 
     try {
+      const tickets: Ticket[] = reservation.reservationTickets.map(t => ({
+        ...t.ticket,
+        status: t.ticket.status as TicketStatusEnum,
+        raffle,
+      }));
+
+
       await payWithWompiWidget({
         raffle,
-        tickets: reservation.reservationTickets.map(
-          (t) => t.ticket // ✅ Ticket completo
-        ),
-        reservation_id: reservation.id, // 🔥 CLAVE
+        tickets, // ✅ ahora sí cumplen con Ticket[]
+        reservation_id: reservation.id,
       });
+
 
       toast.success("Pago de reserva registrado ✅");
 

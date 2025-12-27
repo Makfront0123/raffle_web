@@ -1,7 +1,7 @@
 import { AppDataSource } from "../data-source";
 import { LessThanOrEqual } from "typeorm";
 import { Reservation } from "../entities/reservation.entity";
-import { Ticket } from "../entities/ticket.entity";
+import { Ticket, TicketStatus } from "../entities/ticket.entity";
 import { Raffle } from "../entities/raffle.entity";
 import { Prize } from "../entities/prize.entity";
 import { ReservationTicket } from "../entities/reservation_ticket.entity";
@@ -27,7 +27,7 @@ export async function cleanupExpiredReservations() {
             await ticketRepo
                 .createQueryBuilder()
                 .update(Ticket)
-                .set({ status: "available", purchased_at: null })
+                .set({ status: TicketStatus.AVAILABLE, purchased_at: null })
                 .whereInIds(ids)
                 .execute();
         }
@@ -74,7 +74,7 @@ export async function closeExpiredRaffles(prizeServiceInjected = prizeService) {
             await queryRunner.manager
                 .createQueryBuilder()
                 .update(Ticket)
-                .set({ status: "available", purchased_at: null })
+                .set({ status: TicketStatus.AVAILABLE, purchased_at: null })
                 .where("raffleId = :id AND status = :status", {
                     id: raffle.id,
                     status: "reserved",

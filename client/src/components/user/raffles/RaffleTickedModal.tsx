@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Ticket } from "@/type/Ticket";
 import { Raffle } from "@/type/Raffle";
+import { TicketStatusEnum } from "@/type/Payment";
 
 interface Props {
   open: boolean;
@@ -17,7 +18,7 @@ export default function RaffleTicketModal({ open, setOpen, tickets, raffle, hand
   if (!tickets || tickets.length === 0) return null;
 
   const totalAmount = raffle.price * tickets.length;
-  const canReserve = tickets.every(t => t.status === "available");
+  const canReserve = tickets.every(t => t.status === TicketStatusEnum.AVAILABLE);
 
 
   return (

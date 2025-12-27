@@ -1,6 +1,22 @@
 import { Raffle } from "./Raffle";
-import { Ticket } from "./Ticket";
 
+export enum PaymentStatusEnum {
+  PENDING = 'pending',
+  COMPLETED = 'completed',
+  CANCELLED = 'cancelled',
+  FAILED = 'failed',
+}
+
+export enum TicketStatusEnum {
+  AVAILABLE = 'available',
+  HELD = 'held',
+  RESERVED = 'reserved',
+  PURCHASED = 'purchased',
+}
+
+
+
+// DTOs para crear pagos
 export interface PaymentCreateDto {
   raffle_id: number;
   ticket_ids: number[];
@@ -22,7 +38,7 @@ export interface WidgetPaymentDto {
 export interface Payment {
   id: number;
   total_amount: number;
-  status: string;
+  status: PaymentStatusEnum;
   method: string;
   created_at: string;
   cancelled_at: string | null;
@@ -30,15 +46,15 @@ export interface Payment {
   raffle: Raffle;
   reference: string;
 }
+
 export interface TicketDetail {
   id: number;
   amount: string;
-  ticket: Ticket;
+  ticket: PaymentTicket;
 }
-
 
 export interface PaymentTicket {
   id_ticket: number;
   ticket_number: string;
-  status: string;
+  status: TicketStatusEnum;
 }

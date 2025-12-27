@@ -1,6 +1,6 @@
 "use client";
 
-import { Payment } from "@/type/Payment";
+import { Payment, PaymentStatusEnum } from "@/type/Payment";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -46,13 +46,13 @@ export default function PaymentsTable({ payments, onComplete }: PaymentsTablePro
                 <td className="px-6 py-4">{p.raffle.title}</td>
                 <td className="px-6 py-4">${p.total_amount}</td>
                 <td className="px-6 py-4">
-                  <Badge variant={p.status === "completed" ? "default" : "secondary"}>
-                    {p.status === "completed" ? "Completado" : "Pendiente"}
+                  <Badge variant={p.status === PaymentStatusEnum.COMPLETED ? "default" : "secondary"}>
+                    {p.status === PaymentStatusEnum.COMPLETED ? "Completado" : "Pendiente"}
                   </Badge>
                 </td>
                 <td className="px-6 py-4">{formattedDate}</td>
                 <td className="px-6 py-4">
-                  {p.status !== "completed" ? (
+                  {p.status !== PaymentStatusEnum.COMPLETED ? (
                     <Button onClick={() => onComplete(p.id)}>Completar</Button>
                   ) : (
                     <span className="text-gray-400 text-sm">—</span>

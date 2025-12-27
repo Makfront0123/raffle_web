@@ -1,10 +1,10 @@
-import { Payment } from "./Payment";
+import { Payment, TicketStatusEnum } from "./Payment";
 import { Raffle } from "./Raffle";
 export interface Ticket {
   id_ticket: number;
   ticket_number: string;
-  status: string;
+  status: TicketStatusEnum;
   purchased_at?: string;
   raffle: Raffle;
-  payment?:Payment;
+  payment?: Payment;
 }

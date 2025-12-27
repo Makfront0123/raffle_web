@@ -2,6 +2,13 @@ import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, Jo
 import { Raffle } from "./raffle.entity";
 import { User } from "./user.entity";
 
+export enum TicketStatus {
+  AVAILABLE = 'available',
+  HELD = 'held',
+  RESERVED = 'reserved',
+  PURCHASED = 'purchased',
+}
+
 @Entity('tickets')
 export class Ticket {
   @PrimaryGeneratedColumn({ name: 'id_ticket' })
@@ -14,18 +21,19 @@ export class Ticket {
   @Column()
   raffleId!: number;
 
-
   @Column()
   ticket_number!: string;
 
   @Column({ type: "timestamp", nullable: true })
   held_until?: Date | null;
 
-
-
   @CreateDateColumn({ nullable: true })
   purchased_at?: Date | null;
 
-  @Column({ type: 'text' })
-  status!: string;
+  @Column({
+    type: 'enum',
+    enum: TicketStatus,
+    default: TicketStatus.AVAILABLE
+  })
+  status!: TicketStatus;
 }

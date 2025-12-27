@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { PaymentService } from "@/services/paymentService";
-import { Payment, PaymentCreateDto, WidgetPaymentDto } from "@/type/Payment";
+import { Payment, PaymentCreateDto, PaymentStatusEnum, WidgetPaymentDto } from "@/type/Payment";
 import { WompiSignatureDto } from "@/type/WompiSignature";
 import { toast } from "sonner";
 
@@ -69,7 +69,7 @@ export const usePaymentStore = create<PaymentStore>((set, get) => ({
     await PaymentService.completePayment(id, token);
     set({
       payments: get().payments.map((p) =>
-        p.id === id ? { ...p, status: "completed" } : p
+        p.id === id ? { ...p, status: PaymentStatusEnum.COMPLETED } : p
       ),
     });
   },

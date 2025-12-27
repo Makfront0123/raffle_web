@@ -5,7 +5,9 @@ import { toast } from "sonner";
 import { usePaymentStore } from "@/store/paymentStore";
 import { AuthStore } from "@/store/authStore";
 import { Raffle } from "@/type/Raffle";
-import { PaymentTicket } from "@/type/Payment";
+import { Ticket } from "@/type/Ticket";
+import { PaymentTicket, TicketStatusEnum } from "@/type/Payment";
+
 
 interface UsePaymentProps {
   onPaymentSuccess?: () => Promise<void>;
@@ -44,12 +46,13 @@ export function usePayment({ onPaymentSuccess }: UsePaymentProps = {}) {
       document.body.appendChild(script);
     });
 
+  /** 🔹 Función de pago adaptada para Ticket[] */
   const payWithWompiWidget = async ({
     tickets,
     raffle,
     reservation_id,
   }: {
-    tickets: PaymentTicket[];
+    tickets: Ticket[]; // Recibimos Ticket[]
     raffle: Raffle;
     reservation_id?: number;
   }) => {
@@ -62,12 +65,19 @@ export function usePayment({ onPaymentSuccess }: UsePaymentProps = {}) {
       const reference = `RAFFLE_${raffle.id}_${Date.now()}`;
       const amountInCents = raffle.price * tickets.length * 100;
 
+      // Convertir Ticket[] a PaymentTicket[]
+      const ticketsForPayment: PaymentTicket[] = tickets.map((t) => ({
+        id_ticket: t.id_ticket,
+        ticket_number: t.ticket_number,
+        status: t.status as TicketStatusEnum,
+      }));
+
       /** 1️⃣ Crear pago */
       await widgetPayment(
         {
           method: "wompi",
           raffle_id: raffle.id,
-          ticket_ids: tickets.map((t) => t.id_ticket),
+          ticket_ids: ticketsForPayment.map((t) => t.id_ticket),
           reservation_id,
           reference,
           total_amount: raffle.price * tickets.length,
@@ -106,7 +116,7 @@ export function usePayment({ onPaymentSuccess }: UsePaymentProps = {}) {
           /** Guardar info para modal */
           setPaymentInfo({
             raffleName: raffle.title,
-            tickets: tickets.map((t) => t.ticket_number), // ✅ array de tickets
+            tickets: ticketsForPayment.map((t) => t.ticket_number), // array de tickets
           });
 
           setSuccessModalOpen(true);

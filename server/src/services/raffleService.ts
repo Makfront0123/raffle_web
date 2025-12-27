@@ -1,5 +1,5 @@
 import { Raffle } from "../entities/raffle.entity";
-import { Ticket } from "../entities/ticket.entity";
+import { Ticket, TicketStatus } from "../entities/ticket.entity";
 import { PrizeType } from "../entities/prize.entity";
 import { AppDataSource } from "../data-source";
 import { generateAllTicketNumbers } from "../utils/generateRandomNumber";
@@ -111,7 +111,7 @@ export class RaffleService {
             ticketRepo.create({
                 ticket_number: num,
                 raffle,
-                status: "available",
+                status: TicketStatus.AVAILABLE,
             })
         );
 
@@ -146,7 +146,7 @@ export class RaffleService {
 
         if (
             raffle.status === "ended" &&
-            raffle.tickets.some((t:Ticket) => t.status !== "available")
+            raffle.tickets.some((t: Ticket) => t.status !== TicketStatus.AVAILABLE)
         ) {
             throw new Error("Solo se pueden eliminar rifas 'ended' sin tickets reservados/comprados");
         }
@@ -208,7 +208,7 @@ export class RaffleService {
                 where: { raffle: { id: raffleId } },
             });
 
-            if (existingTickets.some((t:Ticket) => t.status !== "available"))
+            if (existingTickets.some((t: Ticket) => t.status !== TicketStatus.AVAILABLE))
                 throw new Error("Hay tickets reservados o comprados");
 
             await queryRunner.manager.delete(Ticket, {
@@ -221,7 +221,7 @@ export class RaffleService {
                 queryRunner.manager.create(Ticket, {
                     ticket_number: num,
                     raffleId,
-                    status: "available",
+                    status: TicketStatus.AVAILABLE,
                 })
             );
 

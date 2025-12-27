@@ -1,7 +1,7 @@
 import { AppDataSource } from "../data-source";
 import { Raffle } from "../entities/raffle.entity";
-import { Prize } from "../entities/prize.entity";
-import { Ticket } from "../entities/ticket.entity";
+import { Prize, PrizeType } from "../entities/prize.entity";
+import { Ticket, TicketStatus } from "../entities/ticket.entity";
 import { Provider } from "../entities/provider.entity";
 import rafflesData from "../data/raffles.json";
 
@@ -44,7 +44,7 @@ async function seedRaffles() {
                 ...prizeData,
                 raffle,
                 provider: defaultProvider,
-                type: prizeData.type as "cash" | "trip" | "product",
+                type: prizeData.type as PrizeType,
             });
             await prizeRepo.save(prize);
         }
@@ -57,7 +57,7 @@ async function seedRaffles() {
                 ticketRepo.create({
                     ticket_number: ticketNumber,
                     raffle,
-                    status: "available",
+                    status: TicketStatus.AVAILABLE,
                 })
             );
 

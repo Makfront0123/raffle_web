@@ -4,10 +4,10 @@ import { Role } from "../entities/role.entity";
 import { User } from "../entities/user.entity";
 import { Raffle } from "../entities/raffle.entity";
 import { Prize, PrizeType } from "../entities/prize.entity";
-import { Ticket } from "../entities/ticket.entity";
+import { Ticket, TicketStatus } from "../entities/ticket.entity";
 import { Reservation } from "../entities/reservation.entity";
 import { ReservationTicket } from "../entities/reservation_ticket.entity";
-import { Payment } from "../entities/payment.entity";
+import { Payment, PaymentStatus } from "../entities/payment.entity";
 import { PaymentDetail } from "../entities/payment_details.entity";
 
 import rafflesData from "../data/raffles.json";
@@ -126,7 +126,7 @@ async function seedAll() {
                     raffle,
                     raffleId: raffle.id,
                     ticket_number: i.toString().padStart(raffle.digits, "0"),
-                    status: "available",
+                    status: TicketStatus.AVAILABLE,
                 })
             );
 
@@ -148,7 +148,7 @@ async function seedAll() {
   ========================= */
 
     const availableTickets = await ticketRepo.find({
-        where: { status: "available" },
+        where: { status: TicketStatus.AVAILABLE },
         relations: ["raffle"],
         order: { id_ticket: "ASC" },
     });
@@ -191,7 +191,7 @@ async function seedAll() {
             let totalAmount = 0;
 
             for (const ticket of selectedTickets) {
-                ticket.status = "held";
+                ticket.status = TicketStatus.HELD;
                 ticket.held_until = reservation.expires_at;
                 await ticketRepo.save(ticket);
 
@@ -211,7 +211,7 @@ async function seedAll() {
                     user,
                     raffle,
                     total_amount: totalAmount,
-                    status: "completed",
+                    status: PaymentStatus.COMPLETED,
                     reference: `SEED_${user.id}_${raffle.id}_${Date.now()}_${p}`,
                     transaction_id: `TX-${user.id}-${Date.now()}-${p}`,
                 })
@@ -227,7 +227,7 @@ async function seedAll() {
                     })
                 );
 
-                ticket.status = "purchased";
+                ticket.status = TicketStatus.PURCHASED;
                 ticket.purchased_at = new Date();
                 ticket.held_until = null;
                 await ticketRepo.save(ticket);
@@ -249,7 +249,7 @@ async function seedAll() {
 
         const expiresAt = new Date(Date.now() - 10 * 60 * 1000);
 
-        ticket.status = "held";
+        ticket.status = TicketStatus.HELD;
         ticket.held_until = expiresAt;
         await ticketRepo.save(ticket);
 

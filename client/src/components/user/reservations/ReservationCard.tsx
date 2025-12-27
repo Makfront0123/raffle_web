@@ -11,6 +11,7 @@ import { Reservation } from "@/type/Reservation";
 import { Ticket } from "@/type/Ticket";
 
 import RaffleTicketModal from "@/components/user/raffles/RaffleTickedModal";
+import { TicketStatusEnum } from "@/type/Payment";
 
 export default function ReservationCard({
   reservation,
@@ -87,7 +88,8 @@ export default function ReservationCard({
                 : "Cancelar"}
             </Button>
 
-            {rawTicket.status === "reserved" && (
+            {rawTicket.status === TicketStatusEnum.RESERVED
+             && (
               <Button
                 className="bg-gold text-white hover:bg-gold/80"
                 onClick={() => setOpen(true)}

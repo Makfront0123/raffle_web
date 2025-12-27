@@ -1,5 +1,5 @@
 import { AppDataSource } from "../data-source";
-import { Ticket } from "../entities/ticket.entity";
+import { Ticket, TicketStatus } from "../entities/ticket.entity";
 import { Payment } from "../entities/payment.entity";
 
 export class TicketService {
@@ -15,9 +15,9 @@ export class TicketService {
         const tickets = await this.ticketRepo.find({ where: { raffleId } });
 
         const total = tickets.length;
-        const sold = tickets.filter((t: Ticket) => t.status === "purchased").length;
-        const reserved = tickets.filter((t: Ticket) => t.status === "reserved").length;
-        const available = tickets.filter((t: Ticket) => t.status === "available").length;
+        const sold = tickets.filter((t: Ticket) => t.status === TicketStatus.PURCHASED).length;
+        const reserved = tickets.filter((t: Ticket) => t.status === TicketStatus.RESERVED).length;
+        const available = tickets.filter((t: Ticket) => t.status === TicketStatus.AVAILABLE).length;
 
         const percentage = total > 0 ? (sold / total) * 100 : 0;
 

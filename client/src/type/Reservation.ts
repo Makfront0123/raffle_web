@@ -1,3 +1,4 @@
+import { TicketStatusEnum } from "./Payment";
 import { Raffle } from "./Raffle";
 
 export interface Reservation {
@@ -13,7 +14,7 @@ export interface Reservation {
       id_ticket: number;
       raffleId: number;
       ticket_number: string;
-      status: string;
+      status: TicketStatusEnum;
       purchased_at: string;
     };
   }[];

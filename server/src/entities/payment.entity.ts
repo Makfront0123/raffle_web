@@ -3,6 +3,13 @@ import { User } from "./user.entity";
 import { Raffle } from "./raffle.entity";
 import { PaymentDetail } from "./payment_details.entity";
 
+export enum PaymentStatus {
+  PENDING = 'pending',
+  COMPLETED = 'completed',
+  CANCELLED = 'cancelled',
+  FAILED = 'failed',
+  EXPIRED = 'expired',
+}
 
 @Entity('payments')
 export class Payment {
@@ -18,13 +25,15 @@ export class Payment {
   @Column({ type: 'varchar', length: 100, unique: true })
   reference!: string;
 
-
   @Column({ type: 'int' })
   total_amount!: number;
 
-
-  @Column({ type: 'text' })
-  status!: string;
+  @Column({
+    type: 'enum',
+    enum: PaymentStatus,
+    default: PaymentStatus.PENDING
+  })
+  status!: PaymentStatus;
 
   @Column({ type: 'text', nullable: true })
   transaction_id!: string;

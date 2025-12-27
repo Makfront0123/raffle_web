@@ -1,7 +1,7 @@
 import { In } from "typeorm";
 import { AppDataSource } from "../data-source";
-import { Payment } from "../entities/payment.entity";
-import { Ticket } from "../entities/ticket.entity";
+import { Payment, PaymentStatus } from "../entities/payment.entity";
+import { Ticket, TicketStatus } from "../entities/ticket.entity";
 import { User } from "../entities/user.entity";
 import { Raffle } from "../entities/raffle.entity";
 import { PaymentDetail } from "../entities/payment_details.entity";
@@ -70,11 +70,11 @@ export class PaymentService {
 
     if (!payment) throw new Error("Pago no encontrado");
 
-    payment.status = "completed";
+    payment.status = PaymentStatus.COMPLETED;
     await this.paymentRepo.save(payment);
 
     for (const d of payment.details) {
-      d.ticket.status = "purchased";
+      d.ticket.status = TicketStatus.PURCHASED;
       await this.ticketRepository.save(d.ticket);
     }
   }
@@ -87,12 +87,12 @@ export class PaymentService {
 
     if (!payment) throw new Error("Pago no encontrado");
 
-    payment.status = "cancelled";
+    payment.status = PaymentStatus.CANCELLED;
     payment.cancelled_at = new Date();
     await this.paymentRepo.save(payment);
 
     for (const detail of payment.details) {
-      detail.ticket.status = "available";
+      detail.ticket.status = TicketStatus.AVAILABLE;
       detail.ticket.purchased_at = null;
       await this.ticketRepository.save(detail.ticket);
     }
@@ -186,7 +186,7 @@ export class PaymentService {
             throw new Error(`El ticket ${ticket.id_ticket} no pertenece a esta reserva`);
           }
 
-          if (ticket.status === "purchased" || ticket.status === "completed") {
+          if (ticket.status === TicketStatus.PURCHASED) {
             throw new Error(`El ticket ${ticket.id_ticket} ya fue comprado`);
           }
 
@@ -213,7 +213,7 @@ export class PaymentService {
         }
 
         for (const ticket of tickets) {
-          if (ticket.status !== "available") {
+          if (ticket.status !== TicketStatus.AVAILABLE) {
             throw new Error(
               `El ticket ${ticket.id_ticket} no está disponible`
             );
@@ -230,7 +230,7 @@ export class PaymentService {
         user,
         raffle,
         total_amount: totalAmount,
-        status: "completed",
+        status: PaymentStatus.COMPLETED,
         transaction_id: `TX-${Date.now()}`,
         reference: payment.reference,
       });
@@ -249,7 +249,7 @@ export class PaymentService {
 
         await manager.getRepository(PaymentDetail).save(detail);
 
-        ticket.status = "purchased";
+        ticket.status = TicketStatus.PURCHASED;
         ticket.purchased_at = new Date();
         ticket.held_until = null;
 
@@ -364,20 +364,20 @@ export class PaymentService {
           }
 
           // ❌ available nunca es válido en reserva
-          if (ticket.status === "available") {
+          if (ticket.status === TicketStatus.AVAILABLE) {
             throw new Error(
               `El ticket ${ticket.id_ticket} no pertenece a esta reserva`
             );
           }
 
           // ❌ ya comprado
-          if (ticket.status === "purchased" || ticket.status === "completed") {
+          if (ticket.status === TicketStatus.PURCHASED) {
             throw new Error(`El ticket ${ticket.id_ticket} ya fue comprado`);
           }
 
           // ❌ hold expirado
           if (
-            ticket.status === "held" &&
+            ticket.status === TicketStatus.HELD &&
             ticket.held_until &&
             ticket.held_until < new Date()
           ) {
@@ -399,7 +399,7 @@ export class PaymentService {
           throw new Error("No hay tickets seleccionados");
 
         for (const ticket of tickets) {
-          if (ticket.status !== "available") {
+          if (ticket.status !== TicketStatus.AVAILABLE) {
             throw new Error(
               `El ticket ${ticket.id_ticket} no está disponible`
             );
@@ -416,7 +416,7 @@ export class PaymentService {
         user,
         raffle,
         total_amount: totalAmount,
-        status: "pending",
+        status: PaymentStatus.PENDING,
         reference,
         expires_at: new Date(Date.now() + 15 * 60 * 1000), // 15 min
       });
@@ -435,7 +435,7 @@ export class PaymentService {
 
         await manager.getRepository(PaymentDetail).save(detail);
 
-        ticket.status = "held";
+        ticket.status = TicketStatus.HELD;
         ticket.held_until = new Date(Date.now() + 15 * 60 * 1000);
         await manager.getRepository(Ticket).save(ticket);
       }
@@ -496,27 +496,45 @@ export class PaymentService {
       return res.status(404).json({ message: "Pago no encontrado" });
     }
 
-    if (payment.status === "approved" || payment.status === "declined") {
+    switch (tx.status) {
+      case "APPROVED":
+        payment.status = PaymentStatus.COMPLETED;
+        break;
+
+      case "DECLINED":
+        payment.status = PaymentStatus.CANCELLED;
+        break;
+
+      case "ERROR":
+        payment.status = PaymentStatus.FAILED;
+        break;
+
+      default:
+        payment.status = PaymentStatus.PENDING;
+    }
+
+    if (payment.status === PaymentStatus.COMPLETED || payment.status === PaymentStatus.CANCELLED) {
       return res.status(200).json({ message: "Evento ya procesado" });
     }
+
 
     payment.transaction_id = tx.id;
 
     switch (tx.status) {
       case "APPROVED":
-        payment.status = "completed";
+        payment.status = PaymentStatus.COMPLETED;
         break;
 
       case "DECLINED":
-        payment.status = "cancelled";
+        payment.status = PaymentStatus.CANCELLED;
         break;
 
       case "ERROR":
-        payment.status = "failed";
+        payment.status = PaymentStatus.FAILED;
         break;
 
       default:
-        payment.status = "pending";
+        payment.status = PaymentStatus.PENDING;
     }
 
     await this.paymentRepo.save(payment);
@@ -524,7 +542,7 @@ export class PaymentService {
 
     if (tx.status === "APPROVED") {
       for (const d of payment.details) {
-        d.ticket.status = "purchased";
+        d.ticket.status = TicketStatus.PURCHASED;
         d.ticket.purchased_at = new Date();
         await this.ticketRepository.save(d.ticket);
       }
@@ -532,7 +550,7 @@ export class PaymentService {
 
     if (tx.status === "DECLINED" || tx.status === "ERROR") {
       for (const d of payment.details) {
-        d.ticket.status = "available";
+        d.ticket.status = TicketStatus.AVAILABLE;
         await this.ticketRepository.save(d.ticket);
       }
     }
