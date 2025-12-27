@@ -9,6 +9,7 @@
     "resolveJsonModule": true,
     "experimentalDecorators": true,
     "forceConsistentCasingInFileNames": true,
+    "types": ["node","jest"],
     "typeRoots": [
       "./src/types",
       "./node_modules/@types"
