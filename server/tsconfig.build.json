@@ -2,6 +2,7 @@
   "extends": "./tsconfig.json",
   "exclude": ["**/__test__/**/*", "node_modules"],
   "compilerOptions": {
+    "outDir": "dist",
     "noEmit": false
   }
 }

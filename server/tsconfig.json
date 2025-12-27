@@ -8,7 +8,21 @@
     "emitDecoratorMetadata": true,
     "resolveJsonModule": true,
     "experimentalDecorators": true,
+    "types": [
+      "jest",
+      "node"
+    ],
+    "typeRoots": [
+      "./node_modules/@types",
+      "./src/types"
+    ],
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src/**/*.ts"]
+  "include": [
+    "src/**/*",
+    "src/__test__/**/*"
+  ],
+  "exclude": [
+    "src/__test__/**/*"
+  ]
 }
