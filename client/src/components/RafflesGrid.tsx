@@ -1,14 +1,15 @@
 "use client";
 
 import RaffleCard from "@/components/RaffleCard";
+import { Raffle } from "@/type/Raffle";
 import { motion } from "framer-motion";
 
 export default function RaffleGrid({
   raffles,
   setShowExpiredModal,
 }: {
-  raffles: any[];
-  setShowExpiredModal: (open: boolean, raffle?: any) => void;
+  raffles: Raffle[];
+  setShowExpiredModal: (open: boolean, raffle?: Raffle) => void;
 }) {
   return (
     <section className="py-16 relative w-full">
@@ -28,7 +29,7 @@ export default function RaffleGrid({
             <RaffleCard
               key={r.id}
               raffle={r}
-              setShowExpiredModal={setShowExpiredModal}
+              setShowExpiredModal={() => setShowExpiredModal}
             />
           ))}
 

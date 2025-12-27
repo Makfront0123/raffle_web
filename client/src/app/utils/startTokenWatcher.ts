@@ -1,5 +1,5 @@
  
-import { jwtDecode } from "jwt-decode";
+import { jwtDecode, JwtPayload } from "jwt-decode";
 import { AuthStore } from "@/store/authStore";
 
 export function startTokenWatcher() {
@@ -7,7 +7,7 @@ export function startTokenWatcher() {
     if (!token) return;
 
     try {
-        const decoded: any = jwtDecode(token);
+        const decoded: JwtPayload = jwtDecode(token);
         const exp = decoded.exp * 1000; 
         const timeLeft = exp - Date.now();
 

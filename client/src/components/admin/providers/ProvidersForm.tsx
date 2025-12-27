@@ -3,11 +3,11 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { ProviderFormState } from "@/hook/useProviderLogic"; 
+import { ProviderFormState } from "@/hook/useProviderLogic";
 interface ProvidersFormProps {
   form: ProviderFormState;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onSubmit: (e: React.FormEvent) => void;
+  onSubmit: (e: React.ChangeEvent<HTMLFormElement>) => Promise<void>;
   submitLabel?: string;
 }
 

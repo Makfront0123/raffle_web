@@ -1,6 +1,5 @@
 "use client";
 import { Input } from "@/components/ui/input";
-import { Ticket } from "@/type/Ticket";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Raffle } from "@/type/Raffle";
 import { Payment } from "@/type/Payment";
@@ -11,7 +10,7 @@ interface Props {
   page: number;
   totalPages: number;
   currentPayments: Payment[];
-  uniqueRaffles: any[];
+  uniqueRaffles: Raffle[];
 
   onSearch: (v: string) => void;
   onFilter: (v: "all" | number) => void;

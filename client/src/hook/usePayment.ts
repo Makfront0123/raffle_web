@@ -38,7 +38,7 @@ export function usePayment({ onPaymentSuccess }: UsePaymentProps = {}) {
   /** 🔹 Script Wompi */
   const loadWompiScript = () =>
     new Promise<void>((resolve) => {
-      if ((window as any).WidgetCheckout) return resolve();
+      if (window.WidgetCheckout) return resolve();
       const script = document.createElement("script");
       script.src = "https://checkout.wompi.co/widget.js";
       script.async = true;
@@ -98,7 +98,7 @@ export function usePayment({ onPaymentSuccess }: UsePaymentProps = {}) {
       await loadWompiScript();
 
       /** 3️⃣ Abrir Widget */
-      const checkout = new (window as any).WidgetCheckout({
+      const checkout = new window.WidgetCheckout({
         currency: "COP",
         amountInCents,
         reference,
@@ -106,7 +106,7 @@ export function usePayment({ onPaymentSuccess }: UsePaymentProps = {}) {
         signature: { integrity: signature },
       });
 
-      checkout.open((result: any) => {
+      checkout.open((result) => {
         const tx = result?.transaction;
         if (!tx) return;
 

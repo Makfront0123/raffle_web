@@ -4,6 +4,13 @@ import { usePrizes } from "@/hook/usePrizes";
 import { Raffle } from "@/type/Raffle";
 
 export function useFilteredRaffles() {
+  const [expiredModal, setExpiredModal] = useState<{
+    open: boolean;
+    raffle: Raffle | null;
+  }>({
+    open: false,
+    raffle: null,
+  });
   const { raffles, loading, error } = useRaffles();
   const { winners, setActiveRaffleId, loading: loadingWinner } = usePrizes();
 
@@ -18,7 +25,7 @@ export function useFilteredRaffles() {
     return raffles?.filter(r => {
       if (r.status === "pending") return false;
       const matchesSearch = r.title.toLowerCase().includes(search.toLowerCase()) ||
-                            r.description.toLowerCase().includes(search.toLowerCase());
+        r.description.toLowerCase().includes(search.toLowerCase());
       const matchesPrize = filterPrize === "all" || r.prizes?.some(p => p.type === filterPrize);
       const isEnded = r.status === "ended";
 
@@ -54,7 +61,9 @@ export function useFilteredRaffles() {
     showExpiredModal,
     setShowExpiredModal,
     winners,
-    loadingWinner
+    loadingWinner,
+    expiredModal,
+    setExpiredModal,
   };
 }
 

@@ -30,7 +30,7 @@ export function useRaffleDetail({ payWithWompiWidget }: Props) {
   const { createReservation } = useReservationStore();
   const { soldPercentage, getSoldPercentage } = useTicketStore();
 
-  const [raffle, setRaffle] = useState<any>(null);
+  const [raffle, setRaffle] = useState<Raffle | null>(null);
   const [localTickets, setLocalTickets] = useState<Ticket[]>([]);
   const [selectedTickets, setSelectedTickets] = useState<Ticket[]>([]);
   const [open, setOpen] = useState(false);
@@ -46,7 +46,7 @@ export function useRaffleDetail({ payWithWompiWidget }: Props) {
 
   useEffect(() => {
     refreshRaffle().catch(() => console.error("Error cargando rifa"));
-  }, [id, token]);
+  }, [id, token, refreshRaffle]);
 
   useEffect(() => {
     const found = raffles.find((r) => r.id === id);
@@ -58,7 +58,7 @@ export function useRaffleDetail({ payWithWompiWidget }: Props) {
       setLocalTickets(raffle.tickets);
       getSoldPercentage(raffle.id, token!);
     }
-  }, [raffle, token]);
+  }, [raffle, token, getSoldPercentage]);
 
   const totalPages = Math.ceil(localTickets.length / perPage);
   const start = (page - 1) * perPage;

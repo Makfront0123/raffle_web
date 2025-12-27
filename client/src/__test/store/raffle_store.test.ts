@@ -1,21 +1,21 @@
 import { act } from "@testing-library/react";
 import { useRaffleStore } from "@/store/raffleStore";
 import { RaffleService } from "@/services/raffleService";
+import { Raffle } from "@/type/Raffle";
 
 jest.mock("sonner", () => ({
   toast: { success: jest.fn(), error: jest.fn() },
 }));
 
-const mockRaffle: any = {
+const mockRaffle: Partial<Raffle> = {
   id: 1,
   title: "Rifa 1",
   description: "desc",
   price: 5000,
   end_date: "2025-12-31",
   digits: 3,
-  is_active: true,
+  status: "active",
   created_at: "2025-01-01",
-  updated_at: "2025-01-01",
 };
 
 describe("RaffleStore", () => {
@@ -26,10 +26,10 @@ describe("RaffleStore", () => {
   it("getRaffles carga rifas", async () => {
     jest
       .spyOn(RaffleService.prototype, "getAllRaffles")
-      .mockResolvedValue([mockRaffle]);
+      .mockResolvedValue([mockRaffle as Raffle]);
 
     await act(async () => {
-      await useRaffleStore.getState().getRaffles("token");
+      await useRaffleStore.getState().getRaffles();
     });
 
     expect(useRaffleStore.getState().raffles.length).toBe(1);
@@ -38,7 +38,19 @@ describe("RaffleStore", () => {
   it("addRaffle agrega una rifa", async () => {
     jest
       .spyOn(RaffleService.prototype, "createRaffle")
-      .mockResolvedValue({ ...mockRaffle, id: 99 });
+      .mockResolvedValue({
+        id: 99,
+        title: "Nueva Rifa",
+        description: "desc",
+        price: 5000,
+        end_date: "2025-12-31",
+        digits: 3,
+        status: "active",
+        created_at: "2025-01-01",
+        prizes: [],
+        tickets: [],
+        total_numbers: 0,
+      });
 
     await act(async () => {
       await useRaffleStore.getState().addRaffle(
@@ -52,7 +64,19 @@ describe("RaffleStore", () => {
 
   it("deleteRaffle elimina rifa", async () => {
     useRaffleStore.setState({
-      raffles: [{ ...mockRaffle, id: 10 }],
+      raffles: [{
+        id: 99,
+        title: "Nueva Rifa",
+        description: "desc",
+        price: 5000,
+        end_date: "2025-12-31",
+        digits: 3,
+        status: "active",
+        created_at: "2025-01-01",
+        prizes: [],
+        tickets: [],
+        total_numbers: 0,
+      }],
     });
 
     jest

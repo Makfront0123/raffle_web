@@ -4,6 +4,7 @@ export interface WinnerTicket {
 }
 
 export interface Winner {
+  id: number;
   prize_id: number;
   raffle_id: number;
   raffle_title: string;

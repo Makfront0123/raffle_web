@@ -3,17 +3,22 @@
 import { Input } from "@/components/ui/input";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+type RaffleTab = "active" | "ended" | "all";
 
 interface Props {
   search: string;
   setSearch: (v: string) => void;
+
   filterPrize: string;
   setFilterPrize: (v: string) => void;
+
   sortBy: string;
   setSortBy: (v: string) => void;
-  tab: "active" | "ended" | "all";
-  setTab: (v: "active" | "ended" | "all") => void;
+
+  tab: RaffleTab;
+  setTab: (v: RaffleTab) => void;
 }
+
 
 export default function RafflesFiltersPremium({
   search,
@@ -58,7 +63,15 @@ export default function RafflesFiltersPremium({
         </SelectContent>
       </Select>
 
-      <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
+      <Tabs
+        value={tab}
+        onValueChange={(v) => {
+          if (v === "active" || v === "ended" || v === "all") {
+            setTab(v);
+          }
+        }}
+      >
+
         <TabsList className="bg-purple-900/40 border border-gold/30 shadow-lg rounded-xl">
           <TabsTrigger value="active">Activas</TabsTrigger>
           <TabsTrigger value="ended">Finalizadas</TabsTrigger>

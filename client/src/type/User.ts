@@ -1,4 +1,4 @@
-interface User {
+export interface User {
     id?: number;
     email?: string;
     role?: string;
@@ -7,7 +7,7 @@ interface User {
     phone_number?: string;
 }
 
-interface AuthResponse {
+export interface AuthResponse {
   message: string;
   user: User;
   token: string;

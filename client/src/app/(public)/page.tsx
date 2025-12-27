@@ -1,5 +1,4 @@
 "use client";
-
 import LoadingScreen from "@/components/LoadingScreen";
 import Hero from "@/components/Hero";
 import WinnersSection from "@/components/WinnersSection";
@@ -16,7 +15,7 @@ import { useAuth } from "@/hook/useAuth";
 export default function Home() {
   const loading = useLoadingScreen(300);
 
-  const { filteredRaffles } = useFilteredRaffles();
+  const { filteredRaffles, setExpiredModal } = useFilteredRaffles();
   const { winners } = usePrizes();
 
   const {
@@ -26,10 +25,6 @@ export default function Home() {
     items: paginatedRaffles,
   } = usePagination(filteredRaffles, 3);
 
-  const [expiredModal, setExpiredModal] = useState({
-    open: false,
-    raffle: null,
-  });
 
   const { user, showAdminSplash } = useAuth();
 

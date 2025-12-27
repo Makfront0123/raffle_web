@@ -29,5 +29,3 @@ export function useReservation() {
 
   return { reservations, loading, error, fetchReservations };
 }
-
- 

@@ -14,6 +14,13 @@ interface ProviderStore {
     deleteProvider: (id: number, token: string) => Promise<boolean>;
 }
 
+const getErrorMessage = (err: unknown): string => {
+    if (typeof err === "object" && err !== null && "message" in err) {
+        return (err as { message: string }).message;
+    }
+    return "Error desconocido";
+};
+
 export const useProviderStore = create<ProviderStore>((set) => ({
     providers: [],
     loading: false,
@@ -25,9 +32,9 @@ export const useProviderStore = create<ProviderStore>((set) => ({
             const service = new ProviderService();
             const data = await service.getAllProviders(token);
             set({ providers: data, loading: false });
-
-        } catch (err: any) {
-            set({ error: err.message, loading: false });
+        } catch (err: unknown) {
+            const message = getErrorMessage(err);
+            set({ error: message, loading: false });
             toast.error("Error al cargar proveedores");
         }
     },
@@ -41,11 +48,13 @@ export const useProviderStore = create<ProviderStore>((set) => ({
                 providers: state.providers.map(p => p === provider ? created : p)
             }));
             toast.success("Proveedor agregado correctamente");
-        } catch (err: any) {
-            set({ error: err.message });
+        } catch (err: unknown) {
+            const message = getErrorMessage(err);
+            set({ error: message });
             toast.error("Error al agregar proveedor");
         }
     },
+
     updateProvider: async (id: number, provider: Providers, token: string) => {
         try {
             const service = new ProviderService();
@@ -54,11 +63,12 @@ export const useProviderStore = create<ProviderStore>((set) => ({
                 providers: state.providers.map(p => p.id === id ? updated : p)
             }));
             toast.success("Proveedor actualizado correctamente");
-        } catch (err: any) {
-            set({ error: err.message });
+        } catch (err: unknown) {
+            const message = getErrorMessage(err);
+            set({ error: message });
         }
-    }
-    ,
+    },
+
     deleteProvider: async (id: number, token: string) => {
         try {
             const service = new ProviderService();
@@ -66,16 +76,23 @@ export const useProviderStore = create<ProviderStore>((set) => ({
             set((state) => ({ providers: state.providers.filter(p => p.id !== id) }));
             toast.success("Proveedor eliminado correctamente");
             return true;
-        } catch (err: any) {
-            set({ error: err.message });
-            toast.error(err.message || "Error al eliminar proveedor");
+        } catch (err: unknown) {
+            const message = getErrorMessage(err);
+            set({ error: message });
+            toast.error(message || "Error al eliminar proveedor");
             return false;
         }
     },
 
     getProviderById: async (id: number, token: string) => {
-        const service = new ProviderService();
-        const provider = await service.getProviderById(id, token);
-        set({ providers: [provider] });
+        try {
+            const service = new ProviderService();
+            const provider = await service.getProviderById(id, token);
+            set({ providers: [provider] });
+        } catch (err: unknown) {
+            const message = getErrorMessage(err);
+            set({ error: message });
+            toast.error(message || "Error al obtener proveedor");
+        }
     },
 }));

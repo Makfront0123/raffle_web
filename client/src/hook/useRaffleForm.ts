@@ -1,6 +1,8 @@
 "use client";
+import { Prizes } from "@/type/Prizes";
+import { Ticket } from "@/type/Ticket";
 import { useState } from "react";
- 
+
 
 export type RaffleFormLocal = {
   title: string;
@@ -9,8 +11,8 @@ export type RaffleFormLocal = {
   end_date: string;
   digits: number;
   status: string;
-  tickets: any[];
-  prizes: any[];
+  tickets: Ticket[];
+  prizes: Prizes[];
 };
 
 const initialForm: RaffleFormLocal = {

@@ -1,7 +1,7 @@
 "use client";
 import { AuthStore } from "@/store/authStore";
 import { useRaffleStore } from "@/store/raffleStore";
-import { Raffle, RaffleForm } from "@/type/Raffle";
+import { Raffle, UpdateRafflePayload } from "@/type/Raffle";
 import { useEffect, useState, useCallback } from "react";
 
 export function useRaffles() {
@@ -47,7 +47,7 @@ export function useRaffles() {
     async (id: number, data: Partial<Raffle>) => {
       if (!token) return;
       try {
-        const payload: any = {};
+        const payload: UpdateRafflePayload = {};
 
         if (typeof data.price !== "undefined") {
           payload.price = data.price;
@@ -56,9 +56,9 @@ export function useRaffles() {
         if (typeof data.end_date !== "undefined" && data.end_date !== null) {
           if (typeof data.end_date === "string" && data.end_date.length === 10) {
             const iso = new Date(data.end_date + "T23:59:59").toISOString();
-            payload.endDate = iso; 
+            payload.endDate = iso;
           } else if (typeof data.end_date === "string") {
-   
+
             payload.endDate = data.end_date;
           }
         }

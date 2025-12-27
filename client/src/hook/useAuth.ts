@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { AuthService } from "@/services/authService";
 
-import { jwtDecode } from "jwt-decode";
+import { jwtDecode, JwtPayload } from "jwt-decode";
 import { AuthStore } from "@/store/authStore";
 import { toast } from "sonner";
 
@@ -17,11 +17,8 @@ export function useAuth() {
   const [error, setError] = useState<string | null>(null);
   const [initialized, setInitialized] = useState(false);
   const [showAdminSplash, setShowAdminSplash] = useState(false);
+  const [client, setClient] = useState<GoogleTokenClient | null>(null);
 
-
-
-
-  const [client, setClient] = useState<TokenClient | null>(null);
 
   const handleGoogleLogin = async (accessToken: string) => {
     try {
@@ -54,9 +51,10 @@ export function useAuth() {
       }
 
 
-    } catch (err: any) {
-      console.error("Error en login:", err);
-      setError(err.message);
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -71,19 +69,15 @@ export function useAuth() {
   const startTokenWatcher = useCallback(
     (token: string) => {
       try {
-        const decoded: any = jwtDecode(token);
-        const exp = decoded.exp * 1000;
-        const timeLeft = exp - Date.now();
+        const decoded = jwtDecode<JwtPayload>(token);
+        const timeLeft = decoded.exp * 1000 - Date.now();
 
         if (timeLeft <= 0) {
           logout();
           return;
         }
 
-        setTimeout(() => {
-          logout();
-        }, timeLeft);
-
+        setTimeout(logout, timeLeft);
       } catch (err) {
         console.error("Error decodificando token:", err);
         logout();
@@ -91,6 +85,7 @@ export function useAuth() {
     },
     [logout]
   );
+
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -126,17 +121,15 @@ export function useAuth() {
     if (typeof window === "undefined") return;
 
     const initGoogleClient = () => {
-      if (!(window as any).google) return;
+      if (!window.google) return;
 
-      const tokenClient = (window as any).google.accounts.oauth2.initTokenClient({
+      const tokenClient = window.google.accounts.oauth2.initTokenClient({
         client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
         scope: "openid profile email",
         ux_mode: "popup",
-        callback: async (response: any) => {
-          if (response?.access_token) {
+        callback: async (response: GoogleTokenResponse) => {
+          if (response.access_token) {
             await handleGoogleLogin(response.access_token);
-          } else {
-            console.error("No se obtuvo access_token de Google", response);
           }
         },
       });
@@ -144,11 +137,11 @@ export function useAuth() {
       setClient(tokenClient);
     };
 
-    if ((window as any).google) {
+    if (window.google) {
       initGoogleClient();
     } else {
       const interval = setInterval(() => {
-        if ((window as any).google) {
+        if (window.google) {
           clearInterval(interval);
           initGoogleClient();
         }

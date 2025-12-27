@@ -6,13 +6,16 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 
 type PaymentsFiltersProps = {
-  statusFilter: "all" | "completed" | "pending";
+  statusFilter: PaymentStatusFilter;
   setStatusFilter: (v: "all" | "completed" | "pending") => void;
   dateFrom: string;
   setDateFrom: (v: string) => void;
   dateTo: string;
   setDateTo: (v: string) => void;
 };
+
+type PaymentStatusFilter = "all" | "completed" | "pending";
+
 
 export default function PaymentsFilters({
   statusFilter,
@@ -30,7 +33,11 @@ export default function PaymentsFilters({
 
           <div className="flex flex-col gap-2">
             <Label>Estado</Label>
-            <Select value={statusFilter} onValueChange={(v: any) => setStatusFilter(v)}>
+            <Select
+              value={statusFilter}
+              onValueChange={(v: PaymentStatusFilter) => setStatusFilter(v)}
+            >
+
               <SelectTrigger>
                 <SelectValue placeholder="Seleccionar estado" />
               </SelectTrigger>

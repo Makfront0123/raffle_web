@@ -1,10 +1,8 @@
 "use client";
 import { useMemo } from "react";
-
 import { Raffle } from "@/type/Raffle";
 import { Prizes } from "@/type/Prizes";
 import { Payment } from "@/type/Payment";
-import { usePayment } from "./usePayment";
 import { usePrizes } from "./usePrizes";
 import { useRaffles } from "./useRaffles";
 import { Winner } from "@/type/Winner";
@@ -56,10 +54,10 @@ export function useDashboardData(): DashboardStats {
         ];
 
         return { stats, lastRaffles };
-    }, [raffles, prizes, payments]);
+    }, [raffles, prizes, payments, winners]);
 
     const loading = loadingRaffles || loadingPrizes || loadingPayments;
-    
+
 
     return { stats, lastRaffles, loading };
 }
