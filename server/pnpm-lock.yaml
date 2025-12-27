@@ -50,6 +50,9 @@ importers:
       typeorm:
         specifier: ^0.3.28
         version: 0.3.28(mysql2@3.16.0)(ts-node@10.9.2(@types/node@25.0.3)(typescript@5.9.3))
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
     devDependencies:
       '@types/express':
         specifier: ^5.0.3
@@ -81,9 +84,6 @@ importers:
       ts-node:
         specifier: ^10.9.2
         version: 10.9.2(@types/node@25.0.3)(typescript@5.9.3)
-      typescript:
-        specifier: ^5.9.3
-        version: 5.9.3
 
 packages:
 
