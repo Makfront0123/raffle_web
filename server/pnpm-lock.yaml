@@ -8,9 +8,6 @@ importers:
 
   .:
     dependencies:
-      '@types/node':
-        specifier: ^25.0.3
-        version: 25.0.3
       axios:
         specifier: ^1.12.2
         version: 1.13.2
@@ -26,9 +23,6 @@ importers:
       helmet:
         specifier: ^8.1.0
         version: 8.1.0
-      install:
-        specifier: ^0.13.0
-        version: 0.13.0
       jsonwebtoken:
         specifier: ^9.0.2
         version: 9.0.3
@@ -50,9 +44,6 @@ importers:
       typeorm:
         specifier: ^0.3.28
         version: 0.3.28(mysql2@3.16.0)(ts-node@10.9.2(@types/node@25.0.3)(typescript@5.9.3))
-      typescript:
-        specifier: ^5.9.3
-        version: 5.9.3
     devDependencies:
       '@types/express':
         specifier: ^5.0.3
@@ -63,6 +54,9 @@ importers:
       '@types/jsonwebtoken':
         specifier: ^9.0.10
         version: 9.0.10
+      '@types/node':
+        specifier: ^25.0.3
+        version: 25.0.3
       '@types/supertest':
         specifier: ^6.0.3
         version: 6.0.3
@@ -81,6 +75,9 @@ importers:
       ts-node:
         specifier: ^10.9.2
         version: 10.9.2(@types/node@25.0.3)(typescript@5.9.3)
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
 
 packages:
 
@@ -1261,10 +1258,6 @@ packages:
 
   inherits@2.0.4:
     resolution: {integrity: sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==}
-
-  install@0.13.0:
-    resolution: {integrity: sha512-zDml/jzr2PKU9I8J/xyZBQn8rPCAY//UOYNmR01XwNwyfhEWObo2SWfSl1+0tm1u6PhxLwDnfsT/6jB7OUxqFA==}
-    engines: {node: '>= 0.10'}
 
   ipaddr.js@1.9.1:
     resolution: {integrity: sha512-0KI/607xoxSToH7GjN1FfSbLoU0+btTicjsQSWQlh/hZykN8KpmMf7uYwPW3R+akZ6R/w18ZlXSHBYXiYUPO3g==}
@@ -3641,8 +3634,6 @@ snapshots:
       wrappy: 1.0.2
 
   inherits@2.0.4: {}
-
-  install@0.13.0: {}
 
   ipaddr.js@1.9.1: {}
 
