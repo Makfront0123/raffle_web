@@ -1,58 +1,30 @@
-import { db } from "../config/db";
+import { AppDataSource } from "../data-source";
+import { Ticket } from "../entities/ticket.entity";
+import { In } from "typeorm";
+
+const repo = AppDataSource.getRepository(Ticket);
 
 export const ticketRepository = {
-    async findByRaffleId(raffleId: number) {
-        const [rows]: any = await db.query(`SELECT * FROM tickets WHERE raffleId = ?`, [raffleId]);
-        return rows;
-    },
-    async findByIds(ids: number[]) {
-        if (!ids || ids.length === 0) return [];
-        const placeholders = ids.map(() => '?').join(',');
-        const [rows]: any = await db.query(
-            `SELECT * FROM tickets WHERE id_ticket IN (${placeholders})`,
-            ids
-        );
-        return rows;
-    }
-    ,
+  findByRaffleId(raffleId: number) {
+    return repo.find({
+      where: { raffle: { id: raffleId } },
+    });
+  },
 
-    async find(filter: any) {
-        const [rows]: any = await db.query(`SELECT * FROM tickets WHERE ${filter.where}`, [filter.where]);
-        return rows;
-    },
+  findByIds(ids: number[]) {
+    if (!ids.length) return [];
+    return repo.find({
+      where: { id_ticket: In(ids) },
+    });
+  },
 
-    async findById(filter: any) {
-        const [rows]: any = await db.query(`SELECT * FROM tickets WHERE ${filter.where}`, [filter.where]);
-        return rows;
-    },
+  findById(id: number) {
+    return repo.findOne({
+      where: { id_ticket: id },
+    });
+  },
 
-    async create(ticket: any) {
-        const { raffleId, userId, price, status } = ticket;
-        return {
-            id: null,
-            raffleId,
-            userId,
-            price,
-            status,
-        } as any;
-    }
-    ,
-    async save(ticket: any) {
-        const { id_ticket, raffleId, userId, status } = ticket;
-
-        if (!id_ticket) {
-            throw new Error("Falta id_ticket para actualizar el ticket");
-        }
-
-        const dataToUpdate = {
-            raffleId,
-            userId,
-            status
-        };
-
-        return db.query('UPDATE tickets SET ? WHERE id_ticket = ?', [dataToUpdate, id_ticket]);
-    }
-
-
-
-}
+  save(ticket: Ticket) {
+    return repo.save(ticket);
+  },
+};

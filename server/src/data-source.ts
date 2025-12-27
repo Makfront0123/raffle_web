@@ -15,10 +15,7 @@ import { PaymentDetail } from "./entities/payment_details.entity";
 import { Reservation } from "./entities/reservation.entity";
 import { ReservationTicket } from "./entities/reservation_ticket.entity";
 
-const caCert = fs.readFileSync(
-    path.resolve(process.cwd(), "certs", "ca.pem")
-);
-
+ 
 export const AppDataSource = new DataSource({
     type: "mysql",
     host: process.env.DB_HOST,
