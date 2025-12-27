@@ -1,0 +1,7 @@
+{
+  "extends": "./tsconfig.json",
+  "exclude": ["**/__test__/**/*", "node_modules"],
+  "compilerOptions": {
+    "types": ["node"]   // no incluir jest en producción
+  }
+}
