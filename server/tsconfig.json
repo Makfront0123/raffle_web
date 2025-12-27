@@ -1,4 +1,3 @@
-// tsconfig.json
 {
   "compilerOptions": {
     "target": "ES2020",
@@ -9,8 +8,8 @@
     "emitDecoratorMetadata": true,
     "resolveJsonModule": true,
     "experimentalDecorators": true,
-    "typeRoots": ["./src/types", "./node_modules/@types"],    
+    "typeRoots": ["./src/types", "./node_modules/@types"],
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src/**/*.ts", "src/__test__/**/*.ts"          // << incluye tus tests]
+  "include": ["src/**/*.ts", "src/__test__/**/*.ts"]
 }

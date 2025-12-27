@@ -2,7 +2,7 @@
   "extends": "./tsconfig.json",
   "exclude": ["**/__test__/**/*", "node_modules"],
   "compilerOptions": {
-    "types": ["node"] ,  // Solo Node en producción, Jest que
-    "noEmit": true
+    "types": ["node"],
+    "noEmit": false
   }
 }
