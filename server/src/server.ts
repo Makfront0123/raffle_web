@@ -1,50 +1,47 @@
-import express from 'express';
-import fs from 'fs';
-import path from 'path';
-import cors from 'cors';
 import "reflect-metadata";
-import { AppDataSource } from './data-source';
-import helmet from 'helmet';
-import "./cron/cron";
-import dotenv from 'dotenv';
+import express from "express";
+import fs from "fs";
+import path from "path";
+import cors from "cors";
+import helmet from "helmet";
+import dotenv from "dotenv";
+
+import { AppDataSource } from "./data-source";
 import { PaymentService } from "./services/paymentService";
 import { PaymentController } from "./controllers/paymentController";
-const paymentService = new PaymentService(AppDataSource);
-const paymentController = new PaymentController(paymentService);
 
 dotenv.config();
+
 const app = express();
 app.set("trust proxy", 1);
 
+const paymentService = new PaymentService(AppDataSource);
+const paymentController = new PaymentController(paymentService);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use(cors({
-  origin: [
-    "http://localhost:3000",
-    "http://127.0.0.1:4321",
-    "https://dewayne-polluted-angel.ngrok-free.dev",
-    "https://lobby-spray-officials-suddenly.trycloudflare.com"
-  ],
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true,
-}));
+app.use(
+  cors({
+    origin: [
+      "http://localhost:3000",
+      "http://127.0.0.1:4321",
+      "https://dewayne-polluted-angel.ngrok-free.dev",
+      "https://lobby-spray-officials-suddenly.trycloudflare.com",
+    ],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+  })
+);
 
+app.use(helmet({ crossOriginResourcePolicy: false }));
 
-app.use(helmet({
-  crossOriginResourcePolicy: false,
-}));
-
-
-
-const routesPath = path.join(__dirname, 'routes');
-
+const routesPath = path.join(__dirname, "routes");
 fs.readdirSync(routesPath).forEach((file) => {
-  if (file.endsWith('.ts') || file.endsWith('.js')) {
+  if (file.endsWith(".ts") || file.endsWith(".js")) {
     const route = require(path.join(routesPath, file));
-    const routeName = file.replace(/Routes\.(ts|js)/, '').toLowerCase();
+    const routeName = file.replace(/Routes\.(ts|js)/, "").toLowerCase();
     app.use(`/api/${routeName}`, route.default);
   }
 });
@@ -59,13 +56,13 @@ const PORT = process.env.PORT || 4000;
 async function startServer() {
   try {
     await AppDataSource.initialize();
-    console.log('✅ Database connected');
-
+    console.log("✅ Database connected (Aiven)");
+    await import("./cron/cron");
     app.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
     });
   } catch (error) {
-    console.error('❌ Error conectando a la base de datos:', error);
+    console.error("❌ Error conectando a la base de datos:", error);
     process.exit(1);
   }
 }

@@ -32,3 +32,6 @@ coverage/
 # Local data
 tmp/
 .cache/
+
+#Certs
+*.pem
