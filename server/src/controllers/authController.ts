@@ -2,7 +2,6 @@ import { Request, Response } from "express";
 import { AuthService } from "../services/authService";
 import jwt from "jsonwebtoken";
 import axios from "axios";
-import generateJWT from "../utils/generateJWT";
 import { User } from "../entities/user.entity";
 import { AppDataSource } from "../data-source";
 import { UserRepository } from "../repositories/userRepository";

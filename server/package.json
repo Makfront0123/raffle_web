@@ -9,7 +9,9 @@
     "migration:run": "typeorm-ts-node-commonjs -d src/data-source.ts migration:run",
     "migration:revert": "typeorm-ts-node-commonjs -d src/data-source.ts migration:revert",
     "seed:all": "ts-node src/seeder/allSeeder.ts",
-    "test": "jest --runInBand"
+    "test": "jest --runInBand",
+    "start": "node dist/server.js"
+
   },
   "dependencies": {
     "@types/cors": "^2.8.19",
