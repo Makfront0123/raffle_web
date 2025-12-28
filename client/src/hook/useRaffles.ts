@@ -1,4 +1,5 @@
 "use client";
+
 import { AuthStore } from "@/store/authStore";
 import { useRaffleStore } from "@/store/raffleStore";
 import { CreateRaffleDTO, Raffle, UpdateRafflePayload } from "@/type/Raffle";
@@ -6,13 +7,23 @@ import { useEffect, useState, useCallback } from "react";
 import { toast } from "sonner";
 
 export function useRaffles() {
-  const { raffles, getRaffles, addRaffle, deleteRaffle, regenerateTickets, activateRaffle, updateRaffle, deactivateRaffle } = useRaffleStore();
+  const {
+    raffles,
+    getRaffles,
+    addRaffle,
+    deleteRaffle,
+    regenerateTickets,
+    activateRaffle,
+    updateRaffle,
+    deactivateRaffle
+  } = useRaffleStore();
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { token } = AuthStore();
 
   const refreshRaffles = useCallback(async () => {
-
+    if (!token) return;
     setLoading(true);
     try {
       await getRaffles();
@@ -21,35 +32,54 @@ export function useRaffles() {
     } finally {
       setLoading(false);
     }
-  }, [getRaffles]);
+  }, [getRaffles, token]);
 
   useEffect(() => {
     refreshRaffles();
   }, [refreshRaffles]);
 
-  const handleCreateRaffle = useCallback(
-    async (raffle: Partial<Raffle>) => {
+  // 🔹 Nuevo: Crear rifa desde el hook, con validación incluida
+  const createRaffle = useCallback(
+    async (form: {
+      title: string;
+      description: string;
+      price: string;
+      end_date: string;
+      digits: number;
+    }) => {
       if (!token) return;
 
-      // Validar campos obligatorios
-      if (!raffle.title || typeof raffle.price === 'undefined') {
-        toast.error("Campos obligatorios incompletos");
-        return;
+      try {
+        // Validaciones
+        if (!form.end_date) throw new Error("Selecciona una fecha.");
+
+        const min = new Date();
+        min.setDate(min.getDate() + 7);
+
+        const endDate = new Date(form.end_date + "T23:59:59");
+        if (endDate < min) throw new Error("Debe ser mínimo 7 días después.");
+
+        const price = parseFloat(form.price);
+        if (isNaN(price) || price <= 0) throw new Error("Precio inválido");
+
+        const payload: CreateRaffleDTO = {
+          title: form.title,
+          description: form.description,
+          price,
+          endDate: endDate.toISOString(),
+          digits: form.digits,
+        };
+
+        await addRaffle(payload, token);
+        await refreshRaffles();
+        toast.success("Rifa creada correctamente");
+      } catch (err: any) {
+        toast.error(err.message || "Error creando la rifa");
+        throw err;
       }
-
-      const payload: CreateRaffleDTO = {
-        title: raffle.title,
-        price: raffle.price,
-        description: raffle.description ?? "",
-        end_date: raffle.end_date ?? "",
-      };
-
-      await addRaffle(payload, token);
-      await refreshRaffles();
     },
     [addRaffle, token, refreshRaffles]
   );
-
   const handleDeleteRaffle = useCallback(
     async (id: number) => {
       if (!token) return;
@@ -64,26 +94,16 @@ export function useRaffles() {
       if (!token) return;
       try {
         const payload: UpdateRafflePayload = {};
-
-        if (typeof data.price !== "undefined") {
-          payload.price = data.price;
-        }
-
+        if (typeof data.price !== "undefined") payload.price = data.price;
         if (typeof data.end_date !== "undefined" && data.end_date !== null) {
-          if (typeof data.end_date === "string" && data.end_date.length === 10) {
-            const iso = new Date(data.end_date + "T23:59:59").toISOString();
-            payload.endDate = iso;
-          } else if (typeof data.end_date === "string") {
-
+          if (data.end_date.length === 10) {
+            payload.endDate = new Date(data.end_date + "T23:59:59").toISOString();
+          } else {
             payload.endDate = data.end_date;
           }
         }
-
-
         if (typeof data.title !== "undefined") payload.title = data.title;
         if (typeof data.description !== "undefined") payload.description = data.description;
-
-        console.log("🔍 payload hacia backend:", payload);
 
         await updateRaffle(id, payload, token);
         await refreshRaffles();
@@ -93,7 +113,6 @@ export function useRaffles() {
     },
     [updateRaffle, token, refreshRaffles]
   );
-
 
   const handleActivateRaffle = useCallback(
     async (id: number) => {
@@ -126,11 +145,11 @@ export function useRaffles() {
     raffles,
     loading,
     error,
-    addRaffle: handleCreateRaffle,
+    refreshRaffles,
+    createRaffle,
     deleteRaffle: handleDeleteRaffle,
     updateRaffle: handleUpdateRaffle,
     regenerateTickets: handleregenerateTickets,
-    refreshRaffles,
     deactivateRaffle: handleDeactivateRaffle,
     activateRaffle: handleActivateRaffle
   };
