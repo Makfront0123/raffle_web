@@ -56,6 +56,14 @@ const PORT = process.env.PORT || 4000;
 
 async function startServer() {
   try {
+    console.log("ENV CHECK:", {
+      host: process.env.DB_HOST,
+      port: process.env.DB_PORT,
+      user: process.env.DB_USER,
+      database: process.env.DB_DATABASE,
+      nodeEnv: process.env.NODE_ENV,
+    });
+
     await AppDataSource.initialize();
     console.log("Database connected (Aiven)");
     if (process.env.NODE_ENV === "production") {
