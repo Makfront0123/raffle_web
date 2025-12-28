@@ -6,13 +6,17 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { RaffleFormLocal } from "@/hook/useRaffleForm";
+import { ChangeEvent, FormEvent } from "react";
 
 interface Props {
   form: RaffleFormLocal;
-  handleChange: (e: any) => void;
-  handleSubmit: (e: React.FormEvent) => void;
+  handleChange: (
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => void;
+  handleSubmit: (e: FormEvent<HTMLFormElement>) => void;
   minDate: string;
 }
+
 
 export const RaffleForm = ({
   form,

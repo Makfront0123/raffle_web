@@ -45,7 +45,7 @@ export default function RaffleExpiredModalPremium({
               <p className="text-gold/60">Aún no hay ganador.</p>
             ) : (
               winners.map((w: Winner) => (
-                <div className="p-4 mb-2 border border-gold/50 rounded-xl bg-yellow-400/40 shadow-md">
+                <div key={w.id} className="p-4 mb-2 border border-gold/50 rounded-xl bg-yellow-400/40 shadow-md">
                   <p className="font-medium text-gold">{w.prize_name}</p>
                   <p>🎟️ Ticket: {w.winner_ticket?.ticket_number}</p>
                   <p>👤 {w.winner_user?.name ?? "Usuario desconocido"}</p>

@@ -20,7 +20,7 @@ export class PaymentService {
   static async widgetPayment(
     data: WidgetPaymentDto,
     token: string
-  ): Promise<any> {
+  ): Promise<Payment> {
     const response = await
       axios.post(`${API_URL}/api/payment/wompi`, data, {
         headers: { Authorization: `Bearer ${token}` },

@@ -1,6 +1,7 @@
 import { act } from "@testing-library/react";
 import { useTicketStore } from "@/store/ticketStore";
 import { TicketService } from "@/services/ticketService";
+import { Payment, TicketStatusEnum } from "@/type/Payment";
 
 jest.mock("@/services/ticketService");
 
@@ -13,10 +14,10 @@ describe("TicketStore", () => {
   const mockTicket = {
     id_ticket: 1,
     ticket_number: "001",
-    status: "available",
+    status: TicketStatusEnum.AVAILABLE,
     purchased_at: null,
     raffle: { id: 50, title: "Rifa" },
-    payment: {} as any,
+    payment: {} as Payment,
   };
 
   it("getTickets carga tickets", async () => {

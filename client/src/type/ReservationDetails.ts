@@ -1,5 +1,3 @@
-
-import { Reservation } from "./Reservation";
 import { Ticket } from "./Ticket";
 
 export interface ReservationDetails {

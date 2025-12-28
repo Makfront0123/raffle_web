@@ -1,3 +1,4 @@
+import { TicketStatusEnum } from "@/type/Payment";
 import { Ticket } from "@/type/Ticket";
 
 export function filterTickets(
@@ -16,7 +17,8 @@ export function filterTickets(
       .toLowerCase()
       .includes(search.toLowerCase());
 
-    const matchesStatus = onlyCompleted ? ticket.status === "completed" : true;
+    const matchesStatus = onlyCompleted ? ticket.status === TicketStatusEnum.PURCHASED : true;
+
 
     return matchesRaffle && matchesSearch && matchesStatus;
   });

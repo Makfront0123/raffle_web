@@ -2,8 +2,6 @@ import "reflect-metadata";
 import dotenv from "dotenv";
 dotenv.config();
 import { DataSource } from "typeorm";
-import fs from "fs";
-import path from "path";
 import { User } from "./entities/user.entity";
 import { Role } from "./entities/role.entity";
 import { Raffle } from "./entities/raffle.entity";
@@ -15,23 +13,17 @@ import { PaymentDetail } from "./entities/payment_details.entity";
 import { Reservation } from "./entities/reservation.entity";
 import { ReservationTicket } from "./entities/reservation_ticket.entity";
 
-const caCert = fs.readFileSync(
-    path.resolve(process.cwd(), "certs", "ca.pem")
-);
 
 export const AppDataSource = new DataSource({
     type: "mysql",
     host: process.env.DB_HOST,
-    port: Number(process.env.PORT),
+    port: Number(process.env.DB_PORT),
     username: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_DATABASE,
-    extra: {
-        ssl: {
-            rejectUnauthorized: false,
-        },
+    ssl: {
+        rejectUnauthorized: false,
     },
-
 
     entities: [
         User,
@@ -45,7 +37,7 @@ export const AppDataSource = new DataSource({
         Reservation,
         ReservationTicket,
     ],
-
+    migrations: ["dist/migrations/*.js"],
     synchronize: false,
     logging: true,
 });

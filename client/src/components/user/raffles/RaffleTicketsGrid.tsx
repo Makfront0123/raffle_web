@@ -1,10 +1,12 @@
 "use client";
 
+import { Ticket } from "@/type/Ticket";
+
 interface Props {
-  tickets: any[];
-  selectedTickets: any[];
+  tickets: Ticket[];
+  selectedTickets: Ticket[];
   getColor: (status: string) => string;
-  handleSelect: (ticket: any) => void;
+  handleSelect: (ticket: Ticket) => void;
 }
 
 export default function RaffleTicketsGrid({ tickets, getColor, handleSelect, selectedTickets }: Props) {

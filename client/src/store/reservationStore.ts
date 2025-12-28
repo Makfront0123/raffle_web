@@ -1,11 +1,34 @@
-import { create } from "zustand";
-import { ReservationService } from "@/services/reservationService";
-import { Reservation } from "@/type/Reservation";
-import { toast } from "sonner";
+"use client";
 
-export const useReservationStore = create<ReservationStore>()((set, get) => ({
+import { create } from "zustand";
+import { toast } from "sonner";
+import { ReservationService, CancelReservationResponse } from "@/services/reservationService";
+import { Reservation } from "@/type/Reservation";
+
+interface ReservationStore {
+  reservations: Reservation[];
+  setReservations: (
+    reservationsOrFn: Reservation[] | ((prev: Reservation[]) => Reservation[])
+  ) => void;
+
+  getReservations: (token: string) => Promise<void>;
+  getReservationById: (id: number, token: string) => Promise<void>;
+  getAllReservationsByUser: (token: string) => Promise<void>;
+  createReservation: (ticketId: number, raffleId: number, token: string) => Promise<Reservation>;
+  cancelReservation: (id: number, token: string) => Promise<void>;
+}
+
+// Helper para errores tipados
+const getErrorMessage = (err: unknown): string => {
+  if (typeof err === "object" && err !== null && "message" in err) {
+    return (err as { message: string }).message;
+  }
+  return "Error desconocido";
+};
+
+export const useReservationStore = create<ReservationStore>()((set) => ({
   reservations: [],
-  
+
   setReservations: (reservationsOrFn) =>
     set((state) => ({
       reservations:
@@ -14,60 +37,71 @@ export const useReservationStore = create<ReservationStore>()((set, get) => ({
           : reservationsOrFn,
     })),
 
-  getReservations: async (token: string) => {
-    const service = new ReservationService();
-    const reservations = await service.getAllReservations(token);
-    set({ reservations });
+  getReservations: async (token) => {
+    try {
+      const service = new ReservationService();
+      const reservations = await service.getAllReservations(token);
+      set({ reservations });
+    } catch (err: unknown) {
+      const msg = getErrorMessage(err);
+      toast.error(msg || "Error cargando reservas");
+      console.error(err);
+    }
   },
 
-  getReservationById: async (id: number, token: string) => {
-    const service = new ReservationService();
-    const reservation = await service.getReservationById(id, token);
-    set({ reservations: [reservation] });
+  getReservationById: async (id, token) => {
+    try {
+      const service = new ReservationService();
+      const reservation = await service.getReservationById(id, token);
+      set({ reservations: [reservation] });
+    } catch (err: unknown) {
+      const msg = getErrorMessage(err);
+      toast.error(msg || "Error cargando reserva");
+      console.error(err);
+    }
   },
 
-  createReservation: async (ticketId: number, raffleId: number, token: string) => {
-    const service = new ReservationService();
-    const newReservation = await service.createReservation(ticketId, raffleId, token);
-
-    set((state) => ({
-      reservations: [...state.reservations, newReservation],
-    }));
-
-    return newReservation;
+  getAllReservationsByUser: async (token) => {
+    try {
+      const service = new ReservationService();
+      const reservations = await service.getAllReservationsByUser(token);
+      set({ reservations });
+    } catch (err: unknown) {
+      const msg = getErrorMessage(err);
+      toast.error(msg || "Error cargando reservas del usuario");
+      console.error(err);
+    }
   },
 
-  getAllReservationsByUser: async (token: string) => {
-    const service = new ReservationService();
-    const reservations = await service.getAllReservationsByUser(token);
-    set({ reservations });
-   
+  createReservation: async (ticketId, raffleId, token) => {
+    try {
+      const service = new ReservationService();
+      const newReservation = await service.createReservation(ticketId, raffleId, token);
+      set((state) => ({
+        reservations: [...state.reservations, newReservation],
+      }));
+      return newReservation;
+    } catch (err: unknown) {
+      const msg = getErrorMessage(err);
+      toast.error(msg || "Error creando reserva");
+      console.error(err);
+      throw err;
+    }
   },
 
   cancelReservation: async (id, token) => {
     try {
       const service = new ReservationService();
-      const res = await service.cancelReservation(id, token);
+      const res: CancelReservationResponse = await service.cancelReservation(id, token);
       toast.success(res.message);
-
       set((state) => ({
         reservations: state.reservations.filter((r) => r.id !== id),
       }));
-    } catch (error: any) {
-      toast.error(error?.response?.data?.message || "Error cancelando reserva");
-      throw error;
+    } catch (err: unknown) {
+      const msg = getErrorMessage(err);
+      toast.error(msg || "Error cancelando reserva");
+      console.error(err);
+      throw err;
     }
   },
 }));
-
-interface ReservationStore {
-  reservations: Reservation[];
-  setReservations: (
-    reservationsOrFn: Reservation[] | ((prev: Reservation[]) => Reservation[])
-  ) => void;
-  getReservations: (token: string) => Promise<void>;
-  getReservationById: (id: number, token: string) => Promise<void>;
-  getAllReservationsByUser: (token: string) => Promise<void>;
-  createReservation: (ticketId: number, raffleId: number, token: string) => Promise<Reservation>;
-  cancelReservation: (id: number, token: string) => Promise<void>;
-}

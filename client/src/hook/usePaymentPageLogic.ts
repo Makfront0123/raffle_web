@@ -17,7 +17,7 @@ export function usePaymentsPageLogic() {
 
   useEffect(() => {
     if (token) getPayments(token);
-  }, [token]);
+  }, [token, getPayments]);
 
   const filteredPayments = applyFilters({
     payments,

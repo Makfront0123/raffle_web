@@ -1,10 +1,14 @@
-interface GoogleUserData {
+export interface GoogleUserData {
   name?: string;
   email?: string;
   picture?: string;
   token: string;
 }
 
-interface TokenClient {
-  requestAccessToken: () => void;
+export interface GoogleTokenResponse {
+  access_token?: string;
 }
+
+export type GoogleTokenClient = {
+  requestAccessToken: () => void;
+};

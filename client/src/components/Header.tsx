@@ -19,7 +19,6 @@ import {
 
 import { appRoutes } from "@/routes/AppRoutes";
 import { AuthDialog } from "./AuthDialog";
-import { PhoneDialog } from "./PhoneDialog";
 import { useAuth } from "@/hook/useAuth";
 
 const mainRoutes = appRoutes[0]?.children || [];

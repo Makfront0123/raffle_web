@@ -3,10 +3,25 @@
  */
 import { renderHook, act } from "@testing-library/react";
 import { useAuth } from "@/hook/useAuth";
-import { AuthStore } from "@/store/authStore";
 import { AuthService } from "@/services/authService";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+
+interface GoogleOAuthClient {
+    requestAccessToken: () => void;
+}
+
+interface GoogleAccounts {
+    oauth2: {
+        initTokenClient: (config: {
+            callback: (response: { access_token: string }) => void;
+        }) => GoogleOAuthClient;
+    };
+}
+
+interface GoogleMock {
+    accounts: GoogleAccounts;
+}
 
 // MOCK jwtDecode para evitar errores de token inválido
 jest.mock("jwt-decode", () => ({
@@ -48,19 +63,22 @@ beforeEach(() => {
         push: jest.fn(),
     });
 
-    (global as any).google = {
+    (globalThis as unknown as { google: GoogleMock }).google = {
         accounts: {
             oauth2: {
-                initTokenClient: jest.fn().mockImplementation(({ callback }) => ({
-                    requestAccessToken: () =>
-                        callback({ access_token: "test-google-token" }),
-                })),
+                initTokenClient: jest.fn().mockImplementation(
+                    ({ callback }) => ({
+                        requestAccessToken: () =>
+                            callback({ access_token: "test-google-token" }),
+                    })
+                ),
             },
         },
     };
 
     Storage.prototype.setItem = jest.fn();
 });
+
 
 jest.useFakeTimers();
 

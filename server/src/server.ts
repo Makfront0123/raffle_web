@@ -28,6 +28,8 @@ app.use(
       "http://127.0.0.1:4321",
       "https://dewayne-polluted-angel.ngrok-free.dev",
       "https://lobby-spray-officials-suddenly.trycloudflare.com",
+      "https://raffle-f925zeu6d-armandos-projects-bf6157fe.vercel.app",
+      "https://raffle-web-seven.vercel.app"
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -55,15 +57,28 @@ const PORT = process.env.PORT || 4000;
 
 async function startServer() {
   try {
+    console.log("ENV CHECK:", {
+      host: process.env.DB_HOST,
+      port: process.env.DB_PORT,
+      user: process.env.DB_USER,
+      database: process.env.DB_DATABASE,
+      nodeEnv: process.env.NODE_ENV,
+    });
+
     await AppDataSource.initialize();
-    console.log("✅ Database connected (Aiven)");
+    console.log("Database connected (Aiven)");
+    if (process.env.NODE_ENV === "production") {
+      await AppDataSource.runMigrations();
+    }
+
+    console.log("Migrations executed");
     await import("./cron/cron");
     app.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`);
+      console.log(`Server running on port ${PORT}`);
     });
   } catch (error) {
-    console.error("❌ Error conectando a la base de datos:", error);
-    process.exit(1);
+    console.error("❌ ERROR FATAL AL INICIAR EL SERVIDOR:");
+    console.error(error);
   }
 }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { toast } from "sonner";
 import { AuthStore } from "@/store/authStore";
@@ -19,46 +19,52 @@ interface Props {
   }) => Promise<void>;
 }
 
-
 export function useRaffleDetail({ payWithWompiWidget }: Props) {
   const params = useParams<{ id: string }>();
   const id = Number(params?.id);
   const MAX_TICKETS = 5;
+  const perPage = 50;
 
   const { token } = AuthStore();
   const { raffles, getRaffleById } = useRaffleStore();
   const { createReservation } = useReservationStore();
   const { soldPercentage, getSoldPercentage } = useTicketStore();
 
-  const [raffle, setRaffle] = useState<any>(null);
+  const [raffle, setRaffle] = useState<Raffle | null>(null);
   const [localTickets, setLocalTickets] = useState<Ticket[]>([]);
   const [selectedTickets, setSelectedTickets] = useState<Ticket[]>([]);
   const [open, setOpen] = useState(false);
   const [page, setPage] = useState(1);
 
-  const perPage = 50;
-
-  const refreshRaffle = async () => {
+  // --- useCallback para evitar recreación en cada render
+  const refreshRaffle = useCallback(async () => {
     if (!id || !token) return;
-    const updated = await getRaffleById(id, token);
-    setRaffle(updated);
-  };
+    try {
+      const updated = await getRaffleById(id, token);
+      setRaffle(updated);
+    } catch {
+      console.error("Error cargando rifa");
+    }
+  }, [id, token, getRaffleById]);
 
+  // --- Cargar rifa al montar o cuando id/token cambian
   useEffect(() => {
-    refreshRaffle().catch(() => console.error("Error cargando rifa"));
-  }, [id, token]);
+    refreshRaffle();
+  }, [refreshRaffle]);
 
+  // --- Actualizar rifa si cambia el store de raffles
   useEffect(() => {
     const found = raffles.find((r) => r.id === id);
     if (found) setRaffle(found);
   }, [raffles, id]);
 
+  // --- Actualizar tickets y porcentaje vendidos cuando cambia la rifa
   useEffect(() => {
     if (raffle?.tickets) {
       setLocalTickets(raffle.tickets);
-      getSoldPercentage(raffle.id, token!);
+      if (token) getSoldPercentage(raffle.id, token);
     }
-  }, [raffle, token]);
+  }, [raffle, token, getSoldPercentage]);
 
   const totalPages = Math.ceil(localTickets.length / perPage);
   const start = (page - 1) * perPage;
@@ -84,10 +90,10 @@ export function useRaffleDetail({ payWithWompiWidget }: Props) {
     }
 
     setSelectedTickets((prev) => {
-      const exists = prev.some(t => t.id_ticket === ticket.id_ticket);
+      const exists = prev.some((t) => t.id_ticket === ticket.id_ticket);
 
       if (exists) {
-        return prev.filter(t => t.id_ticket !== ticket.id_ticket);
+        return prev.filter((t) => t.id_ticket !== ticket.id_ticket);
       }
       if (prev.length >= MAX_TICKETS) {
         toast.error(`Máximo ${MAX_TICKETS} tickets por compra`);
@@ -98,15 +104,13 @@ export function useRaffleDetail({ payWithWompiWidget }: Props) {
     });
   };
 
-
-
   const handleAction = async (action: "pay" | "reserved") => {
     if (!raffle || selectedTickets.length === 0) return;
 
     if (action === "reserved") {
       try {
         await Promise.all(
-          selectedTickets.map(t =>
+          selectedTickets.map((t) =>
             createReservation(t.id_ticket, raffle.id, token!)
           )
         );
@@ -114,9 +118,9 @@ export function useRaffleDetail({ payWithWompiWidget }: Props) {
         toast.success("Tickets reservados 🕒");
         setOpen(false);
 
-        setLocalTickets(prev =>
-          prev.map(t =>
-            selectedTickets.some(s => s.id_ticket === t.id_ticket)
+        setLocalTickets((prev) =>
+          prev.map((t) =>
+            selectedTickets.some((s) => s.id_ticket === t.id_ticket)
               ? { ...t, status: TicketStatusEnum.RESERVED }
               : t
           )
@@ -128,8 +132,8 @@ export function useRaffleDetail({ payWithWompiWidget }: Props) {
       }
       return;
     }
-    setOpen(false);
 
+    setOpen(false);
     await payWithWompiWidget({
       tickets: selectedTickets,
       raffle,

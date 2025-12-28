@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { toast } from "sonner";
 import { AuthService } from "@/services/authService";
+import { User } from "@/type/User";
 
 interface AuthState {
   user: User | null;
@@ -38,7 +39,7 @@ export const AuthStore = create<AuthState>()(
           set({ user, token });
           localStorage.setItem("token", token);
           toast.success(`Has iniciado sesión como ${user.name || email}`);
-        } catch (error: any) {
+        } catch (error: unknown) {
           console.error("Error en devLogin:", error);
           toast.error("Error iniciando sesión en modo desarrollador");
         }

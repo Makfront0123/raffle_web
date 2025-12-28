@@ -10,7 +10,7 @@ const router = express.Router();
 const raffleController = new RaffleController();
 
 router.get('/', raffleController.getAllRaffles);
-router.post('/', authMiddleware, raffleController.createRaffle);
+router.post('/', authMiddleware, adminMiddleware, raffleController.createRaffle);
 router.get('/:id', authMiddleware, raffleController.getRaffleById);
 router.delete('/:id', authMiddleware, adminMiddleware, raffleController.deleteRaffle);
 router.patch('/:id', authMiddleware, adminMiddleware, raffleController.updateRaffle);

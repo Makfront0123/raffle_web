@@ -16,13 +16,14 @@ import { Prizes } from "@/type/Prizes";
 import { AuthStore } from "@/store/authStore";
 import { AuthDialog } from "@/components/AuthDialog";
 import { formatCOP } from "@/app/utils/formatCOP";
+import { Raffle } from "@/type/Raffle";
 
 export default function RaffleCard({
   raffle,
   setShowExpiredModal,
 }: {
-  raffle: any;
-  setShowExpiredModal: (raffle: any) => void;
+  raffle: Raffle;
+  setShowExpiredModal: (raffle: Raffle) => void;
 }) {
   const timeLeft = useCountdown(raffle.end_date);
   const isExpired = new Date(raffle.end_date) <= new Date();
@@ -30,7 +31,6 @@ export default function RaffleCard({
   const { token } = AuthStore();
   const [openAuth, setOpenAuth] = useState(false);
 
-  /* 🏆 Premio principal seguro */
   const mainPrize: Prizes | null =
     raffle.prizes && raffle.prizes.length > 0
       ? raffle.prizes.reduce((max: Prizes, p: Prizes) =>
@@ -38,7 +38,6 @@ export default function RaffleCard({
         )
       : null;
 
-  /* 🎁 Premios secundarios (máx 3) */
   const secondaryPrizes: Prizes[] =
     raffle.prizes && raffle.prizes.length > 0
       ? raffle.prizes.filter((p: Prizes) => p.id !== mainPrize?.id)
@@ -47,7 +46,6 @@ export default function RaffleCard({
   const visibleSecondary = secondaryPrizes.slice(0, 3);
   const extraCount = secondaryPrizes.length - visibleSecondary.length;
 
-  /* 🔢 Animación del valor del premio */
   const [animatedValue, setAnimatedValue] = useState(0);
 
   useEffect(() => {

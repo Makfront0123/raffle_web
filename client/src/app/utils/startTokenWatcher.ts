@@ -1,5 +1,5 @@
- 
-import { jwtDecode } from "jwt-decode";
+
+import { jwtDecode, JwtPayload } from "jwt-decode";
 import { AuthStore } from "@/store/authStore";
 
 export function startTokenWatcher() {
@@ -7,18 +7,24 @@ export function startTokenWatcher() {
     if (!token) return;
 
     try {
-        const decoded: any = jwtDecode(token);
-        const exp = decoded.exp * 1000; 
+        const decoded: JwtPayload = jwtDecode(token);
+
+        if (!decoded.exp) {
+            console.warn("Token no tiene fecha de expiración");
+            AuthStore.getState().logout();
+            window.location.href = "/";
+            return;
+        }
+
+        const exp = decoded.exp * 1000;
         const timeLeft = exp - Date.now();
 
-      
         if (timeLeft <= 0) {
             AuthStore.getState().logout();
             window.location.href = "/";
             return;
         }
 
- 
         setTimeout(() => {
             AuthStore.getState().logout();
             window.location.href = "/";
@@ -26,5 +32,6 @@ export function startTokenWatcher() {
     } catch (err) {
         console.error("Error decodificando token:", err);
     }
+
 }
 

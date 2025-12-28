@@ -25,3 +25,20 @@ export type RaffleForm = {
   tickets: Ticket[];
   prizes: Prizes[];
 };
+
+
+export type UpdateRafflePayload = {
+  price?: number;
+  endDate?: string;
+  title?: string;
+  description?: string;
+}
+
+
+// types.ts
+export interface CreateRaffleDTO {
+  title: string;
+  description?: string;
+  price: number;
+  end_date?: string; // formato yyyy-mm-dd
+}

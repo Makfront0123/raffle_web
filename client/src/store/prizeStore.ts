@@ -1,11 +1,8 @@
 import { create } from "zustand";
-
 import { Prizes, CreatePrizeDTO } from "@/type/Prizes";
 import { Winner } from "@/type/Winner";
 import { PrizeService } from "@/services/prizeService";
-import { RaffleService } from "@/services/raffleService";
 import { toast } from "sonner";
-
 
 interface PrizeStore {
   prizes: Prizes[];
@@ -23,6 +20,10 @@ interface PrizeStore {
   deletePrize: (id: number, token: string) => Promise<void>;
 }
 
+const isAxiosError = (err: unknown): err is { response?: { data?: { message?: string } }; message: string } => {
+  return typeof err === "object" && err !== null && "message" in err;
+};
+
 export const usePrizeStore = create<PrizeStore>()((set) => ({
   prizes: [],
   winners: [],
@@ -31,14 +32,13 @@ export const usePrizeStore = create<PrizeStore>()((set) => ({
   setPrizes: (prizes: Prizes[]) => set({ prizes }),
   setWinners: (winners: Winner[]) => set({ winners }),
 
-
   getPrizes: async () => {
     try {
       const prizeService = new PrizeService();
       const prizes = await prizeService.getAllPrizes();
       set({ prizes });
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || err.message || "Error obteniendo premios");
+    } catch (err: unknown) {
+      toast.error(isAxiosError(err) ? err.response?.data?.message || err.message : "Error obteniendo premios");
     }
   },
 
@@ -47,8 +47,8 @@ export const usePrizeStore = create<PrizeStore>()((set) => ({
       const prizeService = new PrizeService();
       const prize = await prizeService.getPrizeById(id, token);
       set({ prizes: [prize] });
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || err.message || "Error obteniendo premio");
+    } catch (err: unknown) {
+      toast.error(isAxiosError(err) ? err.response?.data?.message || err.message : "Error obteniendo premio");
     }
   },
 
@@ -58,8 +58,8 @@ export const usePrizeStore = create<PrizeStore>()((set) => ({
       const res = await prizeService.createPrize(prize, token);
       set((state) => ({ prizes: [...state.prizes, res.data] }));
       toast.success(res.message);
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || err.message || "Error creando premio");
+    } catch (err: unknown) {
+      toast.error(isAxiosError(err) ? err.response?.data?.message || err.message : "Error creando premio");
     }
   },
 
@@ -71,8 +71,8 @@ export const usePrizeStore = create<PrizeStore>()((set) => ({
         prizes: state.prizes.map((p) => (p.id === res.data.id ? res.data : p)),
       }));
       toast.success(res.message);
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || err.message || "Error actualizando premio");
+    } catch (err: unknown) {
+      toast.error(isAxiosError(err) ? err.response?.data?.message || err.message : "Error actualizando premio");
     }
   },
 
@@ -81,8 +81,8 @@ export const usePrizeStore = create<PrizeStore>()((set) => ({
       const prizeService = new PrizeService();
       const winners = await prizeService.getWinnersByRaffle(raffleId);
       set({ winners });
-    } catch (err: any) {
-      toast.error(err?.message || "Error obteniendo ganadores");
+    } catch (err: unknown) {
+      toast.error(isAxiosError(err) ? err.message : "Error obteniendo ganadores");
     }
   },
 
@@ -91,11 +91,10 @@ export const usePrizeStore = create<PrizeStore>()((set) => ({
       const prizeService = new PrizeService();
       const winners = await prizeService.getWinners();
       set({ winners });
-    } catch (err: any) {
-      toast.error(err?.message || "Error obteniendo ganadores");
+    } catch (err: unknown) {
+      toast.error(isAxiosError(err) ? err.message : "Error obteniendo ganadores");
     }
   },
-
 
   deletePrize: async (id: number, token: string) => {
     try {
@@ -103,8 +102,8 @@ export const usePrizeStore = create<PrizeStore>()((set) => ({
       const res = await prizeService.deletePrize(id, token);
       set((state) => ({ prizes: state.prizes.filter((p) => p.id !== id) }));
       toast.success(res.message);
-    } catch (err: any) {
-      toast.error(err?.response?.data?.message || err.message || "Error eliminando premio");
+    } catch (err: unknown) {
+      toast.error(isAxiosError(err) ? err.response?.data?.message || err.message : "Error eliminando premio");
     }
   },
 }));

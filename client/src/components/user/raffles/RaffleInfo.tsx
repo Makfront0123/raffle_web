@@ -1,6 +1,9 @@
 "use client";
+
+import { Raffle } from "@/type/Raffle";
+
 interface Props {
-  raffle: any;
+  raffle: Raffle;
   soldPercentage: number;
 }
 

@@ -1,6 +1,6 @@
 "use client";
-
-import { Provider, useState } from "react";
+import { ChangeEvent} from "react";
+import { useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -15,14 +15,14 @@ import {
 } from "@/components/ui/select";
 import { Providers } from "@/type/Providers";
 import { Raffle } from "@/type/Raffle";
-
+type PrizeType = "product" | "cash" | "trip";
 export interface PrizeFormValues {
     name: string;
     description: string;
     value: number;
     raffle: string;
     provider: string;
-    type: string;
+    type: PrizeType;
 }
 
 interface PrizeFormProps {
@@ -49,10 +49,18 @@ export function PrizeForm({
         type: "product",
     });
 
-    const handleChange = (e: any) =>
-        setForm({ ...form, [e.target.name]: e.target.value });
+    const handleChange = (
+        e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    ) => {
+        const { name, value } = e.target;
 
-    const handleSubmit = async (e: any) => {
+        setForm((prev) => ({
+            ...prev,
+            [name]: name === "value" ? Number(value) : value,
+        }));
+    };
+
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         await onSubmit(form);
         setForm({
@@ -128,8 +136,11 @@ export function PrizeForm({
                             <Label>Tipo</Label>
                             <Select
                                 value={form.type}
-                                onValueChange={(v) => setForm({ ...form, type: v })}
+                                onValueChange={(v: PrizeType) =>
+                                    setForm((prev) => ({ ...prev, type: v }))
+                                }
                             >
+
                                 <SelectTrigger>
                                     <SelectValue placeholder="Selecciona" />
                                 </SelectTrigger>

@@ -1,15 +1,20 @@
 import { useProvidersLogic } from "@/hook/useProviderLogic";
 import { renderHook, act } from "@testing-library/react";
- 
+import type { ChangeEvent, FormEvent } from "react";
 
 jest.mock("@/store/authStore", () => ({
   AuthStore: () => ({ token: "fake-token" }),
 }));
 
- 
 const mockUseProviders = {
   providers: [
-    { id: 1, name: "Test", contact_name: "A", contact_email: "a@test.com", contact_phone: "123" },
+    {
+      id: 1,
+      name: "Test",
+      contact_name: "A",
+      contact_email: "a@test.com",
+      contact_phone: "123",
+    },
   ],
   loading: false,
   error: null,
@@ -25,11 +30,7 @@ jest.mock("@/hook/useProviders", () => ({
 
 describe("useProvidersLogic", () => {
   beforeEach(() => {
-   
-    mockUseProviders.addProvider.mockClear();
-    mockUseProviders.updateProvider.mockClear();
-    mockUseProviders.deleteProvider.mockClear();
-    mockUseProviders.fetchProviders.mockClear();
+    jest.clearAllMocks();
   });
 
   const setup = () => renderHook(() => useProvidersLogic());
@@ -37,14 +38,23 @@ describe("useProvidersLogic", () => {
   it("debe llamar addProvider cuando form no tiene id", async () => {
     const { result } = setup();
 
+    const changeEvent: ChangeEvent<HTMLInputElement> = {
+      target: {
+        name: "name",
+        value: "Nuevo",
+      },
+    } as ChangeEvent<HTMLInputElement>;
+
     act(() => {
-      result.current.handleChange({
-        target: { name: "name", value: "Nuevo" },
-      } as any);
+      result.current.handleChange(changeEvent);
     });
 
+    const submitEvent = {
+      preventDefault: jest.fn(),
+    } as unknown as FormEvent<HTMLFormElement>;
+
     await act(async () => {
-      await result.current.handleSubmit({ preventDefault: () => {} } as any);
+      await result.current.handleSubmit(submitEvent);
     });
 
     expect(mockUseProviders.addProvider).toHaveBeenCalledTimes(1);
@@ -61,7 +71,10 @@ describe("useProvidersLogic", () => {
       await result.current.confirmDeleteProvider();
     });
 
-    expect(mockUseProviders.deleteProvider).toHaveBeenCalledWith(1, "fake-token");
+    expect(mockUseProviders.deleteProvider).toHaveBeenCalledWith(
+      1,
+      "fake-token"
+    );
     expect(mockUseProviders.fetchProviders).toHaveBeenCalledTimes(1);
   });
 });

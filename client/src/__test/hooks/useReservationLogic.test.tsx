@@ -8,6 +8,9 @@ import { useReservationStore } from "@/store/reservationStore";
 import { useRaffles } from "@/hook/useRaffles";
 import { AuthStore } from "@/store/authStore";
 import { usePayment } from "@/hook/usePayment";
+import { Raffle } from "@/type/Raffle";
+import { Reservation } from "@/type/Reservation";
+import { TicketStatusEnum } from "@/type/Payment";
 
 // --- MOCKS ---
 jest.mock("@/hook/useReservation");
@@ -84,23 +87,34 @@ describe("useReservationsLogic", () => {
   it("procesa un pago y vuelve a cargar reservas", async () => {
     const { result } = renderHook(() => useReservationsLogic());
 
-    const mockReservation = {
+    const mockReservation: Partial<Reservation> = {
       id: 1,
       reservationTickets: [
         {
-          ticket: { id_ticket: 99 },
+          id: 123,
+          ticket: {
+            id_ticket: 99,
+            raffleId: 5,
+            purchased_at: "2099-01-01",
+            status: TicketStatusEnum.AVAILABLE,
+            ticket_number: "1",
+          },
         },
       ],
-    } as any;
+    };
 
-    const mockRaffle = {
+    const mockRaffle: Partial<Raffle> = {
       id: 5,
       price: 1000,
-    } as any;
+    };
 
     await act(async () => {
-      await result.current.handleAction(mockReservation, mockRaffle);
+      await result.current.handleAction(
+        mockReservation as Reservation,
+        mockRaffle as Raffle
+      );
     });
+
 
     expect(mockCreatePayment).toHaveBeenCalledWith(
       {

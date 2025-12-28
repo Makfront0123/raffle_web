@@ -10,7 +10,6 @@ import {
   SheetDescription,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
 } from "@/components/ui/sheet";
 import { Sidebar } from "@/components/Sidebar";
 import { useAdminSplash } from "@/hook/useAdminSplash";

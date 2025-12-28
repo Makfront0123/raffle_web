@@ -1,11 +1,11 @@
 import axios from "axios";
 import { Prizes, CreatePrizeDTO } from "@/type/Prizes";
 import { Winner } from "@/type/Winner";
-
-interface BackendResponse<T = any> {
+interface BackendResponse<T> {
   message: string;
   data: T;
 }
+
 
 export class PrizeService {
   async getAllPrizes(): Promise<Prizes[]> {

@@ -9,7 +9,6 @@ import { useRaffleDetail } from "@/hook/useRaffleDetail";
 import { useReservationsLogic } from "@/hook/useReservationsLogic";
 export default function ReservationsPage() {
   const {
-    loading,
     error,
     raffles,
     canceling,

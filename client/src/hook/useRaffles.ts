@@ -1,8 +1,9 @@
 "use client";
 import { AuthStore } from "@/store/authStore";
 import { useRaffleStore } from "@/store/raffleStore";
-import { Raffle, RaffleForm } from "@/type/Raffle";
+import { CreateRaffleDTO, Raffle, UpdateRafflePayload } from "@/type/Raffle";
 import { useEffect, useState, useCallback } from "react";
+import { toast } from "sonner";
 
 export function useRaffles() {
   const { raffles, getRaffles, addRaffle, deleteRaffle, regenerateTickets, activateRaffle, updateRaffle, deactivateRaffle } = useRaffleStore();
@@ -29,11 +30,26 @@ export function useRaffles() {
   const handleCreateRaffle = useCallback(
     async (raffle: Partial<Raffle>) => {
       if (!token) return;
-      await addRaffle(raffle, token);
+
+      // Validar campos obligatorios
+      if (!raffle.title || typeof raffle.price === 'undefined') {
+        toast.error("Campos obligatorios incompletos");
+        return;
+      }
+
+      const payload: CreateRaffleDTO = {
+        title: raffle.title,
+        price: raffle.price,
+        description: raffle.description ?? "",
+        end_date: raffle.end_date ?? "",
+      };
+
+      await addRaffle(payload, token);
       await refreshRaffles();
     },
     [addRaffle, token, refreshRaffles]
   );
+
   const handleDeleteRaffle = useCallback(
     async (id: number) => {
       if (!token) return;
@@ -47,7 +63,7 @@ export function useRaffles() {
     async (id: number, data: Partial<Raffle>) => {
       if (!token) return;
       try {
-        const payload: any = {};
+        const payload: UpdateRafflePayload = {};
 
         if (typeof data.price !== "undefined") {
           payload.price = data.price;
@@ -56,9 +72,9 @@ export function useRaffles() {
         if (typeof data.end_date !== "undefined" && data.end_date !== null) {
           if (typeof data.end_date === "string" && data.end_date.length === 10) {
             const iso = new Date(data.end_date + "T23:59:59").toISOString();
-            payload.endDate = iso; 
+            payload.endDate = iso;
           } else if (typeof data.end_date === "string") {
-   
+
             payload.endDate = data.end_date;
           }
         }

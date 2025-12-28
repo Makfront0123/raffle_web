@@ -10,7 +10,7 @@ export function AuthDialog({ open, onOpenChange }: { open: boolean; onOpenChange
   const googleDivRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (window.google && googleDivRef.current) {
+    if (window.google?.accounts?.id && googleDivRef.current) {
       window.google.accounts.id.renderButton(googleDivRef.current, {
         theme: "outline",
         size: "large",
@@ -18,6 +18,7 @@ export function AuthDialog({ open, onOpenChange }: { open: boolean; onOpenChange
       googleDivRef.current.style.display = "none";
     }
   }, []);
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -38,7 +39,7 @@ export function AuthDialog({ open, onOpenChange }: { open: boolean; onOpenChange
           >
             Continuar con Google
           </Button>
- 
+
           <div ref={googleDivRef}></div>
         </div>
       </DialogContent>

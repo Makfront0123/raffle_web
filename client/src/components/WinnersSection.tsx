@@ -2,8 +2,9 @@
 
 import { Winner } from "@/type/Winner";
 import { motion } from "framer-motion";
-import { Trophy, Crown } from "lucide-react";
-import { useState, useMemo } from "react";
+import { Trophy } from "lucide-react";
+import Image from "next/image";
+import { useState } from "react";
 
 export default function WinnersSection({ winners }: { winners: Winner[] }) {
   const itemsPerPage = 3;
@@ -58,13 +59,12 @@ export default function WinnersSection({ winners }: { winners: Winner[] }) {
                     <span className="text-gold font-bold text-lg">
                       #{index + 1}
                     </span>
-
-                    <img
-                      src={
-                        w.winner_user?.picture ||
-                        "/icons/mynaui--user.png"
-                      }
-                      className="w-12 h-12 rounded-full border border-gold object-cover"
+                    <Image
+                      alt="avatar"
+                      src={w.winner_user?.picture || "/icons/mynaui--user.png"}
+                      width={48}
+                      height={48}
+                      className="rounded-full border border-gold object-cover"
                     />
 
                     <div>

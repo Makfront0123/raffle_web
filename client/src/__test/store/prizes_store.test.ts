@@ -1,6 +1,7 @@
 import { act } from "@testing-library/react";
 import { usePrizeStore } from "@/store/prizeStore";
 import { PrizeService } from "@/services/prizeService";
+import { Winner } from "@/type/Winner";
 
 jest.mock("sonner", () => ({
   toast: { success: jest.fn(), error: jest.fn() },
@@ -103,20 +104,25 @@ describe("PrizeStore", () => {
   // ---------------------------------------------------------------------
 
   it("getWinners obtiene ganadores", async () => {
-    const winnerMock = [
+
+    const winnerMock: Partial<Winner>[] = [
       {
-        id: 99,
+        prize_id: 1,
+        raffle_id: 50,
+        winner_user: {
+          id: 9,
+          name: "Armando",
+        },
         winner_ticket: {
-          id: 1,
-          number: 50,
-          user: { id: 9, name: "Armando" },
+          id_ticket: 1,
+          ticket_number: 50,
         },
       },
     ];
 
     jest
       .spyOn(PrizeService.prototype, "getWinners")
-      .mockResolvedValue(winnerMock as any);
+      .mockResolvedValue(winnerMock as Winner[]);
 
     await act(async () => {
       await usePrizeStore.getState().getWinners();
