@@ -24,6 +24,8 @@ export default function Home() {
     items: paginatedRaffles,
   } = usePagination(filteredRaffles, 3);
 
+  console.log("🔍 filteredRaffles:", filteredRaffles);
+
 
   const { user, showAdminSplash } = useAuth();
 

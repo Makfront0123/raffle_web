@@ -3,12 +3,12 @@
 import { AuthStore } from "@/store/authStore";
 import { useRaffleStore } from "@/store/raffleStore";
 import { CreateRaffleDTO, Raffle, UpdateRafflePayload } from "@/type/Raffle";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { toast } from "sonner";
 
 export function useRaffles() {
   const {
-    raffles,
+    raffles: storeRaffles,
     getRaffles,
     addRaffle,
     deleteRaffle,
@@ -38,19 +38,11 @@ export function useRaffles() {
     refreshRaffles();
   }, [refreshRaffles]);
 
-  // 🔹 Nuevo: Crear rifa desde el hook, con validación incluida
   const createRaffle = useCallback(
-    async (form: {
-      title: string;
-      description: string;
-      price: string;
-      end_date: string;
-      digits: number;
-    }) => {
+    async (form: { title: string; description: string; price: string; end_date: string; digits: number }) => {
       if (!token) return;
 
       try {
-        // Validaciones
         if (!form.end_date) throw new Error("Selecciona una fecha.");
 
         const min = new Date();
@@ -67,7 +59,7 @@ export function useRaffles() {
           description: form.description,
           price,
           endDate: endDate.toISOString(),
-          digits: form.digits,
+          digits: form.digits
         };
 
         await addRaffle(payload, token);
@@ -80,6 +72,7 @@ export function useRaffles() {
     },
     [addRaffle, token, refreshRaffles]
   );
+
   const handleDeleteRaffle = useCallback(
     async (id: number) => {
       if (!token) return;
@@ -94,16 +87,13 @@ export function useRaffles() {
       if (!token) return;
       try {
         const payload: UpdateRafflePayload = {};
-        if (typeof data.price !== "undefined") payload.price = data.price;
-        if (typeof data.end_date !== "undefined" && data.end_date !== null) {
-          if (data.end_date.length === 10) {
-            payload.endDate = new Date(data.end_date + "T23:59:59").toISOString();
-          } else {
-            payload.endDate = data.end_date;
-          }
+        if (data.price !== undefined) payload.price = data.price;
+        if (data.end_date !== undefined && data.end_date !== null) {
+          payload.endDate =
+            data.end_date.length === 10 ? new Date(data.end_date + "T23:59:59").toISOString() : data.end_date;
         }
-        if (typeof data.title !== "undefined") payload.title = data.title;
-        if (typeof data.description !== "undefined") payload.description = data.description;
+        if (data.title !== undefined) payload.title = data.title;
+        if (data.description !== undefined) payload.description = data.description;
 
         await updateRaffle(id, payload, token);
         await refreshRaffles();
@@ -141,8 +131,15 @@ export function useRaffles() {
     [regenerateTickets, token, refreshRaffles]
   );
 
+  const filteredRaffles = useMemo(() => {
+    return storeRaffles
+      .filter((r) => r.status === "active")
+      .sort((a, b) => new Date(a.end_date).getTime() - new Date(b.end_date).getTime());
+  }, [storeRaffles]);
+
   return {
-    raffles,
+    raffles: storeRaffles,
+    filteredRaffles,
     loading,
     error,
     refreshRaffles,
