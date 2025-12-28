@@ -16,7 +16,7 @@ export function useReservation() {
     try {
       await getAllReservationsByUser(token);
       setError(null);
-    } catch (_) {  // <- ignoramos el error
+    } catch {
       setError("Error cargando reservas");
     } finally {
       setLoading(false);

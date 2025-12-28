@@ -19,6 +19,28 @@ export function useAuth() {
   const [showAdminSplash, setShowAdminSplash] = useState(false);
   const [client, setClient] = useState<GoogleTokenClient | null>(null);
 
+  // Logout
+  const logout = useCallback(() => {
+    storeLogout();
+    router.push("/");
+  }, [storeLogout, router]);
+
+  const startTokenWatcher = useCallback((token: string) => {
+    try {
+      const decoded = jwtDecode<JwtPayload>(token);
+      const timeLeft = decoded.exp! * 1000 - Date.now();
+
+      if (timeLeft <= 0) {
+        logout();
+        return;
+      }
+
+      const timer = setTimeout(logout, timeLeft);
+      return () => clearTimeout(timer);
+    } catch {
+      logout();
+    }
+  }, [logout]);
   // Login con Google
   const handleGoogleLogin = useCallback(async (accessToken: string) => {
     try {
@@ -48,31 +70,11 @@ export function useAuth() {
     } finally {
       setLoading(false);
     }
-  }, [router, setUser]);
+  }, [router, setUser, startTokenWatcher]);
 
-  // Logout
-  const logout = useCallback(() => {
-    storeLogout();
-    router.push("/");
-  }, [storeLogout, router]);
 
   // Observador de expiración del token
-  const startTokenWatcher = useCallback((token: string) => {
-    try {
-      const decoded = jwtDecode<JwtPayload>(token);
-      const timeLeft = decoded.exp! * 1000 - Date.now();
 
-      if (timeLeft <= 0) {
-        logout();
-        return;
-      }
-
-      const timer = setTimeout(logout, timeLeft);
-      return () => clearTimeout(timer);
-    } catch {
-      logout();
-    }
-  }, [logout]);
 
   // Inicialización del usuario desde token en localStorage
   useEffect(() => {
