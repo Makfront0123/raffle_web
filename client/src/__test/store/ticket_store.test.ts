@@ -2,7 +2,6 @@ import { act } from "@testing-library/react";
 import { useTicketStore } from "@/store/ticketStore";
 import { TicketService } from "@/services/ticketService";
 import { Payment, TicketStatusEnum } from "@/type/Payment";
-import { Ticket } from "lucide-react";
 
 jest.mock("@/services/ticketService");
 

@@ -5,7 +5,6 @@ import WinnersSection from "@/components/WinnersSection";
 import FAQSection from "@/components/FAQSection";
 import { useLoadingScreen } from "@/hook/useLoadingScreen";
 import RaffleGrid from "@/components/RafflesGrid";
-import { useState } from "react";
 import { useFilteredRaffles } from "@/hook/useFilteredRaffles";
 import { usePrizes } from "@/hook/usePrizes";
 import PaginationControls from "@/components/user/reservations/PaginationControls";
@@ -43,9 +42,11 @@ export default function Home() {
       <RaffleGrid
         raffles={paginatedRaffles}
         setShowExpiredModal={(open, raffle) =>
-          setExpiredModal({ open, raffle })
+          setExpiredModal({ open, raffle: raffle ?? null })
         }
+
       />
+
 
       {totalPages > 1 && (
         <PaginationControls

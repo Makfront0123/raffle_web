@@ -1,5 +1,5 @@
 "use client";
-import { ChangeEvent, FormEvent } from "react";
+import { ChangeEvent} from "react";
 import { useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -60,7 +60,7 @@ export function PrizeForm({
         }));
     };
 
-    const handleSubmit = async (e: any) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         await onSubmit(form);
         setForm({

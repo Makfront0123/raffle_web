@@ -4,37 +4,34 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { AuthService } from "@/services/authService";
 
-import { jwtDecode, JwtPayload } from "jwt-decode";
 import { AuthStore } from "@/store/authStore";
 import { toast } from "sonner";
+import { GoogleTokenClient, GoogleTokenResponse } from "@/type/GoogleUserData";
+import { jwtDecode, JwtPayload } from "jwt-decode";
 
 export function useAuth() {
-  const getAuthService = () => new AuthService();
   const router = useRouter();
-
   const { user, setUser, logout: storeLogout } = AuthStore();
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [initialized, setInitialized] = useState(false);
   const [showAdminSplash, setShowAdminSplash] = useState(false);
   const [client, setClient] = useState<GoogleTokenClient | null>(null);
 
-
-  const handleGoogleLogin = async (accessToken: string) => {
+  // Login con Google
+  const handleGoogleLogin = useCallback(async (accessToken: string) => {
     try {
       setLoading(true);
 
-      const userData = await getAuthService().getUserByGoogle({ token: accessToken });
+      const userData = await new AuthService().getUserByGoogle({ token: accessToken });
       localStorage.setItem("token", userData.token);
 
-
-      const persistRes = await getAuthService().getUserByToken(userData.token);
-
+      const persistRes = await new AuthService().getUserByToken(userData.token);
       setUser(persistRes.user, userData.token);
 
       startTokenWatcher(userData.token);
       setError(null);
-
 
       toast.success(`¡Bienvenido ${persistRes.user.name || ""}!`);
 
@@ -42,81 +39,63 @@ export function useAuth() {
         sessionStorage.setItem("adminSplash", "true");
         setShowAdminSplash(true);
 
-        setTimeout(() => {
-          router.push("/dashboard");
-        }, 50);
-      }
-      else {
+        setTimeout(() => router.push("/dashboard"), 50);
+      } else {
         router.push("/");
       }
-
-
-    } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      }
+    } catch (err: unknown) {
+      if (err instanceof Error) setError(err.message);
     } finally {
       setLoading(false);
     }
-  };
+  }, [router, setUser]);
 
-
+  // Logout
   const logout = useCallback(() => {
     storeLogout();
     router.push("/");
   }, [storeLogout, router]);
 
-  const startTokenWatcher = useCallback(
-    (token: string) => {
-      try {
-        const decoded = jwtDecode<JwtPayload>(token);
-        const timeLeft = decoded.exp * 1000 - Date.now();
+  // Observador de expiración del token
+  const startTokenWatcher = useCallback((token: string) => {
+    try {
+      const decoded = jwtDecode<JwtPayload>(token);
+      const timeLeft = decoded.exp! * 1000 - Date.now();
 
-        if (timeLeft <= 0) {
-          logout();
-          return;
-        }
-
-        setTimeout(logout, timeLeft);
-      } catch (err) {
-        console.error("Error decodificando token:", err);
+      if (timeLeft <= 0) {
         logout();
+        return;
       }
-    },
-    [logout]
-  );
 
+      const timer = setTimeout(logout, timeLeft);
+      return () => clearTimeout(timer);
+    } catch {
+      logout();
+    }
+  }, [logout]);
 
+  // Inicialización del usuario desde token en localStorage
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (!token) {
+    if (!token || user) {
       setInitialized(true);
       return;
     }
-    if (user) {
-      setInitialized(true);
-      return;
-    }
-
-    const authService = new AuthService();
-
 
     (async () => {
       try {
-        const res = await authService.getUserByToken(token);
-
+        const res = await new AuthService().getUserByToken(token);
         setUser(res.user, token);
-
         startTokenWatcher(token);
-      } catch (err) {
+      } catch {
         logout();
       } finally {
         setInitialized(true);
       }
     })();
-  }, []);
+  }, [logout, setUser, startTokenWatcher, user]);
 
-
+  // Inicialización del cliente OAuth de Google
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -128,9 +107,7 @@ export function useAuth() {
         scope: "openid profile email",
         ux_mode: "popup",
         callback: async (response: GoogleTokenResponse) => {
-          if (response.access_token) {
-            await handleGoogleLogin(response.access_token);
-          }
+          if (response.access_token) await handleGoogleLogin(response.access_token);
         },
       });
 
@@ -149,15 +126,15 @@ export function useAuth() {
 
       return () => clearInterval(interval);
     }
-  }, []);
+  }, [handleGoogleLogin]);
 
-  const loginWithGoogle = () => {
+  const loginWithGoogle = useCallback(() => {
     if (!client) {
       console.error("Cliente OAuth de Google no inicializado aún");
       return;
     }
     client.requestAccessToken();
-  };
+  }, [client]);
 
   return {
     user,

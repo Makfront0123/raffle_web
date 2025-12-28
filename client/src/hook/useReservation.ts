@@ -1,6 +1,6 @@
 import { useReservationStore } from "@/store/reservationStore";
 import { AuthStore } from "@/store/authStore";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 export function useReservation() {
   const reservations = useReservationStore((state) => state.reservations);
@@ -10,22 +10,22 @@ export function useReservation() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchReservations = async () => {
+  const fetchReservations = useCallback(async () => {
     if (!token) return;
     setLoading(true);
     try {
       await getAllReservationsByUser(token);
       setError(null);
-    } catch (err) {
+    } catch (_) {  // <- ignoramos el error
       setError("Error cargando reservas");
     } finally {
       setLoading(false);
     }
-  };
+  }, [token, getAllReservationsByUser]);
 
   useEffect(() => {
     fetchReservations();
-  }, [token, getAllReservationsByUser]);
+  }, [fetchReservations]);
 
   return { reservations, loading, error, fetchReservations };
 }

@@ -1,19 +1,19 @@
 import { CreateRaffleDTO, Raffle, UpdateRafflePayload } from "@/type/Raffle";
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 
 const API_URL = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/raffle`;
 
 interface BackendError {
     message: string;
     status?: number;
-    data?: any;
+    data?: Record<string, unknown>;
 }
 
 export class RaffleService {
     private handleError(error: unknown, defaultMessage: string): never {
         let backendMessage = defaultMessage;
         let status: number | undefined;
-        let data: any;
+        let data: Record<string, unknown> | undefined;
 
         if (axios.isAxiosError(error)) {
             backendMessage = error.response?.data?.message || error.message || defaultMessage;
@@ -63,7 +63,6 @@ export class RaffleService {
         });
         return res.data;
     }
-
 
     async deleteRaffle(id: number, token: string): Promise<void> {
         try {

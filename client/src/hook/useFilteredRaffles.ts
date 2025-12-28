@@ -11,6 +11,7 @@ export function useFilteredRaffles() {
     open: false,
     raffle: null,
   });
+
   const { raffles, loading, error } = useRaffles();
   const { winners, setActiveRaffleId, loading: loadingWinner } = usePrizes();
 
