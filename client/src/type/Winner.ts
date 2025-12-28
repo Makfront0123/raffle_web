@@ -1,3 +1,5 @@
+import { User } from "./User";
+
 export interface WinnerTicket {
   id_ticket: number;
   ticket_number: number;
