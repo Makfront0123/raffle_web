@@ -34,11 +34,10 @@ export type UpdateRafflePayload = {
   description?: string;
 }
 
-
-// types.ts
 export interface CreateRaffleDTO {
   title: string;
   description?: string;
   price: number;
-  end_date?: string; // formato yyyy-mm-dd
+  endDate?: string;
+  digits?: number;
 }

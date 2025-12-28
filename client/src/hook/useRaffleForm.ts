@@ -3,12 +3,11 @@ import { Prizes } from "@/type/Prizes";
 import { Ticket } from "@/type/Ticket";
 import { useState } from "react";
 
-
 export type RaffleFormLocal = {
   title: string;
   description: string;
   price: string;
-  end_date: string;
+  end_date: string; // input type="date" en frontend
   digits: number;
   status: string;
   tickets: Ticket[];
@@ -33,7 +32,6 @@ export const useRaffleForm = () => {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value, type } = e.target;
-
     setForm((prev) => ({
       ...prev,
       [name]: type === "number" ? Number(value) : value,
@@ -42,10 +40,28 @@ export const useRaffleForm = () => {
 
   const resetForm = () => setForm(initialForm);
 
-  return {
-    form,
-    setForm,
-    handleChange,
-    resetForm,
+  // Validar y crear payload listo para backend
+  const getValidatedPayload = () => {
+    if (!form.end_date) throw new Error("Selecciona una fecha");
+
+    const endDate = new Date(form.end_date + "T23:59:59");
+    if (isNaN(endDate.getTime())) throw new Error("Fecha inválida");
+
+    const min = new Date();
+    min.setDate(min.getDate() + 7);
+    if (endDate < min) throw new Error("Debe ser mínimo 7 días después");
+
+    const price = parseFloat(form.price);
+    if (isNaN(price) || price <= 0) throw new Error("Precio inválido");
+
+    return {
+      title: form.title,
+      description: form.description,
+      price,
+      digits: form.digits,
+      endDate: endDate.toISOString(), // aquí enviamos el campo correcto
+    };
   };
+
+  return { form, setForm, handleChange, resetForm, getValidatedPayload };
 };

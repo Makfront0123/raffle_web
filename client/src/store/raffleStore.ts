@@ -4,7 +4,7 @@ import { create } from "zustand";
 import { toast } from "sonner";
 import { RaffleService } from "@/services/raffleService";
 import { Raffle, CreateRaffleDTO, UpdateRafflePayload } from "@/type/Raffle";
- 
+
 interface RaffleStore {
   raffles: Raffle[];
   setRaffles: (raffles: Raffle[]) => void;
@@ -18,7 +18,6 @@ interface RaffleStore {
   deactivateRaffle: (id: number, token: string) => Promise<void>;
 }
 
-// Helper para extraer mensaje de error
 const getErrorMessage = (err: unknown): string => {
   if (typeof err === "object" && err !== null && "message" in err) {
     return (err as { message: string }).message;
@@ -26,7 +25,6 @@ const getErrorMessage = (err: unknown): string => {
   return "Error desconocido";
 };
 
-// Store
 export const useRaffleStore = create<RaffleStore>()((set) => ({
   raffles: [],
 
@@ -64,29 +62,25 @@ export const useRaffleStore = create<RaffleStore>()((set) => ({
     }
   },
 
-  addRaffle: async (raffle: CreateRaffleDTO, token) => {
+  addRaffle: async (raffle: CreateRaffleDTO, token: string) => {
+    console.log("🔍 raffle:", raffle);
     try {
       const raffleService = new RaffleService();
-
-      const payload: CreateRaffleDTO & { endDate?: string } = { ...raffle };
-      if (raffle.end_date) {
-        payload.endDate = new Date(raffle.end_date + "T23:59:59").toISOString();
-        delete payload.end_date;
-      }
-
-      const created = await raffleService.createRaffle(payload, token);
+      const created = await raffleService.createRaffle(raffle, token);
       set((state) => ({ raffles: [...state.raffles, created] }));
       toast.success("Rifa creada correctamente");
-
+      console.log("🔍 created:", created);
       return created;
     } catch (err: unknown) {
-      const msg = getErrorMessage(err);
-      toast.error(msg || "Error creando rifa");
+      const msg = typeof err === "object" && err !== null && "message" in err
+        ? (err as { message: string }).message
+        : "Error creando rifa";
+      toast.error(msg);
       console.error(err);
       throw err;
     }
-  },
-
+  }
+  ,
   updateRaffle: async (id, data, token) => {
     try {
       const raffleService = new RaffleService();
