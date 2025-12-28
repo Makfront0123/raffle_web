@@ -57,13 +57,17 @@ const PORT = process.env.PORT || 4000;
 async function startServer() {
   try {
     await AppDataSource.initialize();
-    console.log("✅ Database connected (Aiven)");
+    console.log("Database connected (Aiven)");
+    if (process.env.NODE_ENV === "production") {
+      await AppDataSource.runMigrations();
+    }
+
+    console.log("Migrations executed");
     await import("./cron/cron");
     app.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`);
+      console.log(`Server running on port ${PORT}`);
     });
   } catch (error) {
-    console.error("❌ Error conectando a la base de datos:", error);
     process.exit(1);
   }
 }
