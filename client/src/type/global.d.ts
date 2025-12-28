@@ -16,6 +16,15 @@ declare global {
             requestAccessToken: () => void;
           };
         };
+        id?: {
+          renderButton: (
+            container: HTMLElement,
+            options: {
+              theme?: "outline" | "filled_blue" | "filled_black";
+              size?: "small" | "medium" | "large";
+            }
+          ) => void;
+        };
       };
     };
   }

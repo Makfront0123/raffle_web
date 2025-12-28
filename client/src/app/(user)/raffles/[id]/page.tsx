@@ -26,10 +26,13 @@ export default function RaffleDetailPage() {
 
   return (
     <div className="max-w-5xl mx-auto p-6 md:p-10 text-white min-h-screen bg-black">
-      <RaffleInfo
-        raffle={raffleDetail.raffle}
-        soldPercentage={raffleDetail.soldPercentage}
-      />
+      {raffleDetail.raffle && (
+        <RaffleInfo
+          raffle={raffleDetail.raffle}
+          soldPercentage={raffleDetail.soldPercentage}
+        />
+      )}
+
 
       <RaffleTicketsGrid
         tickets={raffleDetail.currentTickets}
@@ -59,12 +62,12 @@ export default function RaffleDetailPage() {
         setCurrentPage={raffleDetail.setPage}
       />
 
-      {raffleDetail.selectedTickets.length > 0 && (
+      {raffleDetail.raffle && raffleDetail.selectedTickets.length > 0 && (
         <RaffleTicketModal
           open={raffleDetail.open}
           setOpen={raffleDetail.setOpen}
           tickets={raffleDetail.selectedTickets}
-          raffle={raffleDetail.raffle}
+          raffle={raffleDetail.raffle} // ✅ ya es Raffle, no null
           handleAction={raffleDetail.handleAction}
         />
       )}

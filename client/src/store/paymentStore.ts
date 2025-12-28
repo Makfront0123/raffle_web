@@ -16,7 +16,8 @@ interface PaymentStore {
   getPaymentsUser: (token: string) => Promise<Payment[]>;
 
   createPayment: (data: PaymentCreateDto, token: string) => Promise<Payment>;
-  widgetPayment: (data: WidgetPaymentDto, token: string) => Promise<void>;
+  widgetPayment: (data: WidgetPaymentDto, token: string) => Promise<Payment>;
+
 
   completePayment: (id: number, token: string) => Promise<void>;
   cancelPayment: (id: number, token: string) => Promise<void>;
