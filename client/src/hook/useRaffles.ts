@@ -1,5 +1,6 @@
 "use client";
 
+import { toLocalDateInput } from "@/app/utils/toLocalDateInput";
 import { AuthStore } from "@/store/authStore";
 import { useRaffleStore } from "@/store/raffleStore";
 import { CreateRaffleDTO, Raffle, UpdateRafflePayload } from "@/type/Raffle";
@@ -39,18 +40,27 @@ export function useRaffles() {
   }, [refreshRaffles]);
 
   const createRaffle = useCallback(
-    async (form: { title: string; description: string; price: string; end_date: string; digits: number }) => {
+    async (form: {
+      title: string;
+      description: string;
+      price: string;
+      end_date: string;
+      digits: number;
+    }) => {
       if (!token) return;
 
       try {
-        if (!form.end_date) throw new Error("Selecciona una fecha.");
+        const endDateStr = toLocalDateInput(form.end_date);
+        if (!endDateStr) throw new Error("Selecciona una fecha válida.");
+
+        const [year, month, day] = endDateStr.split("-").map(Number);
+        const endDate = new Date(year, month - 1, day, 23, 59, 59);
+
+        if (isNaN(endDate.getTime())) throw new Error("Fecha inválida");
 
         const min = new Date();
         min.setDate(min.getDate() + 7);
-
-        const endDate = new Date(form.end_date + "T23:59:59");
         if (endDate < min) throw new Error("Debe ser mínimo 7 días después.");
-
         const price = parseFloat(form.price);
         if (isNaN(price) || price <= 0) throw new Error("Precio inválido");
 
@@ -59,7 +69,7 @@ export function useRaffles() {
           description: form.description,
           price,
           endDate: endDate.toISOString(),
-          digits: form.digits
+          digits: form.digits,
         };
 
         await addRaffle(payload, token);
@@ -72,7 +82,6 @@ export function useRaffles() {
     },
     [addRaffle, token, refreshRaffles]
   );
-
   const handleDeleteRaffle = useCallback(
     async (id: number) => {
       if (!token) return;
