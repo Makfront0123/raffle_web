@@ -15,7 +15,7 @@ router.get("/", authMiddleware, adminMiddleware, paymentController.getAllPayment
 router.get("/user", authMiddleware, paymentController.getPaymentUser.bind(paymentController));
 router.post("/", authMiddleware, paymentController.createPayment.bind(paymentController));
 router.get("/:id", authMiddleware, paymentController.getPaymentById.bind(paymentController));
-router.delete("/:id", paymentController.deletePayment.bind(paymentController));
+router.delete("/:id",authMiddleware, adminMiddleware, paymentController.deletePayment.bind(paymentController));
 router.put("/:id", authMiddleware, adminMiddleware, paymentController.updatePayment.bind(paymentController));
 router.post("/:id/complete", authMiddleware, adminMiddleware, paymentController.completePayment.bind(paymentController));
 router.post("/:id/cancel", authMiddleware, adminMiddleware, paymentController.cancelPayment.bind(paymentController));
