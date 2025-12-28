@@ -2,8 +2,6 @@ import "reflect-metadata";
 import dotenv from "dotenv";
 dotenv.config();
 import { DataSource } from "typeorm";
-import fs from "fs";
-import path from "path";
 import { User } from "./entities/user.entity";
 import { Role } from "./entities/role.entity";
 import { Raffle } from "./entities/raffle.entity";
