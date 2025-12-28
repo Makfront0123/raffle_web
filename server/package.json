@@ -6,9 +6,10 @@
     "build": "tsc -p tsconfig.build.json",
     "start": "node dist/server.js",
     "dev": "ts-node src/server.ts",
-    "typeorm": "typeorm-ts-node-commonjs -d src/data-source.ts",
+    "typeorm": "typeorm-ts-node-commonjs",
     "migration:generate": "typeorm-ts-node-commonjs -d src/data-source.ts migration:generate",
-    "migration:run": "typeorm-ts-node-commonjs -d src/data-source.ts migration:run",
+    "migration:run:local": "typeorm-ts-node-commonjs -d src/data-source.ts migration:run",
+    "migration:run:prod": "node ./node_modules/typeorm/cli.js -d dist/data-source.js migration:run",
     "migration:revert": "typeorm-ts-node-commonjs -d src/data-source.ts migration:revert",
     "seed:all": "ts-node src/seeder/allSeeder.ts",
     "test": "jest --runInBand"

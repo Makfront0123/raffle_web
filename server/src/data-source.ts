@@ -15,7 +15,7 @@ import { PaymentDetail } from "./entities/payment_details.entity";
 import { Reservation } from "./entities/reservation.entity";
 import { ReservationTicket } from "./entities/reservation_ticket.entity";
 
- 
+
 export const AppDataSource = new DataSource({
     type: "mysql",
     host: process.env.DB_HOST,
@@ -42,7 +42,7 @@ export const AppDataSource = new DataSource({
         Reservation,
         ReservationTicket,
     ],
-
+    migrations: ["dist/migrations/*.js"],
     synchronize: false,
     logging: true,
 });
