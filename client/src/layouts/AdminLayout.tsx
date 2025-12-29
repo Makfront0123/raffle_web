@@ -2,32 +2,30 @@
 
 import React, { useState } from "react";
 import { useAuth } from "@/hook/useAuth";
+import { useAdminSplash } from "@/hook/useAdminSplash";
 
 import HeaderAdmin from "@/components/HeaderAdmin";
+import { Sidebar } from "@/components/Sidebar";
 import {
   Sheet,
   SheetContent,
-  SheetDescription,
   SheetHeader,
   SheetTitle,
+  SheetDescription,
 } from "@/components/ui/sheet";
-import { Sidebar } from "@/components/Sidebar";
-import { useAdminSplash } from "@/hook/useAdminSplash";
-import AdminSplashScreen from "@/components/admin/adminSplashScreen";
-
+import AdminSplashScreen from "@/components/admin/AdminSplashScreen";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { logout } = useAuth();
   const [openSidebar, setOpenSidebar] = useState(false);
-  const { showSplash, adminName } = useAdminSplash();
-  if (showSplash) {
-    return <AdminSplashScreen name={adminName} />;
-  }
+  
+
   return (
     <div className="flex min-h-screen bg-gray-100 text-gray-800">
       <aside className="hidden md:flex">
         <Sidebar />
       </aside>
+
       <Sheet open={openSidebar} onOpenChange={setOpenSidebar}>
         <SheetContent side="left" className="p-0 w-64">
           <SheetHeader className="p-4 border-b">

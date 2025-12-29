@@ -1,32 +1,33 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/hook/useAuth";
 
-export function useAdminSplash(duration = 3000) {
+export function useAdminSplash(duration = 1500) {
   const { user, initialized } = useAuth();
+  const router = useRouter();
   const [showSplash, setShowSplash] = useState(false);
 
   useEffect(() => {
-    if (!initialized) return;
-    if (user?.role !== "admin") return;
+    if (!initialized || !user) return;
 
-    const flag = sessionStorage.getItem("adminSplash");
-
-    if (flag === "true") {
+    const splashShown = sessionStorage.getItem("adminSplashShown") === "true";
+    const justLoggedIn = sessionStorage.getItem("justLoggedIn") === "true";
+    if (user.role === "admin" && !splashShown && !justLoggedIn) {
       setShowSplash(true);
+      sessionStorage.setItem("justLoggedIn", "true");
 
       const timer = setTimeout(() => {
-        sessionStorage.removeItem("adminSplash");
         setShowSplash(false);
+        sessionStorage.setItem("adminSplashShown", "true");
+        sessionStorage.removeItem("justLoggedIn");
+        router.push("/dashboard");
       }, duration);
 
       return () => clearTimeout(timer);
     }
-  }, [initialized, user, duration]);
+  }, [user, initialized, duration, router]);
 
-  return {
-    showSplash,
-    adminName: user?.name,
-  };
+  return { showSplash, user };
 }

@@ -9,8 +9,9 @@ import { useFilteredRaffles } from "@/hook/useFilteredRaffles";
 import { usePrizes } from "@/hook/usePrizes";
 import PaginationControls from "@/components/user/reservations/PaginationControls";
 import { usePagination } from "@/hook/usePagination";
-import AdminSplashScreen from "@/components/admin/adminSplashScreen";
-import { useAuth } from "@/hook/useAuth";
+import AdminSplashScreen from "@/components/admin/AdminSplashScreen";
+import { useAdminSplash } from "@/hook/useAdminSplash";
+
 export default function Home() {
   const loading = useLoadingScreen(300);
 
@@ -23,17 +24,13 @@ export default function Home() {
     setPage,
     items: paginatedRaffles,
   } = usePagination(filteredRaffles, 3);
-
-
-  const { user, showAdminSplash } = useAuth();
+ 
 
   if (loading) return <LoadingScreen />;
 
-  console.log(user);
+ 
 
-  if (showAdminSplash && user?.role === "admin") {
-    return <AdminSplashScreen name={user.name} />;
-  }
+  
 
   return (
     <>
