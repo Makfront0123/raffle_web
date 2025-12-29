@@ -39,7 +39,10 @@ export function useRaffles() {
   }, []);
 
   const createRaffle = useCallback(
-    async (form: { title: string; description: string; price: string; end_date: string; digits: number }, resetForm?: () => void) => {
+    async (
+      form: { title: string; description: string; price: string; end_date: string; digits: number },
+      resetForm?: () => void
+    ) => {
       if (!token) return;
 
       try {
@@ -47,7 +50,6 @@ export function useRaffles() {
 
         const endDate = new Date(form.end_date);
         endDate.setUTCHours(23, 59, 59, 0);
-
         if (isNaN(endDate.getTime())) throw new Error("Fecha inválida");
 
         const minDate = new Date();
@@ -57,37 +59,34 @@ export function useRaffles() {
         const price = parseFloat(form.price);
         if (isNaN(price) || price <= 0) throw new Error("Precio inválido");
 
-        const payload: CreateRaffleDTO = {
-          title: form.title,
-          description: form.description,
-          price,
-          endDate: endDate.toISOString(),
-          digits: form.digits,
-        };
-
-        const tempRaffle: TempRaffle = {
-          ...payload,
+        // Crear rifa temporal
+        const tempRaffle: Raffle = {
           id: Date.now(),
-          status: "pending",
-          end_date: form.end_date,
-          digits: form.digits,
+          title: form.title,
           description: form.description || "",
+          price,
+          end_date: endDate.toISOString(),
+          digits: form.digits,
+          status: "pending",
           tickets: [],
           prizes: [],
           created_at: new Date().toISOString(),
           total_numbers: 0,
         };
-        addRaffle(tempRaffle, token);
+
+        // Llamar al store, que ya maneja toast, temporal y reemplazo
+        await addRaffle(tempRaffle, token);
+
         if (resetForm) resetForm();
 
-        toast.success("Rifa creada correctamente");
       } catch (err: unknown) {
         toast.error(err instanceof Error ? err.message : "Error creando la rifa");
         throw err;
       }
     },
-    [addRaffle, token, refreshRaffles]
+    [addRaffle, token]
   );
+
 
 
 

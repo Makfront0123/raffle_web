@@ -3,14 +3,15 @@
 import { create } from "zustand";
 import { toast } from "sonner";
 import { RaffleService } from "@/services/raffleService";
-import { Raffle, CreateRaffleDTO, UpdateRafflePayload } from "@/type/Raffle";
+import { Raffle, UpdateRafflePayload } from "@/type/Raffle";
+
 
 interface RaffleStore {
   raffles: Raffle[];
   setRaffles: (raffles: Raffle[]) => void;
   getRaffles: () => Promise<void>;
   getRaffleById: (id: number, token: string) => Promise<Raffle>;
-  addRaffle: (raffle: CreateRaffleDTO, token: string) => Promise<Raffle>;
+  addRaffle: (raffle: Raffle, token: string) => Promise<Raffle>;
   deleteRaffle: (id: number, token: string) => Promise<boolean>;
   regenerateTickets: (id: number, newDigits: number, token: string) => Promise<boolean>;
   activateRaffle: (id: number, token: string) => Promise<void>;
@@ -61,15 +62,36 @@ export const useRaffleStore = create<RaffleStore>()((set) => ({
       throw err;
     }
   },
+  addRaffle: async (raffle: Raffle, token: string) => {
+    set((state) => ({ raffles: [...state.raffles, raffle] }));
+    toast.success("Rifa creada correctamente");
 
-  addRaffle: async (raffle: CreateRaffleDTO, token: string) => {
-    const raffleService = new RaffleService();
-    const created = await raffleService.createRaffle(raffle, token);
+    try {
+      const raffleService = new RaffleService();
+      const created = await raffleService.createRaffle({
+        title: raffle.title,
+        description: raffle.description,
+        price: raffle.price,
+        endDate: raffle.end_date,
+        digits: raffle.digits,
+      }, token);
+      set((state) => ({
+        raffles: state.raffles.map(r => r.id === raffle.id ? created : r)
+      }));
 
-    // Solo actualizar el estado, no mostrar toast
-    set((state) => ({ raffles: [...state.raffles, created] }));
-    return created;
+      return created;
+    } catch (err: unknown) {
+      const msg = getErrorMessage(err);
+      toast.error(msg);
+
+      set((state) => ({
+        raffles: state.raffles.filter(r => r.id !== raffle.id)
+      }));
+
+      throw err;
+    }
   }
+
   ,
   updateRaffle: async (id, data, token) => {
     try {
