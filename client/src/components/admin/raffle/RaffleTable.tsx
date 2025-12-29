@@ -1,20 +1,25 @@
 "use client";
 
-import {
-    Pagination,
-    PaginationContent,
-    PaginationItem,
-    PaginationNext,
-    PaginationPrevious,
-    PaginationLink,
-} from "@/components/ui/pagination";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { ConfirmDialog } from "@/components/ConfirmActionDialog";
-
-import RegenerateTicketsButton from "@/components/RegenerateTicketsButton";
 import { Raffle } from "@/type/Raffle";
+import { Pagination, PaginationItem, PaginationLink, PaginationPrevious, PaginationNext, PaginationContent } from "@/components/ui/pagination";
+import { ConfirmDialog } from "@/components/ConfirmActionDialog";
 import { EditRaffleDialog } from "@/components/EditRaffleDialog";
-import { RafflesTableProps } from "@/type/RaffleTableProps";
+import RegenerateTicketsButton from "@/components/RegenerateTicketsButton";
+
+
+interface RafflesTableProps {
+    raffles: Raffle[];
+    loading: boolean;
+    error: string | null;
+    currentPage: number;
+    setCurrentPage: (page: number | ((p: number) => number)) => void;
+    totalPages: number;
+    deleteRaffle: (id: number) => void;
+    activateRaffle: (id: number) => void;
+    deactivateRaffle: (id: number) => void;
+    updateRaffle: (id: number, data: Partial<Raffle>) => void;
+}
 
 export const RafflesTable = ({
     raffles,
@@ -54,60 +59,38 @@ export const RafflesTable = ({
                                         <th className="px-4 py-2">Acciones</th>
                                     </tr>
                                 </thead>
-
                                 <tbody>
-                                    {raffles.map((r: Raffle) => {
+                                    {raffles.map((r) => {
                                         const isEnded = r.status === "ended";
                                         const expired = new Date(r.end_date) < new Date();
-
                                         return (
-                                            <tr key={r.id} className="border-t">
+                                            <tr key={`raffle-${r.id}`} className="border-t">
                                                 <td className="px-4 py-2">{r.title}</td>
                                                 <td className="px-4 py-2">{r.total_numbers}</td>
                                                 <td className="px-4 py-2">{r.price}</td>
                                                 <td className="px-4 py-2">{r.digits}</td>
                                                 <td className="px-4 py-2">{r.status}</td>
-                                                <td className="px-4 py-2">
-                                                    {new Date(r.end_date).toLocaleDateString()}
-                                                </td>
-
+                                                <td className="px-4 py-2">{new Date(r.end_date).toLocaleDateString()}</td>
                                                 <td className="px-4 py-2 flex gap-2 flex-wrap">
                                                     <ConfirmDialog
-                                                        title="Eliminar rifa"
-                                                        triggerLabel="Eliminar"
-                                                        variant="destructive"
-                                                        onConfirm={() => deleteRaffle(r.id)} description={undefined} />
-
+                                                        description="¿Estás seguro que quieres eliminar esta rifa?"
+                                                        title="Eliminar rifa" triggerLabel="Eliminar" variant="destructive" onConfirm={() => deleteRaffle(r.id)} />
                                                     {!isEnded && (
                                                         <>
                                                             <RegenerateTicketsButton raffleId={r.id} />
-
-                                                            <EditRaffleDialog
-                                                                raffle={r}
-                                                                onSave={(updated) =>
-                                                                    updateRaffle(r.id, updated)
-                                                                }
-                                                            />
-
+                                                            <EditRaffleDialog raffle={r} onSave={(updated) => updateRaffle(r.id, updated)} />
                                                             {r.status === "pending" && !expired && (
                                                                 <ConfirmDialog
-                                                                    title="Activar rifa"
-                                                                    triggerLabel="Activar"
-                                                                    onConfirm={() => activateRaffle(r.id)} description={undefined} />
+                                                                    description="¿Estás seguro que quieres activar esta rifa?"
+                                                                    title="Activar rifa" triggerLabel="Activar" onConfirm={() => activateRaffle(r.id)} />
                                                             )}
-
                                                             {r.status === "pending" && expired && (
-                                                                <span className="text-xs text-red-500">
-                                                                    Fecha vencida. Actualiza antes de activar.
-                                                                </span>
+                                                                <span className="text-xs text-red-500">Fecha vencida. Actualiza antes de activar.</span>
                                                             )}
-
                                                             {r.status === "active" && (
                                                                 <ConfirmDialog
-                                                                    title="Desactivar rifa"
-                                                                    triggerLabel="Desactivar"
-                                                                    variant="outline"
-                                                                    onConfirm={() => deactivateRaffle(r.id)} description={undefined} />
+                                                                    description="¿Estás seguro que quieres eliminar esta rifa?"
+                                                                    title="Desactivar rifa" triggerLabel="Desactivar" variant="outline" onConfirm={() => deactivateRaffle(r.id)} />
                                                             )}
                                                         </>
                                                     )}
@@ -124,28 +107,19 @@ export const RafflesTable = ({
                             <Pagination>
                                 <PaginationContent>
                                     <PaginationItem>
-                                        <PaginationPrevious
-                                            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                                        />
+                                        <PaginationPrevious onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} />
                                     </PaginationItem>
 
                                     {Array.from({ length: totalPages }).map((_, i) => (
                                         <PaginationItem key={i}>
-                                            <PaginationLink
-                                                isActive={currentPage === i + 1}
-                                                onClick={() => setCurrentPage(i + 1)}
-                                            >
+                                            <PaginationLink isActive={currentPage === i + 1} onClick={() => setCurrentPage(i + 1)}>
                                                 {i + 1}
                                             </PaginationLink>
                                         </PaginationItem>
                                     ))}
 
                                     <PaginationItem>
-                                        <PaginationNext
-                                            onClick={() =>
-                                                setCurrentPage(Math.min(totalPages, currentPage + 1))
-                                            }
-                                        />
+                                        <PaginationNext onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))} />
                                     </PaginationItem>
                                 </PaginationContent>
                             </Pagination>

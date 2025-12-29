@@ -1,18 +1,17 @@
 "use client";
+
 import { useRaffles } from "@/hook/useRaffles";
 import { useRaffleForm } from "@/hook/useRaffleForm";
-import { useState } from "react";
+import { usePagination } from "@/hook/usePagination";
 import { RaffleForm } from "@/components/admin/raffle/RaffleForm";
 import { RafflesTable } from "@/components/admin/raffle/RaffleTable";
+
+
 const RafflesAdmin = () => {
   const { raffles, createRaffle, loading, error, deleteRaffle, activateRaffle, deactivateRaffle, updateRaffle } = useRaffles();
   const { form, handleChange, resetForm } = useRaffleForm();
+  const { page, totalPages, items: currentRaffles, setPage } = usePagination(raffles, 5, false);
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const rafflesPerPage = 5;
-  const start = (currentPage - 1) * rafflesPerPage;
-  const currentRaffles = raffles.slice(start, start + rafflesPerPage);
-  const totalPages = Math.ceil(raffles.length / rafflesPerPage);
 
   const minDate = (() => {
     const d = new Date();
@@ -20,14 +19,10 @@ const RafflesAdmin = () => {
     return d.toISOString().split("T")[0];
   })();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      await createRaffle(form);
-      resetForm();
-    } catch {
-    }
+  const handleSubmit = () => {
+    createRaffle(form, resetForm).catch(console.error);
   };
+
 
   return (
     <main className="p-6">
@@ -36,7 +31,7 @@ const RafflesAdmin = () => {
       <RaffleForm
         form={form}
         handleChange={handleChange}
-        handleSubmit={handleSubmit}
+        onSubmit={handleSubmit}
         minDate={minDate}
       />
 
@@ -44,8 +39,8 @@ const RafflesAdmin = () => {
         raffles={currentRaffles}
         loading={loading}
         error={error}
-        currentPage={currentPage}
-        setCurrentPage={setCurrentPage}
+        currentPage={page}
+        setCurrentPage={setPage}
         totalPages={totalPages}
         deleteRaffle={deleteRaffle}
         activateRaffle={activateRaffle}
@@ -55,4 +50,5 @@ const RafflesAdmin = () => {
     </main>
   );
 };
+
 export default RafflesAdmin;

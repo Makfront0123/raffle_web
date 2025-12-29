@@ -3,7 +3,7 @@
 
 import { AuthStore } from "@/store/authStore";
 import { useRaffleStore } from "@/store/raffleStore";
-import { CreateRaffleDTO, Raffle, UpdateRafflePayload } from "@/type/Raffle";
+import { CreateRaffleDTO, Raffle, TempRaffle, UpdateRafflePayload } from "@/type/Raffle";
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { toast } from "sonner";
 
@@ -36,10 +36,10 @@ export function useRaffles() {
 
   useEffect(() => {
     refreshRaffles();
-  }, [refreshRaffles]);
+  }, []);
 
   const createRaffle = useCallback(
-    async (form: { title: string; description: string; price: string; end_date: string; digits: number }) => {
+    async (form: { title: string; description: string; price: string; end_date: string; digits: number }, resetForm?: () => void) => {
       if (!token) return;
 
       try {
@@ -65,20 +65,34 @@ export function useRaffles() {
           digits: form.digits,
         };
 
-        await addRaffle(payload, token);
+        const tempRaffle: TempRaffle = {
+          ...payload,
+          id: Date.now(),
+          status: "pending",
+          end_date: form.end_date,
+          digits: form.digits,
+          description: form.description || "",
+          tickets: [],
+          prizes: [],
+          created_at: new Date().toISOString(),
+          total_numbers: 0,
+        };
+
+        addRaffle(tempRaffle, token);
+
         await refreshRaffles();
+        if (resetForm) resetForm();
+
+
         toast.success("Rifa creada correctamente");
       } catch (err: unknown) {
-        if (err instanceof Error) {
-          toast.error(err.message || "Error creando la rifa");
-        } else {
-          toast.error("Error creando la rifa");
-        }
+        toast.error(err instanceof Error ? err.message : "Error creando la rifa");
         throw err;
       }
     },
     [addRaffle, token, refreshRaffles]
   );
+
 
 
   const handleDeleteRaffle = useCallback(
@@ -140,12 +154,11 @@ export function useRaffles() {
     [regenerateTickets, token, refreshRaffles]
   );
 
-  // Filtrado seguro: evitamos null y fechas inválidas
   const filteredRaffles = useMemo(() => {
     return storeRaffles
       .filter(r => {
         if (!r.status) return false;
-        return r.status.toLowerCase().trim() === "active"; // normalizamos
+        return r.status.toLowerCase().trim() === "active";
       })
       .sort((a, b) => {
         const aTime = a.end_date ? new Date(a.end_date).getTime() : Infinity;

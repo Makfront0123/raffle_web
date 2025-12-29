@@ -1,5 +1,6 @@
 import { Prizes } from "./Prizes";
 import { Ticket } from "./Ticket";
+export type TempRaffle = Partial<Raffle> & { id: number; status: string; title: string; price: number };
 
 export interface Raffle {
   id: number;
