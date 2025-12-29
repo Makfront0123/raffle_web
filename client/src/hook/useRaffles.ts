@@ -24,7 +24,6 @@ export function useRaffles() {
   const { token } = AuthStore();
 
   const refreshRaffles = useCallback(async () => {
-    if (!token) return;
     setLoading(true);
     try {
       await getRaffles();
@@ -40,27 +39,21 @@ export function useRaffles() {
   }, [refreshRaffles]);
 
   const createRaffle = useCallback(
-    async (form: {
-      title: string;
-      description: string;
-      price: string;
-      end_date: string;
-      digits: number;
-    }) => {
+    async (form: { title: string; description: string; price: string; end_date: string; digits: number }) => {
       if (!token) return;
 
       try {
-        const endDateStr = toLocalDateInput(form.end_date);
-        if (!endDateStr) throw new Error("Selecciona una fecha válida.");
+        if (!form.end_date) throw new Error("Selecciona una fecha válida.");
 
-        const [year, month, day] = endDateStr.split("-").map(Number);
-        const endDate = new Date(year, month - 1, day, 23, 59, 59);
+        const endDate = new Date(form.end_date);
+        endDate.setUTCHours(23, 59, 59, 0);
 
         if (isNaN(endDate.getTime())) throw new Error("Fecha inválida");
 
-        const min = new Date();
-        min.setDate(min.getDate() + 7);
-        if (endDate < min) throw new Error("Debe ser mínimo 7 días después.");
+        const minDate = new Date();
+        minDate.setDate(minDate.getDate() + 7);
+        if (endDate < minDate) throw new Error("Debe ser mínimo 7 días después.");
+
         const price = parseFloat(form.price);
         if (isNaN(price) || price <= 0) throw new Error("Precio inválido");
 
@@ -82,6 +75,8 @@ export function useRaffles() {
     },
     [addRaffle, token, refreshRaffles]
   );
+
+
   const handleDeleteRaffle = useCallback(
     async (id: number) => {
       if (!token) return;
@@ -96,13 +91,14 @@ export function useRaffles() {
       if (!token) return;
       try {
         const payload: UpdateRafflePayload = {};
+
         if (data.price !== undefined) payload.price = data.price;
-        if (data.end_date !== undefined && data.end_date !== null) {
-          payload.endDate =
-            data.end_date.length === 10 ? new Date(data.end_date + "T23:59:59").toISOString() : data.end_date;
+        if (data.end_date) {
+          const endDate = new Date(data.end_date.length === 10 ? data.end_date + "T23:59:59" : data.end_date);
+          if (!isNaN(endDate.getTime())) payload.endDate = endDate.toISOString();
         }
-        if (data.title !== undefined) payload.title = data.title;
-        if (data.description !== undefined) payload.description = data.description;
+        if (data.title) payload.title = data.title;
+        if (data.description) payload.description = data.description;
 
         await updateRaffle(id, payload, token);
         await refreshRaffles();
@@ -140,11 +136,20 @@ export function useRaffles() {
     [regenerateTickets, token, refreshRaffles]
   );
 
+  // Filtrado seguro: evitamos null y fechas inválidas
   const filteredRaffles = useMemo(() => {
     return storeRaffles
-      .filter((r) => r.status === "active")
-      .sort((a, b) => new Date(a.end_date).getTime() - new Date(b.end_date).getTime());
+      .filter(r => {
+        if (!r.status) return false;
+        return r.status.toLowerCase().trim() === "active"; // normalizamos
+      })
+      .sort((a, b) => {
+        const aTime = a.end_date ? new Date(a.end_date).getTime() : Infinity;
+        const bTime = b.end_date ? new Date(b.end_date).getTime() : Infinity;
+        return aTime - bTime;
+      });
   }, [storeRaffles]);
+
 
   return {
     raffles: storeRaffles,
