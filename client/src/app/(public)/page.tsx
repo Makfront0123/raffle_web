@@ -1,18 +1,24 @@
 "use client";
+
 import LoadingScreen from "@/components/LoadingScreen";
 import Hero from "@/components/Hero";
 import WinnersSection from "@/components/WinnersSection";
 import FAQSection from "@/components/FAQSection";
-import { useLoadingScreen } from "@/hook/useLoadingScreen";
 import RaffleGrid from "@/components/RafflesGrid";
+import PaginationControls from "@/components/user/reservations/PaginationControls";
+
+import { useLoadingScreen } from "@/hook/useLoadingScreen";
 import { useFilteredRaffles } from "@/hook/useFilteredRaffles";
 import { usePrizes } from "@/hook/usePrizes";
-import PaginationControls from "@/components/user/reservations/PaginationControls";
 import { usePagination } from "@/hook/usePagination";
-import AdminSplashScreen from "@/components/admin/adminSplashScreen";
-import { useAuth } from "@/hook/useAuth";
+ 
+
+import AdminSplashScreen from "@/components/admin/AdminSplashScreen";
+import { useAdminSplash } from "@/hook/useAdminSplash";
+
 export default function Home() {
   const loading = useLoadingScreen(300);
+ 
 
   const { filteredRaffles, setExpiredModal } = useFilteredRaffles();
   const { winners } = usePrizes();
@@ -23,20 +29,14 @@ export default function Home() {
     setPage,
     items: paginatedRaffles,
   } = usePagination(filteredRaffles, 3);
-
-  console.log("🔍 filteredRaffles:", filteredRaffles);
-
-
-  const { user, showAdminSplash } = useAuth();
+  const showAdminSplash = useAdminSplash();
 
   if (loading) return <LoadingScreen />;
-
-  console.log(user);
-
-  if (showAdminSplash && user?.role === "admin") {
-    return <AdminSplashScreen name={user.name} />;
+ 
+  if (showAdminSplash) {
+    return <AdminSplashScreen />;
   }
-
+ 
   return (
     <>
       <Hero />
@@ -46,9 +46,7 @@ export default function Home() {
         setShowExpiredModal={(open, raffle) =>
           setExpiredModal({ open, raffle: raffle ?? null })
         }
-
       />
-
 
       {totalPages > 1 && (
         <PaginationControls

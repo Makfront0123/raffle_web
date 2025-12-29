@@ -89,7 +89,7 @@ export const RafflesTable = ({
                                                             )}
                                                             {r.status === "active" && (
                                                                 <ConfirmDialog
-                                                                    description="¿Estás seguro que quieres eliminar esta rifa?"
+                                                                    description="¿Estás seguro que quieres desactivar esta rifa?"
                                                                     title="Desactivar rifa" triggerLabel="Desactivar" variant="outline" onConfirm={() => deactivateRaffle(r.id)} />
                                                             )}
                                                         </>
@@ -102,7 +102,6 @@ export const RafflesTable = ({
                             </table>
                         </div>
 
-                        {/* PAGINACIÓN */}
                         <div className="flex justify-center mt-4">
                             <Pagination>
                                 <PaginationContent>

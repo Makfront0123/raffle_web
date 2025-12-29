@@ -16,14 +16,17 @@ export function useAuth() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [initialized, setInitialized] = useState(false);
-  const [showAdminSplash, setShowAdminSplash] = useState(false);
+ 
   const [client, setClient] = useState<GoogleTokenClient | null>(null);
 
-  // Logout
   const logout = useCallback(() => {
-    storeLogout();
-    router.push("/");
-  }, [storeLogout, router]);
+  sessionStorage.removeItem("adminSplashShown"); 
+  storeLogout();
+  router.push("/");
+}, [storeLogout, router]);
+
+
+ 
 
   const startTokenWatcher = useCallback((token: string) => {
     try {
@@ -56,15 +59,9 @@ export function useAuth() {
       setError(null);
 
       toast.success(`¡Bienvenido ${persistRes.user.name || ""}!`);
+ 
 
-      if (persistRes.user.role === "admin") {
-        sessionStorage.setItem("adminSplash", "true");
-        setShowAdminSplash(true);
 
-        setTimeout(() => router.push("/dashboard"), 50);
-      } else {
-        router.push("/");
-      }
     } catch (err: unknown) {
       if (err instanceof Error) setError(err.message);
     } finally {
@@ -145,6 +142,6 @@ export function useAuth() {
     loginWithGoogle,
     logout,
     initialized,
-    showAdminSplash,
+ 
   };
 }

@@ -1,38 +1,42 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { useAuth } from "@/hook/useAuth";
-
+import { useAdminSplash } from "@/hook/useAdminSplash";
 import HeaderAdmin from "@/components/HeaderAdmin";
+import { Sidebar } from "@/components/Sidebar";
 import {
   Sheet,
   SheetContent,
-  SheetDescription,
   SheetHeader,
   SheetTitle,
+  SheetDescription,
 } from "@/components/ui/sheet";
-import { Sidebar } from "@/components/Sidebar";
-import { useAdminSplash } from "@/hook/useAdminSplash";
-import AdminSplashScreen from "@/components/admin/adminSplashScreen";
-
+import AdminSplashScreen from "@/components/admin/AdminSplashScreen";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { logout } = useAuth();
   const [openSidebar, setOpenSidebar] = useState(false);
   const { showSplash, adminName } = useAdminSplash();
+
+  // 🔑 DECISIÓN DE RENDER
   if (showSplash) {
     return <AdminSplashScreen name={adminName} />;
   }
+
   return (
     <div className="flex min-h-screen bg-gray-100 text-gray-800">
       <aside className="hidden md:flex">
         <Sidebar />
       </aside>
+
       <Sheet open={openSidebar} onOpenChange={setOpenSidebar}>
         <SheetContent side="left" className="p-0 w-64">
           <SheetHeader className="p-4 border-b">
             <SheetTitle className="text-lg font-bold">Menú</SheetTitle>
-            <SheetDescription>Accede a las secciones del panel de administración</SheetDescription>
+            <SheetDescription>
+              Accede a las secciones del panel de administración
+            </SheetDescription>
           </SheetHeader>
           <Sidebar />
         </SheetContent>
@@ -40,7 +44,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       <div className="flex flex-col flex-1">
         <HeaderAdmin onMenuClick={() => setOpenSidebar(true)} onLogout={logout} />
-        <main className="flex-1 md:p-6 p-0 overflow-y-auto">{children}</main>
+        <main className="flex-1 md:p-6 p-0 overflow-y-auto">
+          {children}
+        </main>
       </div>
     </div>
   );

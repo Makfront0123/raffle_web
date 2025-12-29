@@ -20,7 +20,6 @@ const RafflesAdmin = () => {
   })();
 
   const handleSubmit = () => {
-    // Convertimos price y digits a number
     const formattedForm = {
       ...form,
       price: Number(form.price),

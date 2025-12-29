@@ -14,32 +14,50 @@ interface DashboardStats {
     lastRaffles: Raffle[];
     loading: boolean;
 }
+
 export function useDashboardData(): DashboardStats {
-  const { raffles = [], loading: loadingRaffles } = useRaffles();
-  const { prizes = [], loading: loadingPrizes, winners = [] } = usePrizes();
-  const { payments = [], loading: loadingPayments } = useAdminPayments();
+    const { raffles, loading: loadingRaffles } = useRaffles();
+    const { prizes, loading: loadingPrizes, winners } = usePrizes();
+    const { payments, loading: loadingPayments } = useAdminPayments();
+    const { stats, lastRaffles } = useMemo(() => {
 
-  const lastRaffles = raffles
-    .slice()
-    .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-    .slice(0, 5);
+        const safeRaffles: Raffle[] = raffles || [];
+        const safePrizes: Prizes[] = prizes || [];
+        const safePayments: Payment[] = payments || [];
+        const safeWinners: Winner[] = winners || [];
 
-  const activeRaffles = raffles.filter(r => r.status === "active").length;
-  const totalPayments = payments.reduce(
-    (acc, p) => acc + (parseFloat(p.total_amount?.toString() || "0")),
-    0
-  );
-  const totalPrizes = prizes.length;
-  const totalWinners = winners.length;
+        const activeRaffles = safeRaffles.filter((r) => r.status === "active").length;
+        const totalPayments = safePayments.reduce(
+            (acc, p) => acc + (parseFloat(p.total_amount.toString()) || 0),
+            0
+        );
 
-  const stats = [
-    { title: "Rifas activas", value: activeRaffles },
-    { title: "Pagos recibidos", value: `$${totalPayments.toLocaleString()}` },
-    { title: "Premios", value: totalPrizes },
-    { title: "Ganadores", value: totalWinners },
-  ];
 
-  const loading = loadingRaffles || loadingPrizes || loadingPayments;
+        const totalPrizes = safePrizes.length;
+        const totalWinners = safeWinners.length;
 
-  return { stats, lastRaffles, loading };
+
+
+        const lastRaffles = safeRaffles
+            .slice()
+            .sort(
+                (a, b) =>
+                    new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+            )
+            .slice(0, 5);
+
+        const stats = [
+            { title: "Rifas activas", value: activeRaffles },
+            { title: "Pagos recibidos", value: `$${totalPayments.toLocaleString()}` },
+            { title: "Premios", value: totalPrizes },
+            { title: "Ganadores", value: totalWinners },
+        ];
+
+        return { stats, lastRaffles };
+    }, [raffles, prizes, payments, winners]);
+
+    const loading = loadingRaffles || loadingPrizes || loadingPayments;
+
+
+    return { stats, lastRaffles, loading };
 }
