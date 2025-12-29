@@ -23,7 +23,6 @@ export function useRaffles() {
   const { token } = AuthStore();
 
   const refreshRaffles = useCallback(async () => {
-    if (!token) return;
     setLoading(true);
     try {
       await getRaffles();
