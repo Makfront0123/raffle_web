@@ -77,12 +77,10 @@ export function useRaffles() {
           created_at: new Date().toISOString(),
           total_numbers: 0,
         };
-
         addRaffle(tempRaffle, token);
-
-        await refreshRaffles();
         if (resetForm) resetForm();
-
+        await getRaffles()
+        await refreshRaffles();
 
         toast.success("Rifa creada correctamente");
       } catch (err: unknown) {
