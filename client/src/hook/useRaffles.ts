@@ -1,6 +1,6 @@
 "use client";
 
-import { toLocalDateInput } from "@/app/utils/toLocalDateInput";
+
 import { AuthStore } from "@/store/authStore";
 import { useRaffleStore } from "@/store/raffleStore";
 import { CreateRaffleDTO, Raffle, UpdateRafflePayload } from "@/type/Raffle";
@@ -32,7 +32,7 @@ export function useRaffles() {
     } finally {
       setLoading(false);
     }
-  }, [getRaffles, token]);
+  }, [getRaffles]);
 
   useEffect(() => {
     refreshRaffles();
@@ -68,8 +68,12 @@ export function useRaffles() {
         await addRaffle(payload, token);
         await refreshRaffles();
         toast.success("Rifa creada correctamente");
-      } catch (err: any) {
-        toast.error(err.message || "Error creando la rifa");
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          toast.error(err.message || "Error creando la rifa");
+        } else {
+          toast.error("Error creando la rifa");
+        }
         throw err;
       }
     },
