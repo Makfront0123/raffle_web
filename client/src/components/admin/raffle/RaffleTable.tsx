@@ -7,7 +7,6 @@ import { ConfirmDialog } from "@/components/ConfirmActionDialog";
 import { EditRaffleDialog } from "@/components/EditRaffleDialog";
 import RegenerateTicketsButton from "@/components/RegenerateTicketsButton";
 
-
 interface RafflesTableProps {
     raffles: Raffle[];
     loading: boolean;
@@ -20,6 +19,7 @@ interface RafflesTableProps {
     deactivateRaffle: (id: number) => void;
     updateRaffle: (id: number, data: Partial<Raffle>) => void;
 }
+
 
 export const RafflesTable = ({
     raffles,

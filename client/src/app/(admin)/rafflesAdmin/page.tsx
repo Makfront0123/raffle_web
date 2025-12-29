@@ -20,8 +20,16 @@ const RafflesAdmin = () => {
   })();
 
   const handleSubmit = () => {
-    createRaffle(form, resetForm).catch(console.error);
+    // Convertimos price y digits a number
+    const formattedForm = {
+      ...form,
+      price: Number(form.price),
+      digits: Number(form.digits),
+    };
+
+    createRaffle(formattedForm, resetForm).catch(console.error);
   };
+
 
 
   return (
@@ -31,9 +39,10 @@ const RafflesAdmin = () => {
       <RaffleForm
         form={form}
         handleChange={handleChange}
-        onSubmit={handleSubmit}
+        handleSubmit={handleSubmit}
         minDate={minDate}
       />
+
 
       <RafflesTable
         raffles={currentRaffles}

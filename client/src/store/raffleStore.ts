@@ -63,40 +63,40 @@ export const useRaffleStore = create<RaffleStore>()((set) => ({
     }
   },
   addRaffle: async (raffle: Raffle, token: string) => {
-  // 1️⃣ Agregar temporalmente al estado
-  set((state) => ({ raffles: [...state.raffles, raffle] }));
+    // 1️⃣ Agregar temporalmente al estado
+    set((state) => ({ raffles: [...state.raffles, raffle] }));
 
-  // Mostrar toast inmediato
-  toast.success("Rifa creada correctamente");
+    // Mostrar toast inmediato
+    toast.success("Rifa creada correctamente");
 
-  try {
-    const raffleService = new RaffleService();
-    const created = await raffleService.createRaffle({
-      title: raffle.title,
-      description: raffle.description,
-      price: raffle.price,
-      endDate: raffle.end_date,
-      digits: raffle.digits,
-    }, token);
+    try {
+      const raffleService = new RaffleService();
+      const created = await raffleService.createRaffle({
+        title: raffle.title,
+        description: raffle.description,
+        price: raffle.price,
+        endDate: raffle.end_date,
+        digits: raffle.digits,
+      }, token);
 
-    // 2️⃣ Reemplazar rifa temporal con la real del backend
-    set((state) => ({
-      raffles: state.raffles.map(r => r.id === raffle.id ? created : r)
-    }));
+      // 2️⃣ Reemplazar rifa temporal con la real del backend
+      set((state) => ({
+        raffles: state.raffles.map(r => r.id === raffle.id ? created : r)
+      }));
 
-    return created;
-  } catch (err: unknown) {
-    const msg = getErrorMessage(err);
-    toast.error(msg || "Error creando la rifa");
+      return created;
+    } catch (err: unknown) {
+      const msg = getErrorMessage(err);
+      toast.error(msg || "Error creando la rifa");
 
-    // Quitar rifa temporal si falla
-    set((state) => ({
-      raffles: state.raffles.filter(r => r.id !== raffle.id)
-    }));
+      // Quitar rifa temporal si falla
+      set((state) => ({
+        raffles: state.raffles.filter(r => r.id !== raffle.id)
+      }));
 
-    throw err;
+      throw err;
+    }
   }
-}
 
 
   ,
