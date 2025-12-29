@@ -63,34 +63,41 @@ export const useRaffleStore = create<RaffleStore>()((set) => ({
     }
   },
   addRaffle: async (raffle: Raffle, token: string) => {
-    set((state) => ({ raffles: [...state.raffles, raffle] }));
-    toast.success("Rifa creada correctamente");
+  // 1️⃣ Agregar temporalmente al estado
+  set((state) => ({ raffles: [...state.raffles, raffle] }));
 
-    try {
-      const raffleService = new RaffleService();
-      const created = await raffleService.createRaffle({
-        title: raffle.title,
-        description: raffle.description,
-        price: raffle.price,
-        endDate: raffle.end_date,
-        digits: raffle.digits,
-      }, token);
-      set((state) => ({
-        raffles: state.raffles.map(r => r.id === raffle.id ? created : r)
-      }));
+  // Mostrar toast inmediato
+  toast.success("Rifa creada correctamente");
 
-      return created;
-    } catch (err: unknown) {
-      const msg = getErrorMessage(err);
-      toast.error(msg);
+  try {
+    const raffleService = new RaffleService();
+    const created = await raffleService.createRaffle({
+      title: raffle.title,
+      description: raffle.description,
+      price: raffle.price,
+      endDate: raffle.end_date,
+      digits: raffle.digits,
+    }, token);
 
-      set((state) => ({
-        raffles: state.raffles.filter(r => r.id !== raffle.id)
-      }));
+    // 2️⃣ Reemplazar rifa temporal con la real del backend
+    set((state) => ({
+      raffles: state.raffles.map(r => r.id === raffle.id ? created : r)
+    }));
 
-      throw err;
-    }
+    return created;
+  } catch (err: unknown) {
+    const msg = getErrorMessage(err);
+    toast.error(msg || "Error creando la rifa");
+
+    // Quitar rifa temporal si falla
+    set((state) => ({
+      raffles: state.raffles.filter(r => r.id !== raffle.id)
+    }));
+
+    throw err;
   }
+}
+
 
   ,
   updateRaffle: async (id, data, token) => {

@@ -43,7 +43,7 @@ export function useRaffles() {
       form: { title: string; description: string; price: string; end_date: string; digits: number },
       resetForm?: () => void
     ) => {
-      if (!token) return;
+      if (!token || typeof window === 'undefined') return; // solo cliente
 
       try {
         if (!form.end_date) throw new Error("Selecciona una fecha válida.");
@@ -59,7 +59,7 @@ export function useRaffles() {
         const price = parseFloat(form.price);
         if (isNaN(price) || price <= 0) throw new Error("Precio inválido");
 
-        // Crear rifa temporal
+        // Crear rifa temporal **solo en cliente**
         const tempRaffle: Raffle = {
           id: Date.now(),
           title: form.title,
@@ -74,9 +74,7 @@ export function useRaffles() {
           total_numbers: 0,
         };
 
-        // Llamar al store, que ya maneja toast, temporal y reemplazo
         await addRaffle(tempRaffle, token);
-
         if (resetForm) resetForm();
 
       } catch (err: unknown) {
@@ -86,6 +84,7 @@ export function useRaffles() {
     },
     [addRaffle, token]
   );
+
 
 
 
