@@ -63,22 +63,12 @@ export const useRaffleStore = create<RaffleStore>()((set) => ({
   },
 
   addRaffle: async (raffle: CreateRaffleDTO, token: string) => {
-    console.log("🔍 raffle:", raffle);
-    try {
-      const raffleService = new RaffleService();
-      const created = await raffleService.createRaffle(raffle, token);
-      set((state) => ({ raffles: [...state.raffles, created] }));
-      toast.success("Rifa creada correctamente");
-      console.log("🔍 created:", created);
-      return created;
-    } catch (err: unknown) {
-      const msg = typeof err === "object" && err !== null && "message" in err
-        ? (err as { message: string }).message
-        : "Error creando rifa";
-      toast.error(msg);
-      console.error(err);
-      throw err;
-    }
+    const raffleService = new RaffleService();
+    const created = await raffleService.createRaffle(raffle, token);
+
+    // Solo actualizar el estado, no mostrar toast
+    set((state) => ({ raffles: [...state.raffles, created] }));
+    return created;
   }
   ,
   updateRaffle: async (id, data, token) => {
