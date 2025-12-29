@@ -79,8 +79,6 @@ export function useRaffles() {
         };
         addRaffle(tempRaffle, token);
         if (resetForm) resetForm();
-        await getRaffles()
-        await refreshRaffles();
 
         toast.success("Rifa creada correctamente");
       } catch (err: unknown) {
