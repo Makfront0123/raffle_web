@@ -1,8 +1,10 @@
 import { Raffle } from "../entities/raffle.entity";
 import { Ticket, TicketStatus } from "../entities/ticket.entity";
-import { PrizeType } from "../entities/prize.entity";
+import { Prize, PrizeType } from "../entities/prize.entity";
 import { AppDataSource } from "../data-source";
 import { generateAllTicketNumbers } from "../utils/generateRandomNumber";
+import { Payment } from "../entities/payment.entity";
+import { Reservation } from "../entities/reservation.entity";
 
 export class RaffleService {
     private raffleRepo;
@@ -264,16 +266,29 @@ export class RaffleService {
         await queryRunner.startTransaction();
 
         try {
-            await queryRunner.manager.delete(Ticket, { raffleId });
-            await queryRunner.manager.delete("reservations", { raffleId });
-            await queryRunner.manager.delete("payments", { raffleId });
-            await queryRunner.manager.delete("prizes", { raffleId });
-            await queryRunner.manager.delete(Raffle, { id: raffleId });
+            await queryRunner.manager.delete(Ticket, {
+                raffle: { id: raffleId },
+            });
+
+            await queryRunner.manager.delete(Reservation, {
+                raffle: { id: raffleId },
+            });
+
+            await queryRunner.manager.delete(Payment, {
+                raffle: { id: raffleId },
+            });
+
+            await queryRunner.manager.delete(Prize, {
+                raffle: { id: raffleId },
+            });
+
+            await queryRunner.manager.delete(Raffle, raffleId);
 
             await queryRunner.commitTransaction();
         } catch (err) {
             await queryRunner.rollbackTransaction();
             console.error("Error eliminando rifa async:", err);
+            throw err;
         } finally {
             await queryRunner.release();
         }
