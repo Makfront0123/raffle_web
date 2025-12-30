@@ -9,8 +9,6 @@ import { useFilteredRaffles } from "@/hook/useFilteredRaffles";
 import { usePrizes } from "@/hook/usePrizes";
 import PaginationControls from "@/components/user/reservations/PaginationControls";
 import { usePagination } from "@/hook/usePagination";
-import AdminSplashScreen from "@/components/admin/AdminSplashScreen";
-import { useAdminSplash } from "@/hook/useAdminSplash";
 
 export default function Home() {
   const loading = useLoadingScreen(300);

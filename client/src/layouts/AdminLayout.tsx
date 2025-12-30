@@ -13,7 +13,6 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/components/ui/sheet";
-import AdminSplashScreen from "@/components/admin/AdminSplashScreen";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { logout } = useAuth();
