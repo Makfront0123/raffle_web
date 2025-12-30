@@ -37,7 +37,6 @@ export function useRaffles() {
     refreshRaffles();
   }, [refreshRaffles]);
 
-  // 🔹 Nuevo: Crear rifa desde el hook, con validación incluida
   const createRaffle = useCallback(
     async (form: {
       title: string;
@@ -49,7 +48,6 @@ export function useRaffles() {
       if (!token) return;
 
       try {
-        // Validaciones
         if (!form.end_date) throw new Error("Selecciona una fecha.");
 
         const min = new Date();
@@ -70,8 +68,6 @@ export function useRaffles() {
         };
 
         await addRaffle(payload, token);
-        await refreshRaffles();
-        toast.success("Rifa creada correctamente");
       } catch (err: any) {
         toast.error(err.message || "Error creando la rifa");
         throw err;

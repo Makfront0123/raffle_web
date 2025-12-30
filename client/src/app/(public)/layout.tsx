@@ -1,17 +1,14 @@
 "use client";
-
-import { useEffect } from "react";
 import { Header } from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useAdminSplash } from "@/hook/useAdminSplash";
 import AdminAccessDeniedScreen from "@/components/admin/AdminDeniedScreen";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import AdminSplashScreen from "@/components/admin/AdminSplashScreen";
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   const { showSplash, user } = useAdminSplash();
   const pathname = usePathname();
-  const router = useRouter();
 
   const splashShown = typeof window !== "undefined"
     ? sessionStorage.getItem("adminSplashShown") === "true"
