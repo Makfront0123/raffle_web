@@ -105,22 +105,14 @@ export class RaffleService {
 
         await raffleRepo.save(raffle);
 
-        const numbers = generateAllTicketNumbers(data.digits);
 
-        const tickets = numbers.map((num) =>
-            ticketRepo.create({
-                ticket_number: num,
-                raffle,
-                status: TicketStatus.AVAILABLE,
-            })
-        );
-
-        await ticketRepo.save(tickets);
+        setImmediate(() => {
+            this.generateTicketsAsync(raffle.id, data.digits);
+        });
 
         return {
             message: "Rifa creada correctamente",
             raffle,
-            totalTickets: tickets.length,
         };
     }
 
@@ -133,28 +125,22 @@ export class RaffleService {
 
 
     async deleteRaffle(id: number) {
-        const raffleRepo = this.raffleRepo;
+        const raffle = await this.raffleRepo.findOne({ where: { id } });
+        if (!raffle) throw new Error("Rifa no encontrada");
 
-        const raffle = await raffleRepo.findOne({
-            where: { id },
-            relations: ["tickets"],
+        if (raffle.status === "active")
+            throw new Error("No se puede eliminar una rifa activa");
+
+        raffle.status = "deleting";
+        await this.raffleRepo.save(raffle);
+
+        setImmediate(() => {
+            this.deleteRaffleAsync(id);
         });
 
-        if (!raffle) throw new Error("Rifa no encontrada");
-        if (raffle.status === "active")
-            throw new Error("La rifa está activa, no se puede eliminar");
-
-        if (
-            raffle.status === "ended" &&
-            raffle.tickets.some((t: Ticket) => t.status !== TicketStatus.AVAILABLE)
-        ) {
-            throw new Error("Solo se pueden eliminar rifas 'ended' sin tickets reservados/comprados");
-        }
-
-        await raffleRepo.delete(id);
-
-        return { message: `Rifa #${id} eliminada correctamente` };
+        return { message: "Rifa en proceso de eliminación" };
     }
+
 
     async updateRaffle(id: number, data: Partial<Raffle>) {
         const raffleRepo = this.raffleRepo;
@@ -245,4 +231,52 @@ export class RaffleService {
             await queryRunner.release();
         }
     }
+
+    private async generateTicketsAsync(raffleId: number, digits: number) {
+        const batchSize = 1000;
+        const total = Math.pow(10, digits);
+
+        const ticketRepo = this.ticketRepo;
+
+        for (let i = 0; i < total; i += batchSize) {
+            const batch: Ticket[] = [];
+
+            for (let j = i; j < Math.min(i + batchSize, total); j++) {
+                batch.push(
+                    ticketRepo.create({
+                        raffleId,
+                        ticket_number: j.toString().padStart(digits, "0"),
+                        status: TicketStatus.AVAILABLE,
+                    })
+                );
+            }
+
+            await ticketRepo.insert(batch);
+        }
+
+        await this.raffleRepo.update(raffleId, { status: "ready" });
+    }
+
+
+    private async deleteRaffleAsync(raffleId: number) {
+        const queryRunner = this.dataSource.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+        try {
+            await queryRunner.manager.delete(Ticket, { raffleId });
+            await queryRunner.manager.delete("reservation", { raffleId });
+            await queryRunner.manager.delete("payment", { raffleId });
+            await queryRunner.manager.delete("prize", { raffleId });
+            await queryRunner.manager.delete(Raffle, { id: raffleId });
+
+            await queryRunner.commitTransaction();
+        } catch (err) {
+            await queryRunner.rollbackTransaction();
+            console.error("Error eliminando rifa async:", err);
+        } finally {
+            await queryRunner.release();
+        }
+    }
+
 }

@@ -69,7 +69,6 @@ export const useRaffleStore = create<RaffleStore>()((set) => ({
       const created = await raffleService.createRaffle(raffle, token);
       set((state) => ({ raffles: [...state.raffles, created] }));
       toast.success("Rifa creada correctamente");
-      console.log("🔍 created:", created);
       return created;
     } catch (err: unknown) {
       const msg = typeof err === "object" && err !== null && "message" in err

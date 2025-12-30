@@ -1,7 +1,7 @@
 "use client";
 import { useRaffles } from "@/hook/useRaffles";
 import { useRaffleForm } from "@/hook/useRaffleForm";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { RaffleForm } from "@/components/admin/raffle/RaffleForm";
 import { RafflesTable } from "@/components/admin/raffle/RaffleTable";
 const RafflesAdmin = () => {
@@ -11,7 +11,11 @@ const RafflesAdmin = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const rafflesPerPage = 5;
   const start = (currentPage - 1) * rafflesPerPage;
-  const currentRaffles = raffles.slice(start, start + rafflesPerPage);
+  const currentRaffles = useMemo(
+    () => raffles.slice(start, start + rafflesPerPage),
+    [raffles, start]
+  );
+
   const totalPages = Math.ceil(raffles.length / rafflesPerPage);
 
   const minDate = (() => {
