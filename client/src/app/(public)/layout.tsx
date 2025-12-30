@@ -4,12 +4,11 @@ import Footer from "@/components/Footer";
 import { useAdminSplash } from "@/hook/useAdminSplash";
 import AdminSplashScreen from "@/components/admin/AdminSplashScreen";
 import AdminAccessDeniedScreen from "@/components/admin/AdminDeniedScreen";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   const { showSplash, user } = useAdminSplash();
   const pathname = usePathname();
-  const router = useRouter();
 
   const splashShown = typeof window !== "undefined"
     ? sessionStorage.getItem("adminSplashShown") === "true"
