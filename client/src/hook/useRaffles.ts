@@ -68,6 +68,7 @@ export function useRaffles() {
         };
 
         await addRaffle(payload, token);
+        getRaffles();
       } catch (err: unknown) {
         const message =
           err instanceof Error ? err.message : "Error creando la rifa";
