@@ -31,7 +31,7 @@ export function useRaffles() {
     } finally {
       setLoading(false);
     }
-  }, [getRaffles, token]);
+  }, [getRaffles]);
 
   useEffect(() => {
     refreshRaffles();
@@ -68,12 +68,14 @@ export function useRaffles() {
         };
 
         await addRaffle(payload, token);
-      } catch (err: any) {
-        toast.error(err.message || "Error creando la rifa");
+      } catch (err: unknown) {
+        const message =
+          err instanceof Error ? err.message : "Error creando la rifa";
+        toast.error(message);
         throw err;
       }
     },
-    [addRaffle, token, refreshRaffles]
+    [addRaffle, token]
   );
   const handleDeleteRaffle = useCallback(
     async (id: number) => {

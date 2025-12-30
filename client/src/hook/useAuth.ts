@@ -63,7 +63,7 @@ export function useAuth() {
     } finally {
       setLoading(false);
     }
-  }, [router, setUser, startTokenWatcher]);
+  }, [setUser, startTokenWatcher]);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
