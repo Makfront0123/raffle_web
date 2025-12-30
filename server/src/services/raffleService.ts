@@ -265,9 +265,9 @@ export class RaffleService {
 
         try {
             await queryRunner.manager.delete(Ticket, { raffleId });
-            await queryRunner.manager.delete("reservation", { raffleId });
-            await queryRunner.manager.delete("payment", { raffleId });
-            await queryRunner.manager.delete("prize", { raffleId });
+            await queryRunner.manager.delete("reservations", { raffleId });
+            await queryRunner.manager.delete("payments", { raffleId });
+            await queryRunner.manager.delete("prizes", { raffleId });
             await queryRunner.manager.delete(Raffle, { id: raffleId });
 
             await queryRunner.commitTransaction();
