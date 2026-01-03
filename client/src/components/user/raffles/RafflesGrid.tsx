@@ -7,7 +7,7 @@ interface Props {
   raffles: Raffle[];
   currentPage: number;
   rafflesPerPage: number;
-  setShowExpiredModal: (raffle: Raffle) => void; // un solo parámetro
+  setShowExpiredModal: (raffle: Raffle) => void;
 }
 export default function RafflesGrid({
   raffles,
@@ -23,7 +23,7 @@ export default function RafflesGrid({
     <div className="flex flex-wrap justify-start gap-10 mt-10">
       {paginatedRaffles.length === 0 ? (
         <p className="text-gray-400 mt-10">
-          No se encontraron rifas con esos criterios 😢
+          No se encontraron rifas con esos criterios
         </p>
       ) : (
         paginatedRaffles.map((raffle) => (

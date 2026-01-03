@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
-import { AuthService } from "../services/authService";
 import jwt from "jsonwebtoken";
 import axios from "axios";
-import { User } from "../entities/user.entity";
 import { AppDataSource } from "../data-source";
+import { User } from "../entities/user.entity";
 import { UserRepository } from "../repositories/userRepository";
+import { AuthService } from "../services/authService";
 
 export class AuthController {
   private authService: AuthService;
@@ -14,16 +14,16 @@ export class AuthController {
     const typeOrmRepo = AppDataSource.getRepository(User);
 
     this.userRepo = userRepo ?? new UserRepository(typeOrmRepo);
-
     this.authService =
       authService ?? new AuthService(new UserRepository(typeOrmRepo));
   }
 
-
   async loginWithGoogle(req: Request, res: Response) {
     try {
       const { token } = req.body;
-      if (!token) return res.status(400).json({ message: "Falta el token de Google" });
+      if (!token) {
+        return res.status(400).json({ message: "Falta el token de Google" });
+      }
 
       const googleUserResponse = await axios.get(
         "https://www.googleapis.com/oauth2/v3/userinfo",
@@ -32,10 +32,10 @@ export class AuthController {
 
       const { email, name, picture } = googleUserResponse.data;
 
-      const { user, isNew } = await this.authService.findOrCreateUser({ name, email, picture });
+      const { user, isNew } =
+        await this.authService.findOrCreateUser({ name, email, picture });
 
-      // Generar JWT usando roleId seguro
-      const appToken = jwt.sign(
+      const accessToken = jwt.sign(
         { id: user.id, email: user.email, roleId: user.role?.id || 2 },
         process.env.JWT_SECRET!,
         { expiresIn: "1h" }
@@ -47,8 +47,29 @@ export class AuthController {
         { expiresIn: "7d" }
       );
 
+      const isProd = process.env.NODE_ENV === "production";
+
+      res.cookie("access_token", accessToken, {
+        httpOnly: true,
+        secure: isProd,
+        sameSite: isProd ? "none" : "lax",
+        maxAge: 1000 * 60 * 60,
+      });
+
+      res.cookie("refresh_token", refreshToken, {
+        httpOnly: true,
+        secure: isProd,
+        sameSite: isProd ? "none" : "lax",
+        maxAge: 1000 * 60 * 60 * 24 * 7,
+      });
+
+
+
+
       return res.status(200).json({
-        message: isNew ? "Usuario registrado correctamente" : "Inicio de sesión exitoso",
+        message: isNew
+          ? "Usuario registrado correctamente"
+          : "Inicio de sesión exitoso",
         user: {
           id: user.id,
           name: user.name,
@@ -56,8 +77,6 @@ export class AuthController {
           picture: user.picture,
           role: user.role?.name || "Usuario",
         },
-        token: appToken,
-        refreshToken,
       });
     } catch (error: any) {
       console.error("Error en login:", error);
@@ -67,18 +86,17 @@ export class AuthController {
       });
     }
   }
-
   async persistToken(req: Request, res: Response) {
     try {
-      const authHeader = req.headers.authorization;
-      if (!authHeader)
-        return res.status(401).json({ message: "Token no proporcionado" });
-
-      const token = authHeader.split(" ")[1];
+      const token = req.cookies?.access_token;
+      if (!token) {
+        return res.status(401).json({ message: "No autenticado" });
+      }
 
       const user = await this.authService.getUserByToken(token);
-      if (!user)
+      if (!user) {
         return res.status(404).json({ message: "Usuario no encontrado" });
+      }
 
       return res.status(200).json({
         user: {
@@ -94,16 +112,12 @@ export class AuthController {
       return res.status(401).json({ message: "Token inválido o expirado" });
     }
   }
-
   async refreshToken(req: Request, res: Response) {
     try {
-      const { refreshToken } = req.body;
-      if (!refreshToken)
-        return res.status(400).json({ message: "Falta el refresh token" });
-
-      const valid = await this.authService.verifyRefreshToken(refreshToken);
-      if (!valid)
-        return res.status(401).json({ message: "Refresh token inválido" });
+      const refreshToken = req.cookies?.refresh_token;
+      if (!refreshToken) {
+        return res.status(401).json({ message: "Refresh token faltante" });
+      }
 
       const decoded = jwt.verify(
         refreshToken,
@@ -111,8 +125,9 @@ export class AuthController {
       ) as any;
 
       const user = await this.authService.getUserById(decoded.id);
-      if (!user)
+      if (!user) {
         return res.status(404).json({ message: "Usuario no encontrado" });
+      }
 
       const newAccessToken = jwt.sign(
         { id: user.id, email: user.email, roleId: user.role.id },
@@ -120,13 +135,37 @@ export class AuthController {
         { expiresIn: "1h" }
       );
 
-      return res.json({ token: newAccessToken });
+      const isProd = process.env.NODE_ENV === "production";
+
+      res.cookie("access_token", newAccessToken, {
+        httpOnly: true,
+        secure: isProd,
+        sameSite: isProd ? "none" : "lax",
+        maxAge: 1000 * 60 * 60,
+      });
+
+
+      return res.json({ message: "Token renovado" });
     } catch {
       return res.status(401).json({
         message: "Refresh token inválido o expirado",
       });
     }
   }
+  async logout(req: Request, res: Response) {
+    res.clearCookie("access_token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    });
 
+    res.clearCookie("refresh_token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    });
+
+    return res.status(200).json({ message: "Sesión cerrada correctamente" });
+  }
 
 }

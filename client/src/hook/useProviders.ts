@@ -1,7 +1,8 @@
 import { useEffect } from "react";
 import { useProviderStore } from "@/store/providerStore";
+import { AuthStore } from "@/store/authStore";
 
-export const useProviders = (token: string) => {
+export const useProviders = () => {
   const {
     providers,
     fetchProviders,
@@ -12,11 +13,12 @@ export const useProviders = (token: string) => {
     deleteProvider,
     getProviderById,
   } = useProviderStore();
+  const { user } = AuthStore();
 
   useEffect(() => {
-    if (!token) return;
-    fetchProviders(token);
-  }, [token, fetchProviders]);
+    if (!user) return;
+    fetchProviders();
+  }, [user, fetchProviders]);
 
   return {
     providers,

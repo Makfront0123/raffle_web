@@ -1,6 +1,5 @@
 "use client";
 
-import { AuthStore } from "@/store/authStore";
 import { useRaffleStore } from "@/store/raffleStore";
 import { CreateRaffleDTO, Raffle, UpdateRafflePayload } from "@/type/Raffle";
 import { useEffect, useState, useCallback } from "react";
@@ -20,12 +19,13 @@ export function useRaffles() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { token } = AuthStore();
 
   const refreshRaffles = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       await getRaffles();
+      console.log('raffles:', raffles);
     } catch {
       setError("Error cargando rifas");
     } finally {
@@ -45,8 +45,6 @@ export function useRaffles() {
       end_date: string;
       digits: number;
     }) => {
-      if (!token) return;
-
       try {
         if (!form.end_date) throw new Error("Selecciona una fecha.");
 
@@ -67,76 +65,56 @@ export function useRaffles() {
           digits: form.digits,
         };
 
-        await addRaffle(payload, token);
-        getRaffles();
+        const created = await addRaffle(payload);
+        if (created) await getRaffles();
       } catch (err: unknown) {
-        const message =
-          err instanceof Error ? err.message : "Error creando la rifa";
+        const message = err instanceof Error ? err.message : "Error creando la rifa";
         toast.error(message);
         throw err;
       }
     },
-    [addRaffle, token]
+    [addRaffle, getRaffles]
   );
+ 
   const handleDeleteRaffle = useCallback(
     async (id: number) => {
-      if (!token) return;
-      await deleteRaffle(id, token);
-      await refreshRaffles();
+      const success = await deleteRaffle(id);
+      if (success) await refreshRaffles();
     },
-    [deleteRaffle, token, refreshRaffles]
+    [deleteRaffle, refreshRaffles]
   );
 
   const handleUpdateRaffle = useCallback(
     async (id: number, data: Partial<Raffle>) => {
-      if (!token) return;
-      try {
-        const payload: UpdateRafflePayload = {};
-        if (typeof data.price !== "undefined") payload.price = data.price;
-        if (typeof data.end_date !== "undefined" && data.end_date !== null) {
-          if (data.end_date.length === 10) {
-            payload.endDate = new Date(data.end_date + "T23:59:59").toISOString();
-          } else {
-            payload.endDate = data.end_date;
-          }
-        }
-        if (typeof data.title !== "undefined") payload.title = data.title;
-        if (typeof data.description !== "undefined") payload.description = data.description;
-
-        await updateRaffle(id, payload, token);
-        await refreshRaffles();
-      } catch (err) {
-        console.error("Error actualizando rifa:", err);
+      const payload: UpdateRafflePayload = {};
+      if (typeof data.price !== "undefined") payload.price = data.price;
+      if (typeof data.end_date !== "undefined" && data.end_date) {
+        payload.endDate = data.end_date.length === 10
+          ? new Date(data.end_date + "T23:59:59").toISOString()
+          : data.end_date;
       }
+      if (data.title) payload.title = data.title;
+      if (data.description) payload.description = data.description;
+
+      await updateRaffle(id, payload);
+      await refreshRaffles();
     },
-    [updateRaffle, token, refreshRaffles]
+    [updateRaffle, refreshRaffles]
   );
 
   const handleActivateRaffle = useCallback(
-    async (id: number) => {
-      if (!token) return;
-      await activateRaffle(id, token);
-      await refreshRaffles();
-    },
-    [activateRaffle, token, refreshRaffles]
+    async (id: number) => { await activateRaffle(id); await refreshRaffles(); },
+    [activateRaffle, refreshRaffles]
   );
 
   const handleDeactivateRaffle = useCallback(
-    async (id: number) => {
-      if (!token) return;
-      await deactivateRaffle(id, token);
-      await refreshRaffles();
-    },
-    [deactivateRaffle, token, refreshRaffles]
+    async (id: number) => { await deactivateRaffle(id); await refreshRaffles(); },
+    [deactivateRaffle, refreshRaffles]
   );
 
-  const handleregenerateTickets = useCallback(
-    async (id: number, newDigits: number) => {
-      if (!token) return;
-      await regenerateTickets(id, newDigits, token);
-      await refreshRaffles();
-    },
-    [regenerateTickets, token, refreshRaffles]
+  const handleRegenerateTickets = useCallback(
+    async (id: number, newDigits: number) => { await regenerateTickets(id, newDigits); await refreshRaffles(); },
+    [regenerateTickets, refreshRaffles]
   );
 
   return {
@@ -147,8 +125,8 @@ export function useRaffles() {
     createRaffle,
     deleteRaffle: handleDeleteRaffle,
     updateRaffle: handleUpdateRaffle,
-    regenerateTickets: handleregenerateTickets,
+    regenerateTickets: handleRegenerateTickets,
     deactivateRaffle: handleDeactivateRaffle,
-    activateRaffle: handleActivateRaffle
+    activateRaffle: handleActivateRaffle,
   };
 }

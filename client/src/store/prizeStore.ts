@@ -12,12 +12,12 @@ interface PrizeStore {
   setWinners: (winners: Winner[]) => void;
 
   getPrizes: () => Promise<void>;
-  getPrizeById: (id: number, token: string) => Promise<void>;
-  addPrize: (prize: CreatePrizeDTO, token: string) => Promise<void>;
-  updatePrize: (id: number, prize: Prizes, token: string) => Promise<void>;
+  getPrizeById: (id: number) => Promise<void>;
+  addPrize: (prize: CreatePrizeDTO,) => Promise<void>;
+  updatePrize: (id: number, prize: Prizes) => Promise<void>;
   getWinnersByRaffle: (raffleId: number) => Promise<void>;
   getWinners: () => Promise<void>;
-  deletePrize: (id: number, token: string) => Promise<void>;
+  deletePrize: (id: number) => Promise<void>;
 }
 
 const isAxiosError = (err: unknown): err is { response?: { data?: { message?: string } }; message: string } => {
@@ -42,20 +42,20 @@ export const usePrizeStore = create<PrizeStore>()((set) => ({
     }
   },
 
-  getPrizeById: async (id: number, token: string) => {
+  getPrizeById: async (id: number) => {
     try {
       const prizeService = new PrizeService();
-      const prize = await prizeService.getPrizeById(id, token);
+      const prize = await prizeService.getPrizeById(id);
       set({ prizes: [prize] });
     } catch (err: unknown) {
       toast.error(isAxiosError(err) ? err.response?.data?.message || err.message : "Error obteniendo premio");
     }
   },
 
-  addPrize: async (prize: CreatePrizeDTO, token: string) => {
+  addPrize: async (prize: CreatePrizeDTO,) => {
     try {
       const prizeService = new PrizeService();
-      const res = await prizeService.createPrize(prize, token);
+      const res = await prizeService.createPrize(prize);
       set((state) => ({ prizes: [...state.prizes, res.data] }));
       toast.success(res.message);
     } catch (err: unknown) {
@@ -63,10 +63,10 @@ export const usePrizeStore = create<PrizeStore>()((set) => ({
     }
   },
 
-  updatePrize: async (id: number, prize: Prizes, token: string) => {
+  updatePrize: async (id: number, prize: Prizes) => {
     try {
       const prizeService = new PrizeService();
-      const res = await prizeService.updatePrize(id, prize, token);
+      const res = await prizeService.updatePrize(id, prize);
       set((state) => ({
         prizes: state.prizes.map((p) => (p.id === res.data.id ? res.data : p)),
       }));
@@ -96,10 +96,10 @@ export const usePrizeStore = create<PrizeStore>()((set) => ({
     }
   },
 
-  deletePrize: async (id: number, token: string) => {
+  deletePrize: async (id: number) => {
     try {
       const prizeService = new PrizeService();
-      const res = await prizeService.deletePrize(id, token);
+      const res = await prizeService.deletePrize(id);
       set((state) => ({ prizes: state.prizes.filter((p) => p.id !== id) }));
       toast.success(res.message);
     } catch (err: unknown) {

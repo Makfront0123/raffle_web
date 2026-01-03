@@ -13,11 +13,11 @@ export function usePaymentsPageLogic() {
   const { payments, loading, completePayment, getPayments } =
     usePaymentStore();
 
-  const token = AuthStore.getState().token;
+  const { user } = AuthStore();
 
   useEffect(() => {
-    if (token) getPayments(token);
-  }, [token, getPayments]);
+    if (user) getPayments();
+  }, [user, getPayments]);
 
   const filteredPayments = applyFilters({
     payments,
@@ -37,7 +37,6 @@ export function usePaymentsPageLogic() {
     dateFrom,
     setDateFrom,
     dateTo,
-    setDateTo,
-    token,
+    setDateTo
   };
 }

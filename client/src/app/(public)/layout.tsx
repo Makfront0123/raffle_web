@@ -4,7 +4,7 @@ import Footer from "@/components/Footer";
 import { useAdminSplash } from "@/hook/useAdminSplash";
 import AdminAccessDeniedScreen from "@/components/admin/AdminDeniedScreen";
 import { usePathname } from "next/navigation";
-import AdminSplashScreen from "@/components/admin/AdminSplashScreen";
+import AdminSplashScreen from "@/components/admin/AdminSplashScreen"
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   const { showSplash, user } = useAdminSplash();

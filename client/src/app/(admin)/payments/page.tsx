@@ -3,7 +3,6 @@
 import PaymentsFilters from "@/components/admin/payments/PaymentFilters";
 import PaymentsPagination from "@/components/admin/payments/PaymentPagination";
 import PaymentsTable from "@/components/admin/payments/PaymentTable";
-import LoadingScreen from "@/components/LoadingScreen";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { usePaymentsPageLogic } from "@/hook/usePaymentPageLogic";
 import { toast } from "sonner";
@@ -15,7 +14,6 @@ export default function PaymentsPage() {
     currentPage,
     setCurrentPage,
     filteredPayments,
-    token,
     statusFilter,
     setStatusFilter,
     dateFrom,
@@ -31,14 +29,12 @@ export default function PaymentsPage() {
 
   const handleComplete = async (id: number) => {
     try {
-      await completePayment(id, token ?? "");
+      await completePayment(id);
       toast.success("Pago completado");
     } catch {
       toast.error("Error al completar el pago");
     }
   };
-
-  if (loading) return <LoadingScreen />;
 
   return (
     <main className="flex-1 p-6 bg-gray-50 overflow-y-auto">

@@ -119,7 +119,6 @@ export const RafflesTable = ({
                             </table>
                         </div>
 
-                        {/* PAGINACIÓN */}
                         <div className="flex justify-center mt-4">
                             <Pagination>
                                 <PaginationContent>

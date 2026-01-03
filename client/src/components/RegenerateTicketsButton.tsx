@@ -7,13 +7,13 @@ import { AuthStore } from "@/store/authStore";
 
 const RegenerateTicketsButton = ({ raffleId }: { raffleId: number }) => {
   const { regenerateTickets } = useRaffles();
-  const { token } = AuthStore();
+  const { user } = AuthStore();
   const [open, setOpen] = useState(false);
   const [digits, setDigits] = useState(3);
   const [loading, setLoading] = useState(false);
 
   const handleRegenerate = async () => {
-    if (!token) return;
+    if (!user) return;
     setLoading(true);
     await regenerateTickets(raffleId, digits);
     setOpen(false);

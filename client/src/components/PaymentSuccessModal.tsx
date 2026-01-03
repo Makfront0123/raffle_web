@@ -10,7 +10,7 @@ interface Props {
   open: boolean;
   onClose: () => void;
   raffleName?: string;
-  tickets?: string[]; // 🔹 array de tickets
+  tickets?: string[];
   amount: number;
 }
 
