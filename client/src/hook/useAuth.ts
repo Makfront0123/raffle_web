@@ -15,6 +15,7 @@ export function useAuth({ skipPersist = false } = {}) {
 
   const logout = useCallback(async () => {
     await new AuthService().logout();
+    sessionStorage.removeItem("adminSplashShown");
     storeLogout();
     router.push("/");
   }, [storeLogout, router]);
