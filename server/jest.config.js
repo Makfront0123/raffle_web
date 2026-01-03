@@ -7,13 +7,13 @@ module.exports = {
   clearMocks: true,
   verbose: true,
   roots: ['<rootDir>/src'],
-  setupFiles: ["<rootDir>/jest.setup.ts"], // opcional
+  setupFiles: ["<rootDir>/jest.setup.ts"],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1'
   },
   globals: {
     'ts-jest': {
-      tsconfig: 'tsconfig.json' // asegúrate de apuntar al tsconfig correcto
+      tsconfig: 'tsconfig.json'
     }
   }
 };

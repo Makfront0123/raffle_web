@@ -2,9 +2,17 @@ import axios from "axios";
 
 import { Reservation } from "@/type/Reservation";
 import { ReservationService } from "@/services/reservationService";
+import { api } from "@/api/api";
 
-jest.mock("axios");
-const mockedAxios = axios as jest.Mocked<typeof axios>;
+jest.mock("@/api/api", () => ({
+    api: {
+        get: jest.fn(),
+        post: jest.fn(),
+        delete: jest.fn(),
+    },
+}));
+
+const mockedApi = api as jest.Mocked<typeof api>;
 
 describe("ReservationService tests", () => {
     const service = new ReservationService();
@@ -17,47 +25,60 @@ describe("ReservationService tests", () => {
         userId: 10,
         created_at: "2024-01-01",
         expires_at: "2024-01-01",
+        raffle: {
+            id: 1,
+            title: "Test",
+            description: "Test",
+            price: 10,
+            end_date: "2024-01-01",
+            digits: 2,
+            total_numbers: 10,
+            status: "active",
+            prizes: [],
+            tickets: [],
+            created_at: "2024-01-01",
+        },
     };
 
     it("getAllReservations → retorna lista", async () => {
-        mockedAxios.get.mockResolvedValue({ data: [reservationMock] });
+        mockedApi.get.mockResolvedValue({ data: [reservationMock] });
 
-        const res = await service.getAllReservations(token);
+        const res = await service.getAllReservations();
 
         expect(res).toEqual([reservationMock]);
     });
 
     it("getReservationById → retorna 1", async () => {
-        mockedAxios.get.mockResolvedValue({ data: reservationMock });
+        mockedApi.get.mockResolvedValue({ data: reservationMock });
 
-        const res = await service.getReservationById(1, token);
+        const res = await service.getReservationById(1,);
 
         expect(res).toEqual(reservationMock);
     });
 
     it("createReservation → retorna creada", async () => {
-        mockedAxios.post.mockResolvedValue({ data: reservationMock });
+        mockedApi.post.mockResolvedValue({ data: reservationMock });
 
-        const res = await service.createReservation(5, 1, token);
+        const res = await service.createReservation(5, 1,);
 
         expect(res).toEqual(reservationMock);
     });
 
     it("cancelReservation → retorna mensaje + reserva", async () => {
-        mockedAxios.delete.mockResolvedValue({
+        mockedApi.delete.mockResolvedValue({
             data: { message: "Cancelada", reservation: reservationMock },
         });
 
-        const res = await service.cancelReservation(1, token);
+        const res = await service.cancelReservation(1);
 
         expect(res.message).toBe("Cancelada");
         expect(res.reservation).toEqual(reservationMock);
     });
 
     it("getAllReservationsByUser → retorna lista", async () => {
-        mockedAxios.get.mockResolvedValue({ data: [reservationMock] });
+        mockedApi.get.mockResolvedValue({ data: [reservationMock] });
 
-        const res = await service.getAllReservationsByUser(token);
+        const res = await service.getAllReservationsByUser();
 
         expect(res).toEqual([reservationMock]);
     });

@@ -58,27 +58,17 @@ const PORT = process.env.PORT || 4000;
 
 async function startServer() {
   try {
-    console.log("ENV CHECK:", {
-      host: process.env.DB_HOST,
-      port: process.env.DB_PORT,
-      user: process.env.DB_USER,
-      database: process.env.DB_DATABASE,
-      nodeEnv: process.env.NODE_ENV,
-    });
-
     await AppDataSource.initialize();
     console.log("Database connected (Aiven)");
     if (process.env.NODE_ENV === "production") {
       await AppDataSource.runMigrations();
     }
-
-    console.log("Migrations executed");
     await import("./cron/cron");
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
   } catch (error) {
-    console.error("❌ ERROR FATAL AL INICIAR EL SERVIDOR:");
+    console.error("ERROR FATAL AL INICIAR EL SERVIDOR:");
     console.error(error);
   }
 }

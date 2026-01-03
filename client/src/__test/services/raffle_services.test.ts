@@ -1,92 +1,115 @@
-import axios from "axios";
-
 import { Raffle } from "@/type/Raffle";
 import { RaffleService } from "@/services/raffleService";
+import { api } from "@/api/api";
 
-jest.mock("axios");
-const mockedAxios = axios as jest.Mocked<typeof axios>;
+jest.mock("@/api/api");
+
+const mockedApi = api as jest.Mocked<typeof api>;
 
 describe("RaffleService tests", () => {
-    const service = new RaffleService();
-    const token = "abc";
+  const service = new RaffleService();
 
-    const raffleMock: Raffle = {
-        id: 1,
-        title: "Rifa 1",
-        description: "Descripción",
-        total_numbers: 100,
-        digits: 3,
-        price: 5000,
-        status: "active",
-        created_at: "2024-01-01",
-        end_date: "2024-01-01",
-        prizes: [],
-        tickets: [],
-    };
+  const raffleMock: Raffle = {
+    id: 1,
+    title: "Rifa 1",
+    description: "Descripción",
+    total_numbers: 100,
+    digits: 3,
+    price: 5000,
+    status: "active",
+    created_at: "2024-01-01",
+    end_date: "2024-01-01",
+    prizes: [],
+    tickets: [],
+  };
 
-    it("getAllRaffles → retorna lista", async () => {
-        mockedAxios.get.mockResolvedValue({ data: [raffleMock] });
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
-        const res = await service.getAllRaffles(token);
+  it("getAllRaffles → retorna lista", async () => {
+    mockedApi.get.mockResolvedValue({ data: [raffleMock] });
 
-        expect(res).toEqual([raffleMock]);
-    });
+    const res = await service.getAllRaffles();
 
-    it("getRaffleById → retorna una rifa", async () => {
-        mockedAxios.get.mockResolvedValue({ data: raffleMock });
+    expect(mockedApi.get).toHaveBeenCalledWith("/api/raffle");
+    expect(res).toEqual([raffleMock]);
+  });
 
-        const res = await service.getRaffleById(1, token);
+  it("getRaffleById → retorna una rifa", async () => {
+    mockedApi.get.mockResolvedValue({ data: raffleMock });
 
-        expect(res).toEqual(raffleMock);
-    });
+    const res = await service.getRaffleById(1);
 
-    it("createRaffle → retorna creada", async () => {
-        mockedAxios.post.mockResolvedValue({ data: raffleMock });
+    expect(mockedApi.get).toHaveBeenCalledWith("/api/raffle/1");
+    expect(res).toEqual(raffleMock);
+  });
 
-        const res = await service.createRaffle(raffleMock, token);
+  it("createRaffle → retorna creada", async () => {
+    mockedApi.post.mockResolvedValue({ data: raffleMock });
 
-        expect(res).toEqual(raffleMock);
-    });
+    const res = await service.createRaffle(raffleMock);
 
-    it("updateRaffle → retorna actualizada", async () => {
-        const updated = { ...raffleMock, name: "Nueva Rifa" };
+    expect(mockedApi.post).toHaveBeenCalledWith(
+      "/api/raffle",
+      raffleMock
+    );
+    expect(res).toEqual(raffleMock);
+  });
 
-        mockedAxios.patch.mockResolvedValue({ data: updated });
+  it("updateRaffle → retorna actualizada", async () => {
+    const updated = { ...raffleMock, title: "Nueva Rifa" };
 
-        const res = await service.updateRaffle(1, updated, token);
+    mockedApi.patch.mockResolvedValue({ data: updated });
 
-        expect(res).toEqual(updated);
-    });
+    const res = await service.updateRaffle(1, updated);
 
-    it("deleteRaffle → retorna void", async () => {
-        mockedAxios.delete.mockResolvedValue({});
+    expect(mockedApi.patch).toHaveBeenCalledWith(
+      "/api/raffle/1",
+      updated
+    );
+    expect(res).toEqual(updated);
+  });
 
-        const res = await service.deleteRaffle(1, token);
+  it("deleteRaffle → retorna void", async () => {
+    mockedApi.delete.mockResolvedValue({ data: undefined });
 
-        expect(res).toBeUndefined();
-    });
+    const res = await service.deleteRaffle(1);
 
-    it("regenerateTickets → retorna void", async () => {
-        mockedAxios.put.mockResolvedValue({});
+    expect(mockedApi.delete).toHaveBeenCalledWith("/api/raffle/1");
+    expect(res).toBeUndefined();
+  });
 
-        const res = await service.regenerateTickets(1, 4, token);
+  it("regenerateTickets → retorna void", async () => {
+    mockedApi.put.mockResolvedValue({ data: undefined });
 
-        expect(res).toBeUndefined();
-    });
+    const res = await service.regenerateTickets(1, 4);
 
-    it("activateRaffle → retorna void", async () => {
-        mockedAxios.put.mockResolvedValue({});
+    expect(mockedApi.put).toHaveBeenCalledWith(
+      "/api/raffle/1/regenerate-tickets/4"
+    );
+    expect(res).toBeUndefined();
+  });
 
-        const res = await service.activateRaffle(1, token);
+  it("activateRaffle → retorna void", async () => {
+    mockedApi.put.mockResolvedValue({ data: undefined });
 
-        expect(res).toBeUndefined();
-    });
+    const res = await service.activateRaffle(1);
 
-    it("deactivateRaffle → retorna void", async () => {
-        mockedAxios.put.mockResolvedValue({});
+    expect(mockedApi.put).toHaveBeenCalledWith(
+      "/api/raffle/1/activate"
+    );
+    expect(res).toBeUndefined();
+  });
 
-        const res = await service.deactivateRaffle(1, token);
+  it("deactivateRaffle → retorna void", async () => {
+    mockedApi.put.mockResolvedValue({ data: undefined });
 
-        expect(res).toBeUndefined();
-    });
+    const res = await service.deactivateRaffle(1);
+
+    expect(mockedApi.put).toHaveBeenCalledWith(
+      "/api/raffle/1/deactivate"
+    );
+    expect(res).toBeUndefined();
+  });
 });
