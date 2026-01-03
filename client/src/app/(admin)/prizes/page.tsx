@@ -3,8 +3,6 @@
 import { useRaffles } from "@/hook/useRaffles";
 import { useProviders } from "@/hook/useProviders";
 import { usePrizes } from "@/hook/usePrizes";
-import { AuthStore } from "@/store/authStore";
-
 import { PrizesTable } from "@/components/PrizeTable";
 import { PrizeForm } from "@/components/admin/prizes/PrizeForm";
 import { usePrizeFilter } from "@/hook/usePrizeFilter";

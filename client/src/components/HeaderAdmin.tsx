@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Menu, LogOut, Bell } from "lucide-react";
+import { Menu, LogOut} from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface HeaderAdminProps {

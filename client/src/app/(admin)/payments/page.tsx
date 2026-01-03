@@ -9,7 +9,6 @@ import { toast } from "sonner";
 
 export default function PaymentsPage() {
   const {
-    loading,
     completePayment,
     currentPage,
     setCurrentPage,

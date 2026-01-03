@@ -3,7 +3,7 @@ import { api } from "@/api/api";
 
 const API_URL = "/api/raffle";
 
-interface BackendError {
+export interface BackendError {
   message: string;
   status?: number;
   data?: Record<string, unknown>;
@@ -15,14 +15,14 @@ export class RaffleService {
     let status: number | undefined;
     let data: Record<string, unknown> | undefined;
 
-    if (error && typeof error === "object" && "response" in error) {
-      const err = error as any;
+    if (typeof error === "object" && error !== null && "response" in error) {
+      const err = error as { response?: { data?: any; status?: number }; message?: string };
       backendMessage = err.response?.data?.message || err.message || defaultMessage;
       status = err.response?.status;
       data = err.response?.data;
     } else if (error instanceof Error) {
       backendMessage = error.message;
-    }  
+    }
 
     throw { message: backendMessage, status, data } as BackendError;
   }

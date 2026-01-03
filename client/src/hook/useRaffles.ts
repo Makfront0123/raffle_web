@@ -25,7 +25,6 @@ export function useRaffles() {
     setError(null);
     try {
       await getRaffles();
-      console.log('raffles:', raffles);
     } catch {
       setError("Error cargando rifas");
     } finally {
