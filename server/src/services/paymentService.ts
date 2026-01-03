@@ -5,7 +5,6 @@ import { Ticket, TicketStatus } from "../entities/ticket.entity";
 import { User } from "../entities/user.entity";
 import { Raffle } from "../entities/raffle.entity";
 import { PaymentDetail } from "../entities/payment_details.entity";
-import { ReservationTicket } from "../entities/reservation_ticket.entity";
 import type { Request, Response } from "express";
 import crypto from "crypto";
 import { WhatsappService } from "../services/whatpsappService";
@@ -110,8 +109,8 @@ export class PaymentService {
 
   async getPaymentUser(userId: number) {
     return await this.paymentRepo.find({
-      where: { user: { id: userId } }, // ✅ filtramos por user.id
-      relations: ["user", "raffle", "details", "details.ticket"], // traemos relaciones necesarias
+      where: { user: { id: userId } },
+      relations: ["user", "raffle", "details", "details.ticket"],
     });
   }
   async createPayment(payment: {
@@ -122,9 +121,6 @@ export class PaymentService {
     reference: string;
   }) {
     return await this.dataSource.transaction(async (manager) => {
-      /** =========================
-       *  1. Usuario y rifa
-       * ========================= */
       const user = await manager.getRepository(User).findOne({
         where: { id: payment.user_id },
       });
@@ -135,13 +131,9 @@ export class PaymentService {
       });
       if (!raffle) throw new Error("No se encontró la rifa");
 
-      /** =========================
-       *  2. Tickets
-       * ========================= */
       let tickets: Ticket[] = [];
       let reservation: Reservation | null = null;
 
-      // 🔹 CASO A: pago desde reserva
       if (payment.reservation_id) {
         reservation = await manager.getRepository(Reservation).findOne({
           where: { id: payment.reservation_id },
@@ -169,7 +161,6 @@ export class PaymentService {
           throw new Error("No hay tickets válidos en la reserva");
         }
 
-        // 🔐 Validación CLAVE
         for (const ticket of tickets) {
           const belongsToReservation = reservation.reservationTickets.some(
             (rt) => rt.ticket.id_ticket === ticket.id_ticket
@@ -181,7 +172,6 @@ export class PaymentService {
             );
           }
 
-          // ✅ validación correcta
           if (ticket.status === "available") {
             throw new Error(`El ticket ${ticket.id_ticket} no pertenece a esta reserva`);
           }
@@ -201,7 +191,6 @@ export class PaymentService {
         }
       }
 
-      // 🔹 CASO B: compra directa
       else {
         tickets = await manager.getRepository(Ticket).find({
           where: { id_ticket: In(payment.ticket_ids) },
@@ -220,10 +209,6 @@ export class PaymentService {
           }
         }
       }
-
-      /** =========================
-       *  3. Crear pago
-       * ========================= */
       const totalAmount = tickets.length * Number(raffle.price);
 
       const paymentEntity = manager.getRepository(Payment).create({
@@ -236,10 +221,6 @@ export class PaymentService {
       });
 
       await manager.getRepository(Payment).save(paymentEntity);
-
-      /** =========================
-       *  4. Detalles + tickets
-       * ========================= */
       for (const ticket of tickets) {
         const detail = manager.getRepository(PaymentDetail).create({
           payment: paymentEntity,
@@ -256,9 +237,6 @@ export class PaymentService {
         await manager.getRepository(Ticket).save(ticket);
       }
 
-      /** =========================
-       *  5. Cerrar reserva
-       * ========================= */
       if (reservation) {
         await manager.getRepository(Reservation).delete(reservation.id);
       }
@@ -294,9 +272,6 @@ export class PaymentService {
     reference: string;
   }) {
     return await this.dataSource.transaction(async (manager) => {
-      /** =========================
-       *  1. Usuario y rifa
-       * ========================= */
       const user = await manager.getRepository(User).findOne({
         where: { id: userId },
       });
@@ -307,9 +282,6 @@ export class PaymentService {
       });
       if (!raffle) throw new Error("Rifa no encontrada");
 
-      /** =========================
-       *  2. Blindaje: tickets reservados sin reservation_id
-       * ========================= */
       const heldTickets = await manager.getRepository(Ticket).find({
         where: {
           id_ticket: In(ticket_ids),
@@ -323,13 +295,9 @@ export class PaymentService {
         );
       }
 
-      /** =========================
-       *  3. Obtener tickets
-       * ========================= */
       let tickets: Ticket[] = [];
       let reservation: Reservation | null = null;
 
-      // 🔹 CASO A: pago desde reserva (IGUAL a createPayment)
       if (reservation_id) {
         reservation = await manager.getRepository(Reservation).findOne({
           where: { id: reservation_id },
@@ -363,19 +331,16 @@ export class PaymentService {
             );
           }
 
-          // ❌ available nunca es válido en reserva
           if (ticket.status === TicketStatus.AVAILABLE) {
             throw new Error(
               `El ticket ${ticket.id_ticket} no pertenece a esta reserva`
             );
           }
 
-          // ❌ ya comprado
           if (ticket.status === TicketStatus.PURCHASED) {
             throw new Error(`El ticket ${ticket.id_ticket} ya fue comprado`);
           }
 
-          // ❌ hold expirado
           if (
             ticket.status === TicketStatus.HELD &&
             ticket.held_until &&
@@ -387,8 +352,6 @@ export class PaymentService {
           }
         }
       }
-
-      // 🔹 CASO B: compra directa
       else {
         tickets = await manager.getRepository(Ticket).find({
           where: { id_ticket: In(ticket_ids) },
@@ -407,9 +370,6 @@ export class PaymentService {
         }
       }
 
-      /** =========================
-       *  4. Crear pago (pendiente)
-       * ========================= */
       const totalAmount = tickets.length * Number(raffle.price);
 
       const payment = manager.getRepository(Payment).create({
@@ -422,10 +382,6 @@ export class PaymentService {
       });
 
       await manager.getRepository(Payment).save(payment);
-
-      /** =========================
-       *  5. Crear detalles y pasar tickets a HOLD
-       * ========================= */
       for (const ticket of tickets) {
         const detail = manager.getRepository(PaymentDetail).create({
           payment,
@@ -440,16 +396,10 @@ export class PaymentService {
         await manager.getRepository(Ticket).save(ticket);
       }
 
-      /** =========================
-       *  6. Eliminar reserva
-       * ========================= */
       if (reservation) {
         await manager.getRepository(Reservation).delete(reservation.id);
       }
 
-      /** =========================
-       *  7. Respuesta Wompi
-       * ========================= */
       return {
         payment_id: payment.id,
         reference,
@@ -462,101 +412,86 @@ export class PaymentService {
 
 
   async wompiWebhook(req: Request, res: Response) {
-    const event = req.body;
-    const checksum = req.headers["x-event-checksum"] as string;
-    const integritySecret = process.env.WOMPI_INTEGRITY_SECRET;
+    try {
+      const event = req.body;
+      const checksum = req.headers["x-event-checksum"] as string;
+      const integritySecret = process.env.WOMPI_INTEGRITY_SECRET;
 
-    const isDev = process.env.NODE_ENV !== "production";
-    if (!isDev) {
-      if (!checksum || !integritySecret) {
-        return res.status(400).json({ message: "Firma no encontrada" });
+      if (process.env.NODE_ENV === "production") {
+        if (!checksum || !integritySecret) {
+          return res.status(400).json({ message: "Firma no encontrada" });
+        }
+
+        const generatedHash = crypto
+          .createHash("sha256")
+          .update(JSON.stringify(event) + integritySecret)
+          .digest("hex");
+
+        if (generatedHash !== checksum) {
+          return res.status(401).json({ message: "Firma inválida" });
+        }
+      }
+      const tx = event?.data?.transaction;
+      if (!tx?.reference || !tx?.status) {
+        return res.status(400).json({ message: "Evento inválido" });
       }
 
-      const generatedHash = crypto
-        .createHash("sha256")
-        .update(JSON.stringify(event) + integritySecret)
-        .digest("hex");
+      const payment = await this.paymentRepo.findOne({
+        where: { reference: tx.reference },
+        relations: ["details", "details.ticket"],
+      });
 
-      if (generatedHash !== checksum) {
-        return res.status(401).json({ message: "Firma inválida" });
+      if (!payment) {
+        return res.status(404).json({ message: "Pago no encontrado" });
       }
-    }
-
-    const tx = event?.data?.transaction;
-    if (!tx?.reference || !tx?.status) {
-      return res.status(400).json({ message: "Evento inválido" });
-    }
-
-    const payment = await this.paymentRepo.findOne({
-      where: { reference: tx.reference },
-      relations: ["details", "details.ticket"],
-    });
-
-    if (!payment) {
-      return res.status(404).json({ message: "Pago no encontrado" });
-    }
-
-    switch (tx.status) {
-      case "APPROVED":
-        payment.status = PaymentStatus.COMPLETED;
-        break;
-
-      case "DECLINED":
-        payment.status = PaymentStatus.CANCELLED;
-        break;
-
-      case "ERROR":
-        payment.status = PaymentStatus.FAILED;
-        break;
-
-      default:
-        payment.status = PaymentStatus.PENDING;
-    }
-
-    if (payment.status === PaymentStatus.COMPLETED || payment.status === PaymentStatus.CANCELLED) {
-      return res.status(200).json({ message: "Evento ya procesado" });
-    }
-
-
-    payment.transaction_id = tx.id;
-
-    switch (tx.status) {
-      case "APPROVED":
-        payment.status = PaymentStatus.COMPLETED;
-        break;
-
-      case "DECLINED":
-        payment.status = PaymentStatus.CANCELLED;
-        break;
-
-      case "ERROR":
-        payment.status = PaymentStatus.FAILED;
-        break;
-
-      default:
-        payment.status = PaymentStatus.PENDING;
-    }
-
-    await this.paymentRepo.save(payment);
-
-
-    if (tx.status === "APPROVED") {
-      for (const d of payment.details) {
-        d.ticket.status = TicketStatus.PURCHASED;
-        d.ticket.purchased_at = new Date();
-        await this.ticketRepository.save(d.ticket);
+      if (payment.status !== PaymentStatus.PENDING) {
+        return res.status(200).json({ message: "Evento ya procesado" });
       }
-    }
 
-    if (tx.status === "DECLINED" || tx.status === "ERROR") {
-      for (const d of payment.details) {
-        d.ticket.status = TicketStatus.AVAILABLE;
-        await this.ticketRepository.save(d.ticket);
+      payment.transaction_id = tx.id;
+
+      switch (tx.status) {
+        case "APPROVED":
+          payment.status = PaymentStatus.COMPLETED;
+          break;
+
+        case "DECLINED":
+          payment.status = PaymentStatus.CANCELLED;
+          break;
+
+        case "ERROR":
+          payment.status = PaymentStatus.FAILED;
+          break;
+
+        default:
+          payment.status = PaymentStatus.PENDING;
       }
-    }
 
-    return res.status(200).json({ message: "Webhook procesado correctamente" });
+      await this.paymentRepo.save(payment);
+
+      if (tx.status === "APPROVED") {
+        for (const d of payment.details) {
+          d.ticket.status = TicketStatus.PURCHASED;
+          d.ticket.purchased_at = new Date();
+          await this.ticketRepository.save(d.ticket);
+        }
+      }
+
+      if (tx.status === "DECLINED" || tx.status === "ERROR") {
+        for (const d of payment.details) {
+          d.ticket.status = TicketStatus.AVAILABLE;
+          d.ticket.held_until = null;
+          await this.ticketRepository.save(d.ticket);
+        }
+      }
+
+      return res.status(200).json({ message: "Webhook procesado correctamente" });
+    } catch (error) {
+      console.error("Error en webhook Wompi:", error);
+      return res.status(500).json({ message: "Error interno procesando webhook" });
+    }
   }
+
   async getWompiSignature(
     reference: string,
     amountInCents: number,

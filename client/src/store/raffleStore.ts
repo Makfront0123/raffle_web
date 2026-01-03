@@ -71,19 +71,9 @@ export const useRaffleStore = create<RaffleStore>()((set) => ({
 
     try {
       const raffleService = new RaffleService();
-      const created = await raffleService.createRaffle({
-        title: raffle.title,
-        description: raffle.description,
-        price: raffle.price,
-        endDate: raffle.end_date,
-        digits: raffle.digits,
-      }, token);
-
-      // 2️⃣ Reemplazar rifa temporal con la real del backend
-      set((state) => ({
-        raffles: state.raffles.map(r => r.id === raffle.id ? created : r)
-      }));
-
+      const created = await raffleService.createRaffle(raffle, token);
+      set((state) => ({ raffles: [...state.raffles, created] }));
+      toast.success("Rifa creada correctamente");
       return created;
     } catch (err: unknown) {
       const msg = getErrorMessage(err);

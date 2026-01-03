@@ -11,10 +11,6 @@ import { useLoadingScreen } from "@/hook/useLoadingScreen";
 import { useFilteredRaffles } from "@/hook/useFilteredRaffles";
 import { usePrizes } from "@/hook/usePrizes";
 import { usePagination } from "@/hook/usePagination";
- 
-
-import AdminSplashScreen from "@/components/admin/AdminSplashScreen";
-import { useAdminSplash } from "@/hook/useAdminSplash";
 
 export default function Home() {
   const loading = useLoadingScreen(300);
@@ -29,14 +25,14 @@ export default function Home() {
     setPage,
     items: paginatedRaffles,
   } = usePagination(filteredRaffles, 3);
-  const showAdminSplash = useAdminSplash();
+ 
 
   if (loading) return <LoadingScreen />;
+
  
-  if (showAdminSplash) {
-    return <AdminSplashScreen />;
-  }
- 
+
+  
+
   return (
     <>
       <Hero />

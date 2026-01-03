@@ -32,7 +32,7 @@ export function useRaffles() {
     } finally {
       setLoading(false);
     }
-  }, [getRaffles, token]);
+  }, [getRaffles]);
 
   useEffect(() => {
     refreshRaffles();
@@ -52,14 +52,10 @@ export function useRaffles() {
       if (!token) return;
 
       try {
-        if (!form.title || typeof form.price !== "number") {
-          throw new Error("Campos obligatorios incompletos");
-        }
+        if (!form.end_date) throw new Error("Selecciona una fecha.");
 
-        if (!form.end_date) throw new Error("Selecciona una fecha válida");
-        const endDate = new Date(form.end_date);
-        endDate.setUTCHours(23, 59, 59, 0);
-        if (isNaN(endDate.getTime())) throw new Error("Fecha inválida");
+        const min = new Date();
+        min.setDate(min.getDate() + 7);
 
         const minDate = new Date();
         minDate.setDate(minDate.getDate() + 7);
@@ -78,17 +74,16 @@ export function useRaffles() {
           total_numbers: 0,
         };
 
-        await addRaffle(tempRaffle, token);
-        if (resetForm) resetForm();
-
-        await refreshRaffles();
+        await addRaffle(payload, token);
+        getRaffles();
       } catch (err: unknown) {
-        toast.error(err instanceof Error ? err.message : "Error creando la rifa");
-        console.error(err);
+        const message =
+          err instanceof Error ? err.message : "Error creando la rifa";
+        toast.error(message);
         throw err;
       }
     },
-    [addRaffle, token, refreshRaffles]
+    [addRaffle, token]
   );
 
   const handleDeleteRaffle = useCallback(

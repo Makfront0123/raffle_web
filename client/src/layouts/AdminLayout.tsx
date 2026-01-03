@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useAuth } from "@/hook/useAuth";
-import { useAdminSplash } from "@/hook/useAdminSplash";
 import HeaderAdmin from "@/components/HeaderAdmin";
 import { Sidebar } from "@/components/Sidebar";
 import {
@@ -12,17 +11,11 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/components/ui/sheet";
-import AdminSplashScreen from "@/components/admin/AdminSplashScreen";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { logout } = useAuth();
   const [openSidebar, setOpenSidebar] = useState(false);
-  const { showSplash, adminName } = useAdminSplash();
-
-  // 🔑 DECISIÓN DE RENDER
-  if (showSplash) {
-    return <AdminSplashScreen name={adminName} />;
-  }
+  
 
   return (
     <div className="flex min-h-screen bg-gray-100 text-gray-800">

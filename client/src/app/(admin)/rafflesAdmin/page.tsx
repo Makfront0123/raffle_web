@@ -2,7 +2,7 @@
 
 import { useRaffles } from "@/hook/useRaffles";
 import { useRaffleForm } from "@/hook/useRaffleForm";
-import { usePagination } from "@/hook/usePagination";
+import { useMemo, useState } from "react";
 import { RaffleForm } from "@/components/admin/raffle/RaffleForm";
 import { RafflesTable } from "@/components/admin/raffle/RaffleTable";
 
@@ -12,6 +12,15 @@ const RafflesAdmin = () => {
   const { form, handleChange, resetForm } = useRaffleForm();
   const { page, totalPages, items: currentRaffles, setPage } = usePagination(raffles, 5, false);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const rafflesPerPage = 5;
+  const start = (currentPage - 1) * rafflesPerPage;
+  const currentRaffles = useMemo(
+    () => raffles.slice(start, start + rafflesPerPage),
+    [raffles, start]
+  );
+
+  const totalPages = Math.ceil(raffles.length / rafflesPerPage);
 
   const minDate = (() => {
     const d = new Date();
