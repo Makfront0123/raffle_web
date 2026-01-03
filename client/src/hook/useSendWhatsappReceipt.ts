@@ -12,7 +12,7 @@ export function useWhatsappReceipt() {
   const sendReceipt = async ({
     phone,
     raffleName,
-    tickets, // array de tickets
+    tickets,
     amount,
   }: {
     phone: string;

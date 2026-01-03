@@ -17,19 +17,15 @@ export default function WinnersSection({ winners }: { winners: Winner[] }) {
       id="winners"
       className="py-20 bg-black/80 relative rounded-2xl shadow-xl border border-gold/30"
     >
-      {/* Background glow */}
       <div className="absolute inset-0 bg-gradient-to-b from-gold/5 to-transparent pointer-events-none" />
 
       <div className="max-w-6xl mx-auto px-6 relative z-10">
-        {/* Header Rifa */}
         <div className="flex items-center gap-3 mb-10">
           <Trophy className="h-8 w-8 text-gold" />
           <h2 className="text-3xl font-extrabold text-gold drop-shadow-xl">
             Ganadores de la rifa
           </h2>
         </div>
-
-        {/* Empty state */}
         {winners.length === 0 && (
           <div className="text-center py-16">
             <h3 className="text-lg font-bold text-white/30">
@@ -41,7 +37,6 @@ export default function WinnersSection({ winners }: { winners: Winner[] }) {
           </div>
         )}
 
-        {/* Contenedor de la rifa */}
         {winners.length > 0 && (
           <div className="bg-black/60 border border-gold/40 rounded-2xl p-8 backdrop-blur-xl shadow-lg">
 
@@ -84,7 +79,6 @@ export default function WinnersSection({ winners }: { winners: Winner[] }) {
             </div>
           </div>
         )}
-        {/* Pagination */}
         {totalPages > 1 && (
           <div className="flex justify-center items-center gap-6 mt-10">
             <button

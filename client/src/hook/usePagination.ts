@@ -4,8 +4,6 @@ import { useState, useMemo, useEffect } from "react";
 
 export function usePagination<T>(items: T[] = [], itemsPerPage = 9) {
   const [page, setPage] = useState(1);
-
-  // ✅ Aseguramos que items siempre sea un array
   const safeItems = items || [];
 
   const totalPages = Math.max(

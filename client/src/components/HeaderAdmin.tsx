@@ -32,9 +32,6 @@ export default function HeaderAdmin({
       </div>
 
       <div className="md:flex hidden items-center gap-4">
-        <Button variant="ghost" size="icon" className="hidden sm:flex">
-          <Bell className="h-5 w-5" />
-        </Button>
         <span className="text-sm text-gray-600 hidden md:block">{username}</span>
         <Button variant="destructive" size="sm" onClick={onLogout}>
           <LogOut className="h-4 w-4 mr-1" /> <span className="hidden sm:inline">Cerrar sesión</span>

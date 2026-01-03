@@ -9,8 +9,6 @@ import { useRaffles } from "@/hook/useRaffles";
 
 const WinnersPage = () => {
   const { winners, loading, error, setActiveRaffleId } = usePrizes();
-  console.log(winners);
-
   const { raffles } = useRaffles();
 
   const [filterRaffle, setFilterRaffle] = useState<number | "all">("all");

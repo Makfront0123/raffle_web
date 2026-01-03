@@ -26,10 +26,6 @@ export default function Home() {
 
   if (loading) return <LoadingScreen />;
 
- 
-
-  
-
   return (
     <>
       <Hero />

@@ -7,7 +7,7 @@ export type RaffleFormLocal = {
   title: string;
   description: string;
   price: string;
-  end_date: string; // input type="date" en frontend
+  end_date: string;
   digits: number;
   status: string;
   tickets: Ticket[];
@@ -40,7 +40,6 @@ export const useRaffleForm = () => {
 
   const resetForm = () => setForm(initialForm);
 
-  // Validar y crear payload listo para backend
   const getValidatedPayload = () => {
     if (!form.end_date) throw new Error("Selecciona una fecha");
 
@@ -59,7 +58,7 @@ export const useRaffleForm = () => {
       description: form.description,
       price,
       digits: form.digits,
-      endDate: endDate.toISOString(), // aquí enviamos el campo correcto
+      endDate: endDate.toISOString(),
     };
   };
 

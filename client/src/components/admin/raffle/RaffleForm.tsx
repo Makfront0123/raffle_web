@@ -50,14 +50,21 @@ export const RaffleForm = ({
 
           <div>
             <Label>Precio</Label>
-            <Input
-              type="number"
-              step="0.01"
-              name="price"
-              value={form.price}
-              onChange={handleChange}
-            />
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+              <Input
+                type="number"
+                step="0.01"
+                min="0.01"
+                name="price"
+                value={form.price}
+                onChange={handleChange}
+                placeholder="Ej: 10.00"
+                className="pl-7"
+              />
+            </div>
           </div>
+
 
           <div>
             <Label>Dígitos</Label>
@@ -66,8 +73,15 @@ export const RaffleForm = ({
               name="digits"
               value={form.digits}
               onChange={handleChange}
+              placeholder="Ej: 4"
+              min={1}
+              max={10}
             />
+            <p className="text-xs text-gray-400 mt-1">
+              Número de dígitos para generar los tickets aleatorios
+            </p>
           </div>
+
 
           <div>
             <Label>Fecha de Finalización</Label>

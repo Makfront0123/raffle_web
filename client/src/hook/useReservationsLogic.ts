@@ -62,7 +62,7 @@ export function useReservationsLogic() {
 
       await payWithWompiWidget({
         raffle,
-        tickets, // ✅ ahora sí cumplen con Ticket[]
+        tickets,
         reservation_id: reservation.id,
       });
 
