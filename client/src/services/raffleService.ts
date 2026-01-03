@@ -16,10 +16,15 @@ export class RaffleService {
     let data: Record<string, unknown> | undefined;
 
     if (typeof error === "object" && error !== null && "response" in error) {
-      const err = error as { response?: { data?: any; status?: number }; message?: string };
-      backendMessage = err.response?.data?.message || err.message || defaultMessage;
+      const err = error as { response?: { data?: unknown; status?: number }; message?: string };
+      const responseData = err.response?.data;
+      if (typeof responseData === "object" && responseData !== null && "message" in responseData) {
+        backendMessage = (responseData as any).message ?? err.message ?? defaultMessage;
+      } else {
+        backendMessage = err.message ?? defaultMessage;
+      }
       status = err.response?.status;
-      data = err.response?.data;
+      data = err.response?.data as Record<string, unknown> | undefined;
     } else if (error instanceof Error) {
       backendMessage = error.message;
     }

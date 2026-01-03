@@ -1,13 +1,10 @@
 "use client";
 
 import { usePrizeStore } from "@/store/prizeStore";
-import { AuthStore } from "@/store/authStore";
 import { useEffect, useState } from "react";
 import { PrizeForm, Prizes } from "@/type/Prizes";
 
 export function usePrizes() {
-  const { user } = AuthStore();
-
   const {
     prizes = [],
     winners = [],

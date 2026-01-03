@@ -91,14 +91,21 @@ export function useAuth({ skipPersist = false }: UseAuthOptions = {}) {
         const res = await new AuthService().persist();
         setUser(res.user);
       } catch (err: unknown) {
-        if ((err as any)?.response?.status === 401) storeLogout();
-        else console.error("Error verificando sesión:", err);
+        if (
+          typeof err === "object" &&
+          err !== null &&
+          "response" in err &&
+          (err as any).response?.status === 401
+        ) {
+          storeLogout();
+        } else {
+          console.error("Error verificando sesión:", err);
+        }
       } finally {
         setInitialized(true);
       }
     })();
   }, [setUser, storeLogout, skipPersist]);
-
   return {
     user,
     initialized,
