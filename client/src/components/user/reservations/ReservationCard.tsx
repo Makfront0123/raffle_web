@@ -37,19 +37,13 @@ export default function ReservationCard({
     }
   }, [countdown, reservation.id]);
 
-  // ⛔ seguridad
   if (!rawTicket || !raffle) return null;
 
-  /**
-   * 🔥 CONVERSIÓN CLAVE
-   * rawTicket ≠ Ticket (frontend)
-   * aquí se construye el Ticket correcto
-   */
   const ticketForModal: Ticket = {
     id_ticket: rawTicket.id_ticket,
     ticket_number: rawTicket.ticket_number,
     status: rawTicket.status,
-    raffle: raffle, // ✅ requerido por el tipo Ticket
+    raffle: raffle,
   };
 
   return (
@@ -89,14 +83,14 @@ export default function ReservationCard({
             </Button>
 
             {rawTicket.status === TicketStatusEnum.RESERVED
-             && (
-              <Button
-                className="bg-gold text-white hover:bg-gold/80"
-                onClick={() => setOpen(true)}
-              >
-                Comprar
-              </Button>
-            )}
+              && (
+                <Button
+                  className="bg-gold text-white hover:bg-gold/80"
+                  onClick={() => setOpen(true)}
+                >
+                  Comprar
+                </Button>
+              )}
           </div>
         </CardContent>
       </Card>
@@ -104,8 +98,8 @@ export default function ReservationCard({
       <RaffleTicketModal
         open={open}
         setOpen={setOpen}
-        tickets={[ticketForModal]}   // ✅ Ticket válido
-        raffle={raffle}              // ✅ Raffle completo
+        tickets={[ticketForModal]}
+        raffle={raffle}
         handleAction={async () => {
           await onPay(reservation, raffle);
           setOpen(false);

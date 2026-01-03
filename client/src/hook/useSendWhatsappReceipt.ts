@@ -5,47 +5,52 @@ import { AuthStore } from "@/store/authStore";
 import { useState } from "react";
 
 export function useWhatsappReceipt() {
-    const { token } = AuthStore();
-    const [loading, setLoading] = useState(false);
-    const [sent, setSent] = useState(false);
+  const { user } = AuthStore();
+  const [loading, setLoading] = useState(false);
+  const [sent, setSent] = useState(false);
 
-    const sendReceipt = async ({
-        phone,
-        raffleName,
-        tickets, // 🔹 array de tickets
-        amount,
-    }: {
-        phone: string;
-        raffleName: string;
-        tickets: string[];
-        amount: number;
-    }) => {
-        try {
-            let cleanPhone = phone.replace(/\D/g, "");
+  const sendReceipt = async ({
+    phone,
+    raffleName,
+    tickets, // array de tickets
+    amount,
+  }: {
+    phone: string;
+    raffleName: string;
+    tickets: string[];
+    amount: number;
+  }) => {
+    if (!user) {
+      throw new Error("Debes iniciar sesión");
+    }
 
-            if (!cleanPhone.startsWith("57")) {
-                cleanPhone = "57" + cleanPhone;
-            }
+    try {
+      let cleanPhone = phone.replace(/\D/g, "");
 
-            cleanPhone = `+${cleanPhone}`;
+      if (!cleanPhone.startsWith("57")) {
+        cleanPhone = "57" + cleanPhone;
+      }
 
-            setLoading(true);
+      cleanPhone = `+${cleanPhone}`;
 
-            await axios.post(
-                `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/payment/whatsapp/receipt`,
-                { phone: cleanPhone, raffleName, tickets, amount },
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
+      setLoading(true);
 
-            setSent(true);
-        } finally {
-            setLoading(false);
+      await axios.post(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/payment/whatsapp/receipt`,
+        {
+          phone: cleanPhone,
+          raffleName,
+          tickets,
+          amount,
+          userId: user.id,
         }
-    };
+      );
 
-    return { sendReceipt, loading, sent };
+      setSent(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { sendReceipt, loading, sent };
 }

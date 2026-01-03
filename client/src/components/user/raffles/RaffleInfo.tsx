@@ -22,8 +22,9 @@ export default function RaffleInfo({ raffle, soldPercentage }: Props) {
 
       <div className="md:mt-6 mt-0 md:mb-0 mb-14">
         <p className="text-black text-sm mb-1">
-          🎯 Progreso de venta: {soldPercentage.toFixed(2)}%
+          🎯 Progreso de venta: {(Number(soldPercentage) || 0).toFixed(2)}%
         </p>
+
         <div className="w-full bg-gray-800 rounded-full h-3">
           <div
             className="bg-green-500 h-3 rounded-full transition-all duration-700"

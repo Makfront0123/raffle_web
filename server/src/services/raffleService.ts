@@ -74,9 +74,6 @@ export class RaffleService {
         type: PrizeType;
     }) {
         const raffleRepo = this.raffleRepo;
-        const ticketRepo = this.ticketRepo;
-
-
         let endDate: Date | null = null;
 
         if (data.end_date instanceof Date) {
@@ -256,7 +253,7 @@ export class RaffleService {
             await ticketRepo.insert(batch);
         }
 
-        await this.raffleRepo.update(raffleId, { status: "ready" });
+        await this.raffleRepo.update(raffleId, { status: "pending" });
     }
 
 

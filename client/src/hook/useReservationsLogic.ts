@@ -16,7 +16,7 @@ export function useReservationsLogic() {
   const { reservations, loading, error, fetchReservations } = useReservation();
   const { cancelReservation } = useReservationStore();
   const { raffles } = useRaffles();
-  const { token } = AuthStore();
+  const { user } = AuthStore();
   const { payWithWompiWidget } = usePayment();
 
   const [canceling, setCanceling] = useState<number | null>(null);
@@ -42,15 +42,15 @@ export function useReservationsLogic() {
   const totalPages = Math.ceil(activeReservations.length / itemsPerPage);
 
   const handleCancel = async (id: number) => {
-    if (!token) return;
+    if (!user) return;
     setCanceling(id);
-    await cancelReservation(id, token);
+    await cancelReservation(id);
     await fetchReservations();
     setCanceling(null);
   };
 
   const handleAction = async (reservation: Reservation, raffle: Raffle) => {
-    if (!token) return;
+    if (!user) return;
 
     try {
       const tickets: Ticket[] = reservation.reservationTickets.map(t => ({

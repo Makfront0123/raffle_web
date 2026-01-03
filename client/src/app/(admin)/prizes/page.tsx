@@ -11,10 +11,8 @@ import { usePrizeFilter } from "@/hook/usePrizeFilter";
 import { usePagination } from "@/hook/usePagination";
 
 export default function PrizesPage() {
-  const { token } = AuthStore();
-
   const { raffles, loading: loadingRaffles } = useRaffles();
-  const { providers, loading: loadingProviders } = useProviders(token || "");
+  const { providers, loading: loadingProviders } = useProviders();
   const { prizes, createPrize, editPrize, deletePrize } = usePrizes();
 
   const { filteredPrizes, raffleId, setRaffleId } = usePrizeFilter(prizes);

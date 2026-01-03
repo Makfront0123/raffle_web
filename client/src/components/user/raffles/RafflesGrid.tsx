@@ -7,7 +7,7 @@ interface Props {
   raffles: Raffle[];
   currentPage: number;
   rafflesPerPage: number;
-  setShowExpiredModal: (raffle: Raffle) => void; // un solo parámetro
+  setShowExpiredModal: (raffle: Raffle) => void;
 }
 export default function RafflesGrid({
   raffles,

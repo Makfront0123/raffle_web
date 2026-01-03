@@ -12,6 +12,7 @@ import { PaymentSuccessModal } from "@/components/PaymentSuccessModal";
 
 
 export default function RaffleDetailPage() {
+  
   const payment = usePayment({
     onPaymentSuccess: async () => {
       await raffleDetail.refreshRaffle();
@@ -67,7 +68,7 @@ export default function RaffleDetailPage() {
           open={raffleDetail.open}
           setOpen={raffleDetail.setOpen}
           tickets={raffleDetail.selectedTickets}
-          raffle={raffleDetail.raffle} // ✅ ya es Raffle, no null
+          raffle={raffleDetail.raffle}
           handleAction={raffleDetail.handleAction}
         />
       )}

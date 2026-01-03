@@ -5,15 +5,16 @@ import path from "path";
 import cors from "cors";
 import helmet from "helmet";
 import dotenv from "dotenv";
-
+import cookieParser from "cookie-parser";
 import { AppDataSource } from "./data-source";
 import { PaymentService } from "./services/paymentService";
 import { PaymentController } from "./controllers/paymentController";
-
 dotenv.config();
 
 const app = express();
 app.set("trust proxy", 1);
+
+app.use(cookieParser());
 
 const paymentService = new PaymentService(AppDataSource);
 const paymentController = new PaymentController(paymentService);

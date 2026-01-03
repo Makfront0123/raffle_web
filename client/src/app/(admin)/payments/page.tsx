@@ -15,7 +15,6 @@ export default function PaymentsPage() {
     currentPage,
     setCurrentPage,
     filteredPayments,
-    token,
     statusFilter,
     setStatusFilter,
     dateFrom,
@@ -31,7 +30,7 @@ export default function PaymentsPage() {
 
   const handleComplete = async (id: number) => {
     try {
-      await completePayment(id, token ?? "");
+      await completePayment(id);
       toast.success("Pago completado");
     } catch {
       toast.error("Error al completar el pago");

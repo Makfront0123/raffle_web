@@ -1,24 +1,37 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hook/useAuth";
 
-export function AuthDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+export function AuthDialog({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
   const { loginWithGoogle } = useAuth();
   const googleDivRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
     if (window.google?.accounts?.id && googleDivRef.current) {
       window.google.accounts.id.renderButton(googleDivRef.current, {
         theme: "outline",
         size: "large",
       });
+
       googleDivRef.current.style.display = "none";
     }
   }, []);
-
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -40,7 +53,7 @@ export function AuthDialog({ open, onOpenChange }: { open: boolean; onOpenChange
             Continuar con Google
           </Button>
 
-          <div ref={googleDivRef}></div>
+          <div ref={googleDivRef} />
         </div>
       </DialogContent>
     </Dialog>

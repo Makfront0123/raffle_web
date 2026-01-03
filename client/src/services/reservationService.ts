@@ -1,4 +1,4 @@
-import axios from "axios";
+import { api } from "@/api/api";
 import { Reservation } from "@/type/Reservation";
 
 export interface CancelReservationResponse {
@@ -7,40 +7,56 @@ export interface CancelReservationResponse {
 }
 
 export class ReservationService {
-  async getAllReservations(token: string): Promise<Reservation[]> {
-    const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/reservation`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    return res.data;
+  private handleError(error: unknown, defaultMessage: string): never {
+    console.error("Backend error:", error);
+    throw new Error(defaultMessage);
   }
 
-  async getReservationById(id: number, token: string): Promise<Reservation> {
-    const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/reservation/${id}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    return res.data;
+  async getAllReservations(): Promise<Reservation[]> {
+    try {
+      const res = await api.get<Reservation[]>("/api/reservation");
+      return res.data;
+    } catch (error: unknown) {
+      return this.handleError(error, "Error obteniendo las reservaciones");
+    }
   }
 
-  async createReservation(ticketId: number, raffleId: number, token: string): Promise<Reservation> {
-    const res = await axios.post(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/reservation`,
-      { raffleId, ticketIds: [ticketId] },
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-    return res.data;
+  async getReservationById(id: number): Promise<Reservation> {
+    try {
+      const res = await api.get<Reservation>(`/api/reservation/${id}`);
+      return res.data;
+    } catch (error: unknown) {
+      return this.handleError(error, "Error obteniendo la reservación");
+    }
   }
 
-  async cancelReservation(id: number, token: string): Promise<CancelReservationResponse> {
-    const res = await axios.delete(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/reservation/${id}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    return res.data;
+  async createReservation(ticketId: number, raffleId: number): Promise<Reservation> {
+    try {
+      const res = await api.post<Reservation>("/api/reservation", {
+        raffleId,
+        ticketIds: [ticketId],
+      });
+      return res.data;
+    } catch (error: unknown) {
+      return this.handleError(error, "Error creando la reservación");
+    }
   }
 
-  async getAllReservationsByUser( token: string): Promise<Reservation[]> {
-    const res = await axios.get(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/reservation/user`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    return res.data;
+  async cancelReservation(id: number): Promise<CancelReservationResponse> {
+    try {
+      const res = await api.delete<CancelReservationResponse>(`/api/reservation/${id}`);
+      return res.data;
+    } catch (error: unknown) {
+      return this.handleError(error, "Error cancelando la reservación");
+    }
+  }
+
+  async getAllReservationsByUser(): Promise<Reservation[]> {
+    try {
+      const res = await api.get<Reservation[]>("/api/reservation/user");
+      return res.data;
+    } catch (error: unknown) {
+      return this.handleError(error, "Error obteniendo las reservaciones del usuario");
+    }
   }
 }

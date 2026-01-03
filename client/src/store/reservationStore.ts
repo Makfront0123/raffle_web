@@ -11,14 +11,13 @@ interface ReservationStore {
     reservationsOrFn: Reservation[] | ((prev: Reservation[]) => Reservation[])
   ) => void;
 
-  getReservations: (token: string) => Promise<void>;
-  getReservationById: (id: number, token: string) => Promise<void>;
-  getAllReservationsByUser: (token: string) => Promise<void>;
-  createReservation: (ticketId: number, raffleId: number, token: string) => Promise<Reservation>;
-  cancelReservation: (id: number, token: string) => Promise<void>;
+  getReservations: () => Promise<void>;
+  getReservationById: (id: number) => Promise<void>;
+  getAllReservationsByUser: () => Promise<void>;
+  createReservation: (ticketId: number, raffleId: number) => Promise<Reservation>;
+  cancelReservation: (id: number) => Promise<void>;
 }
 
-// Helper para errores tipados
 const getErrorMessage = (err: unknown): string => {
   if (typeof err === "object" && err !== null && "message" in err) {
     return (err as { message: string }).message;
@@ -37,10 +36,10 @@ export const useReservationStore = create<ReservationStore>()((set) => ({
           : reservationsOrFn,
     })),
 
-  getReservations: async (token) => {
+  getReservations: async () => {
     try {
       const service = new ReservationService();
-      const reservations = await service.getAllReservations(token);
+      const reservations = await service.getAllReservations();
       set({ reservations });
     } catch (err: unknown) {
       const msg = getErrorMessage(err);
@@ -49,10 +48,10 @@ export const useReservationStore = create<ReservationStore>()((set) => ({
     }
   },
 
-  getReservationById: async (id, token) => {
+  getReservationById: async (id) => {
     try {
       const service = new ReservationService();
-      const reservation = await service.getReservationById(id, token);
+      const reservation = await service.getReservationById(id);
       set({ reservations: [reservation] });
     } catch (err: unknown) {
       const msg = getErrorMessage(err);
@@ -61,10 +60,10 @@ export const useReservationStore = create<ReservationStore>()((set) => ({
     }
   },
 
-  getAllReservationsByUser: async (token) => {
+  getAllReservationsByUser: async () => {
     try {
       const service = new ReservationService();
-      const reservations = await service.getAllReservationsByUser(token);
+      const reservations = await service.getAllReservationsByUser();
       set({ reservations });
     } catch (err: unknown) {
       const msg = getErrorMessage(err);
@@ -73,10 +72,10 @@ export const useReservationStore = create<ReservationStore>()((set) => ({
     }
   },
 
-  createReservation: async (ticketId, raffleId, token) => {
+  createReservation: async (ticketId, raffleId) => {
     try {
       const service = new ReservationService();
-      const newReservation = await service.createReservation(ticketId, raffleId, token);
+      const newReservation = await service.createReservation(ticketId, raffleId);
       set((state) => ({
         reservations: [...state.reservations, newReservation],
       }));
@@ -89,10 +88,10 @@ export const useReservationStore = create<ReservationStore>()((set) => ({
     }
   },
 
-  cancelReservation: async (id, token) => {
+  cancelReservation: async (id) => {
     try {
       const service = new ReservationService();
-      const res: CancelReservationResponse = await service.cancelReservation(id, token);
+      const res: CancelReservationResponse = await service.cancelReservation(id);
       toast.success(res.message);
       set((state) => ({
         reservations: state.reservations.filter((r) => r.id !== id),
