@@ -1,4 +1,4 @@
-import { CreateRaffleDTO, Raffle, UpdateRafflePayload } from "@/type/Raffle";
+ import { CreateRaffleDTO, Raffle, UpdateRafflePayload } from "@/type/Raffle";
 import { api } from "@/api/api";
 
 const API_URL = "/api/raffle";
@@ -9,22 +9,35 @@ export interface BackendError {
   data?: Record<string, unknown>;
 }
 
+function isAxiosError(
+  error: unknown
+): error is { response?: { data?: unknown; status?: number }; message?: string } {
+  return typeof error === "object" && error !== null && "response" in error;
+}
+
+function hasMessageField(
+  data: unknown
+): data is { message?: string } {
+  return typeof data === "object" && data !== null && "message" in data;
+}
+
 export class RaffleService {
   private handleError(error: unknown, defaultMessage: string): never {
     let backendMessage = defaultMessage;
     let status: number | undefined;
     let data: Record<string, unknown> | undefined;
 
-    if (typeof error === "object" && error !== null && "response" in error) {
-      const err = error as { response?: { data?: unknown; status?: number }; message?: string };
-      const responseData = err.response?.data;
-      if (typeof responseData === "object" && responseData !== null && "message" in responseData) {
-        backendMessage = (responseData as any).message ?? err.message ?? defaultMessage;
+    if (isAxiosError(error)) {
+      const responseData = error.response?.data;
+      if (hasMessageField(responseData)) {
+        backendMessage = responseData.message ?? error.message ?? defaultMessage;
       } else {
-        backendMessage = err.message ?? defaultMessage;
+        backendMessage = error.message ?? defaultMessage;
       }
-      status = err.response?.status;
-      data = err.response?.data as Record<string, unknown> | undefined;
+      status = error.response?.status;
+      if (typeof responseData === "object" && responseData !== null) {
+        data = responseData as Record<string, unknown>;
+      }
     } else if (error instanceof Error) {
       backendMessage = error.message;
     }

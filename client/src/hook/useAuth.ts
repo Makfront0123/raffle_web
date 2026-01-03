@@ -7,9 +7,12 @@ import { AuthStore } from "@/store/authStore";
 import { toast } from "sonner";
 import { GoogleTokenClient, GoogleTokenResponse } from "@/type/GoogleUserData";
 
-
 interface UseAuthOptions {
   skipPersist?: boolean;
+}
+
+function isAxiosError(err: unknown): err is { response?: { status?: number } } {
+  return typeof err === "object" && err !== null && "response" in err;
 }
 
 export function useAuth({ skipPersist = false }: UseAuthOptions = {}) {
@@ -91,12 +94,7 @@ export function useAuth({ skipPersist = false }: UseAuthOptions = {}) {
         const res = await new AuthService().persist();
         setUser(res.user);
       } catch (err: unknown) {
-        if (
-          typeof err === "object" &&
-          err !== null &&
-          "response" in err &&
-          (err as any).response?.status === 401
-        ) {
+        if (isAxiosError(err) && err.response?.status === 401) {
           storeLogout();
         } else {
           console.error("Error verificando sesión:", err);
@@ -106,6 +104,7 @@ export function useAuth({ skipPersist = false }: UseAuthOptions = {}) {
       }
     })();
   }, [setUser, storeLogout, skipPersist]);
+
   return {
     user,
     initialized,
