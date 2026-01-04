@@ -1,8 +1,7 @@
 "use client";
-
-import axios from "axios";
 import { AuthStore } from "@/store/authStore";
 import { useState } from "react";
+import { api } from "@/api/api";
 
 export function useWhatsappReceipt() {
   const { user } = AuthStore();
@@ -34,18 +33,12 @@ export function useWhatsappReceipt() {
       cleanPhone = `+${cleanPhone}`;
 
       setLoading(true);
-
-      await axios.post(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/payment/whatsapp/receipt`,
-        {
-          phone: cleanPhone,
-          raffleName,
-          tickets,
-          amount,
-          userId: user.id,
-        }
-      );
-
+      await api.post("/api/payment/whatsapp/receipt", {
+        phone: cleanPhone,
+        raffleName,
+        tickets,
+        amount,
+      });
       setSent(true);
     } finally {
       setLoading(false);

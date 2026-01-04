@@ -2,8 +2,10 @@
 
 import { useRaffleStore } from "@/store/raffleStore";
 import { CreateRaffleDTO, Raffle, UpdateRafflePayload } from "@/type/Raffle";
-import { useEffect, useState, useCallback } from "react";
+import { RaffleStatusFilter } from "@/type/RaffleTableProps";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { toast } from "sonner";
+
 
 export function useRaffles() {
   const {
@@ -19,6 +21,24 @@ export function useRaffles() {
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] =
+    useState<RaffleStatusFilter>("all");
+
+  const filteredRaffles = useMemo(() => {
+    if (statusFilter === "all") return raffles;
+    return raffles.filter(r => r.status === statusFilter);
+  }, [raffles, statusFilter]);
+
+  const rafflesPerPage = 5;
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const totalPages = Math.ceil(filteredRaffles.length / rafflesPerPage);
+
+  const paginatedRaffles = useMemo(() => {
+    const start = (currentPage - 1) * rafflesPerPage;
+    return filteredRaffles.slice(start, start + rafflesPerPage);
+  }, [filteredRaffles, currentPage]);
+
 
   const refreshRaffles = useCallback(async () => {
     setLoading(true);
@@ -74,7 +94,7 @@ export function useRaffles() {
     },
     [addRaffle, getRaffles]
   );
- 
+
   const handleDeleteRaffle = useCallback(
     async (id: number) => {
       const success = await deleteRaffle(id);
@@ -127,5 +147,11 @@ export function useRaffles() {
     regenerateTickets: handleRegenerateTickets,
     deactivateRaffle: handleDeactivateRaffle,
     activateRaffle: handleActivateRaffle,
+    statusFilter,
+    setStatusFilter,
+    currentPage,
+    setCurrentPage,
+    totalPages,
+    paginatedRaffles,
   };
 }

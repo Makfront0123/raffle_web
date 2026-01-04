@@ -1,22 +1,28 @@
 "use client";
+
 import { useRaffles } from "@/hook/useRaffles";
 import { useRaffleForm } from "@/hook/useRaffleForm";
-import { useMemo, useState } from "react";
 import { RaffleForm } from "@/components/admin/raffle/RaffleForm";
 import { RafflesTable } from "@/components/admin/raffle/RaffleTable";
+
 const RafflesAdmin = () => {
-  const { raffles, createRaffle, loading, error, deleteRaffle, activateRaffle, deactivateRaffle, updateRaffle } = useRaffles();
+  const {
+    paginatedRaffles,
+    loading,
+    error,
+    currentPage,
+    totalPages,
+    setCurrentPage,
+    statusFilter,
+    setStatusFilter,
+    createRaffle,
+    deleteRaffle,
+    activateRaffle,
+    deactivateRaffle,
+    updateRaffle,
+  } = useRaffles();
+
   const { form, handleChange, resetForm } = useRaffleForm();
-
-  const [currentPage, setCurrentPage] = useState(1);
-  const rafflesPerPage = 5;
-  const start = (currentPage - 1) * rafflesPerPage;
-  const currentRaffles = useMemo(
-    () => raffles.slice(start, start + rafflesPerPage),
-    [raffles, start]
-  );
-
-  const totalPages = Math.ceil(raffles.length / rafflesPerPage);
 
   const minDate = (() => {
     const d = new Date();
@@ -26,11 +32,8 @@ const RafflesAdmin = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      await createRaffle(form);
-      resetForm();
-    } catch {
-    }
+    await createRaffle(form);
+    resetForm();
   };
 
   return (
@@ -45,18 +48,22 @@ const RafflesAdmin = () => {
       />
 
       <RafflesTable
-        raffles={currentRaffles}
+        raffles={paginatedRaffles}
         loading={loading}
         error={error}
         currentPage={currentPage}
-        setCurrentPage={setCurrentPage}
         totalPages={totalPages}
+        setCurrentPage={setCurrentPage}
+        statusFilter={statusFilter}
+        setStatusFilter={setStatusFilter}
         deleteRaffle={deleteRaffle}
         activateRaffle={activateRaffle}
         deactivateRaffle={deactivateRaffle}
         updateRaffle={updateRaffle}
       />
+
     </main>
   );
 };
+
 export default RafflesAdmin;

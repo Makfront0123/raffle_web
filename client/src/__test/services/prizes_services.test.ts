@@ -1,81 +1,103 @@
-import axios from "axios";
 import { PrizeService } from "@/services/prizeService";
+import { api } from "@/api/api";
+import { Prizes } from "@/type/Prizes";
+ 
 
-jest.mock("axios");
-const mockedAxios = axios as jest.Mocked<typeof axios>;
+interface BackendResponse<T> {
+  message: string;
+  data: T;
+}
 
-// Mock global fetch
-global.fetch = jest.fn();
+jest.mock("@/api/api", () => ({
+  api: {
+    get: jest.fn(),
+    post: jest.fn(),
+    patch: jest.fn(),
+    delete: jest.fn(),
+  },
+}));
+
+const mockedApi = api as jest.Mocked<typeof api>;
 
 describe("PrizeService", () => {
-    const service = new PrizeService();
+  const service = new PrizeService();
 
-    it("getAllPrizes retorna premios", async () => {
-        mockedAxios.get.mockResolvedValue({ data: [{ id: 1 }] });
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
 
-        const res = await service.getAllPrizes("t");
+  it("getAllPrizes retorna premios", async () => {
+    const mockData: Prizes[] = [{ id: 1 } as Prizes];
+    mockedApi.get.mockResolvedValueOnce({ data: mockData });
 
-        expect(res[0].id).toBe(1);
-    });
+    const res = await service.getAllPrizes();
 
-    it("getPrizeById obtiene un premio", async () => {
-        mockedAxios.get.mockResolvedValue({ data: { id: 50 } });
+    expect(mockedApi.get).toHaveBeenCalledWith("/api/prizes");
+    expect(res[0].id).toBe(1);
+  });
 
-        const res = await service.getPrizeById(50, "token");
+  it("getPrizeById obtiene un premio", async () => {
+    const mockPrize: Prizes= { id: 50 } as Prizes;
+    mockedApi.get.mockResolvedValueOnce({ data: mockPrize });
 
-        expect(res.id).toBe(50);
-    });
+    const res = await service.getPrizeById(50);
 
-    it("createPrize retorna BackendResponse", async () => {
-        mockedAxios.post.mockResolvedValue({
-            data: { message: "ok", data: { id: 5 } },
-        });
+    expect(mockedApi.get).toHaveBeenCalledWith("/api/prizes/50");
+    expect(res.id).toBe(50);
+  });
 
-        const dto = {
-            name: "TV",
-            description: "LCD",
-            value: 1000,
-            type: "electronic",
-            raffleId: 1,
-            providerId: 1,
-        };
+  it("createPrize retorna BackendResponse", async () => {
+    const mockResponse: BackendResponse<Prizes> = {
+      message: "ok",
+      data: { id: 5 } as Prizes,
+    };
+    mockedApi.post.mockResolvedValueOnce({ data: mockResponse });
 
-        const res = await service.createPrize(dto, "token");
+    const dto = {
+      name: "TV",
+      description: "LCD",
+      value: 1000,
+      type: "electronic",
+      raffleId: 1,
+      providerId: 1,
+    };
 
-        expect(res.data.id).toBe(5);
-    });
+    const res = await service.createPrize(dto);
 
+    expect(mockedApi.post).toHaveBeenCalledWith("/api/prizes", dto);
+    expect(res.data.id).toBe(5);
+  });
 
-    it("updatePrize retorna BackendResponse", async () => {
-        mockedAxios.patch.mockResolvedValue({
-            data: { message: "updated", data: { id: 3 } },
-        });
+  it("updatePrize retorna BackendResponse", async () => {
+    const mockResponse: BackendResponse<Prizes> = {
+      message: "updated",
+      data: { id: 3 } as Prizes,
+    };
+    mockedApi.patch.mockResolvedValueOnce({ data: mockResponse });
 
-        const res = await service.updatePrize(
-            3,
-            { name: "Nuevo" },
-            "token"
-        );
+    const res = await service.updatePrize(3, { name: "Nuevo" });
 
-        expect(res.message).toBe("updated");
-    });
+    expect(mockedApi.patch).toHaveBeenCalledWith("/api/prizes/3", { name: "Nuevo" });
+    expect(res.message).toBe("updated");
+  });
 
-    it("getWinners usa fetch y retorna lista", async () => {
-        (fetch as jest.Mock).mockResolvedValue({
-            ok: true,
-            json: () => Promise.resolve([{ id: 1 }]),
-        });
+  it("getWinners retorna lista de ganadores", async () => {
+    const mockData: Prizes[] = [{ id: 1 } as Prizes];
+    mockedApi.get.mockResolvedValueOnce({ data: mockData });
 
-        const res = await service.getWinners(10, "token");
+    const res = await service.getWinners();
 
-        expect(res.length).toBe(1);
-    });
+    expect(mockedApi.get).toHaveBeenCalledWith("/api/prizes/winners");
+    expect(res.length).toBe(1);
+  });
 
-    it("deletePrize envía DELETE", async () => {
-        mockedAxios.delete.mockResolvedValue({ data: { message: "deleted" } });
+  it("deletePrize envía DELETE", async () => {
+    const mockResponse: { message: string } = { message: "deleted" };
+    mockedApi.delete.mockResolvedValueOnce({ data: mockResponse });
 
-        const res = await service.deletePrize(10, "t");
+    const res = await service.deletePrize(10);
 
-        expect(res.message).toBe("deleted");
-    });
+    expect(mockedApi.delete).toHaveBeenCalledWith("/api/prizes/10");
+    expect(res.message).toBe("deleted");
+  });
 });

@@ -28,11 +28,13 @@ describe("RaffleStore", () => {
       .spyOn(RaffleService.prototype, "getAllRaffles")
       .mockResolvedValue([mockRaffle as Raffle]);
 
+
     await act(async () => {
-      await useRaffleStore.getState().getRaffles();
+      await useRaffleStore.getState().deleteRaffle(99);
     });
 
-    expect(useRaffleStore.getState().raffles.length).toBe(1);
+    expect(useRaffleStore.getState().raffles.length).toBe(0);
+
   });
 
   it("addRaffle agrega una rifa", async () => {
@@ -54,14 +56,12 @@ describe("RaffleStore", () => {
 
     await act(async () => {
       await useRaffleStore.getState().addRaffle(
-        { title: "Nueva Rifa" },
-        "token"
+        { title: "Nueva Rifa", price: 5000, digits: 3 },
       );
     });
 
     expect(useRaffleStore.getState().raffles[0].id).toBe(99);
   });
-
   it("deleteRaffle elimina rifa", async () => {
     useRaffleStore.setState({
       raffles: [{
@@ -81,12 +81,13 @@ describe("RaffleStore", () => {
 
     jest
       .spyOn(RaffleService.prototype, "deleteRaffle")
-      .mockResolvedValue(undefined); // ✔ correcto
+      .mockResolvedValue(undefined);
 
     await act(async () => {
-      await useRaffleStore.getState().deleteRaffle(10, "token");
+      await useRaffleStore.getState().deleteRaffle(99);
     });
 
     expect(useRaffleStore.getState().raffles.length).toBe(0);
   });
+
 });

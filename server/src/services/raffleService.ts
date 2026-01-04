@@ -92,6 +92,8 @@ export class RaffleService {
 
         if (!endDate) throw new Error("Debes proporcionar una fecha de finalización");
 
+        const totalNumbers = Math.pow(10, data.digits); // <-- totalTickets
+
         const raffle = raffleRepo.create({
             title: data.title,
             description: data.description,
@@ -99,11 +101,10 @@ export class RaffleService {
             status: "pending",
             end_date: endDate,
             digits: data.digits,
-            total_numbers: Math.pow(10, data.digits),
+            total_numbers: totalNumbers,
         });
 
         await raffleRepo.save(raffle);
-
 
         setImmediate(() => {
             this.generateTicketsAsync(raffle.id, data.digits);
@@ -112,8 +113,10 @@ export class RaffleService {
         return {
             message: "Rifa creada correctamente",
             raffle,
+            totalTickets: totalNumbers,
         };
     }
+
 
     async getRaffleById(id: number) {
         return this.raffleRepo.findOne({

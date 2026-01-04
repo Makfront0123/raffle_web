@@ -1,5 +1,5 @@
 "use client";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Ticket } from "@/type/Ticket";
 import { Raffle } from "@/type/Raffle";
@@ -30,10 +30,10 @@ export default function RaffleTicketModal({ open, setOpen, tickets, raffle, hand
               ? `Ticket #${tickets[0].ticket_number}`
               : `${tickets.length} tickets seleccionados`}
           </DialogTitle>
+          <DialogDescription className="text-white/60 mt-2">
+            Total a pagar: ${totalAmount.toLocaleString()}
+          </DialogDescription>
 
-          <p className="text-sm text-white/60 mt-2">
-            Total: ${totalAmount.toLocaleString()}
-          </p>
 
         </DialogHeader>
 

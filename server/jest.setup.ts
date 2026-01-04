@@ -1,2 +1,3 @@
-process.env.JWT_SECRET = "test-secret";
-process.env.JWT_REFRESH_SECRET = "test-refresh-secret";
+// jest.setup.ts
+import dotenv from 'dotenv';
+dotenv.config({ path: '.env.test' });

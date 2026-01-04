@@ -1,182 +1,111 @@
 /**
- * @file __tests__/useAuth.initialization.test.tsx
- * Test: Inicialización del usuario desde localStorage + validación del token
+ * @jest-environment jsdom
  */
-
-import { renderHook, act } from "@testing-library/react";
+import { renderHook,  waitFor } from "@testing-library/react";
 import { useAuth } from "@/hook/useAuth";
 import { AuthStore } from "@/store/authStore";
 import { AuthService } from "@/services/authService";
-import { jwtDecode } from "jwt-decode";
 import { useRouter } from "next/navigation";
-
 
 jest.mock("next/navigation", () => ({
   useRouter: jest.fn(),
 }));
 
-// mock store
 jest.mock("@/store/authStore", () => ({
   AuthStore: jest.fn(),
 }));
 
-// mock jwt-decode
-jest.mock("jwt-decode");
-
-// mock AuthService
 jest.mock("@/services/authService");
-
-// mock toast para evitar errores
 jest.mock("sonner", () => ({
-  toast: {
-    success: jest.fn(),
-    error: jest.fn(),
-    info: jest.fn(),
-  },
+  toast: { success: jest.fn(), error: jest.fn(), info: jest.fn() },
 }));
 
-// mock localStorage
-const localStorageMock = (() => {
-  let store: Record<string, string> = {};
-  return {
-    getItem: jest.fn((key) => store[key] || null),
-    setItem: jest.fn((key, value) => (store[key] = value)),
-    removeItem: jest.fn((key) => delete store[key]),
-    clear: () => (store = {}),
-  };
-})();
-
-Object.defineProperty(window, "localStorage", {
-  value: localStorageMock,
-});
-
-// mock google OAuth
-Object.defineProperty(window, "google", {
-  value: {
-    accounts: {
-      oauth2: {
-        initTokenClient: jest.fn().mockReturnValue({
-          requestAccessToken: jest.fn(),
-        }),
-      },
-    },
-  },
-});
-
-describe("useAuth - Inicialización del usuario desde localStorage", () => {
-  let pushMock: jest.Mock;
-  let mockSetUser: jest.Mock;
+describe("useAuth - Inicialización con cookies", () => {
   let mockLogout: jest.Mock;
-  let mockGetUserByToken: jest.Mock;
+  let mockSetUser: jest.Mock;
+  let pushMock: jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    localStorageMock.clear();
 
-    // router mock
     pushMock = jest.fn();
     (useRouter as jest.Mock).mockReturnValue({ push: pushMock });
 
-    // store mock
-    mockSetUser = jest.fn();
     mockLogout = jest.fn();
-    (AuthStore as unknown as jest.Mock).mockReturnValue({
+    mockSetUser = jest.fn();
+
+    (AuthStore as unknown as jest.Mock).mockImplementation(() => ({
       user: null,
       setUser: mockSetUser,
       logout: mockLogout,
-    });
-
-    // AuthService mock
-    mockGetUserByToken = jest.fn();
-    (AuthService as jest.Mock).mockImplementation(() => ({
-      getUserByToken: mockGetUserByToken,
     }));
   });
 
-  it("debe inicializar el usuario si el token de localStorage es válido", async () => {
-    const fakeToken = "FAKE_JWT";
-    localStorageMock.setItem("token", fakeToken);
+  it("debe inicializar el usuario correctamente si persist() resuelve", async () => {
+    (AuthService as jest.Mock).mockImplementation(() => ({
+      persist: jest.fn().mockResolvedValue({
+        user: { id: "1", name: "Test User", role: "user", email: "test@test.com" },
+      }),
+      logout: jest.fn(),
+    }));
 
-    (jwtDecode as jest.Mock).mockReturnValue({
-      id: "123",
-      email: "test@example.com",
+    const { result } = renderHook(() => useAuth());
+
+    await waitFor(() => expect(result.current.initialized).toBe(true));
+
+    expect(mockSetUser).toHaveBeenCalledWith({
+      id: "1",
+      name: "Test User",
       role: "user",
-      name: "Armando",
-      exp: Date.now() / 1000 + 60,
+      email: "test@test.com",
     });
-
-    mockGetUserByToken.mockResolvedValue({
-      user: {
-        id: "123",
-        email: "test@example.com",
-        role: "user",
-        name: "Armando",
-      },
-    });
-
-    await act(async () => {
-      renderHook(() => useAuth());
-    });
-
-    expect(mockSetUser).toHaveBeenCalledTimes(1); // 👈 FIX
     expect(mockLogout).not.toHaveBeenCalled();
   });
 
-  // ---------------------------
-  // 2. Token inválido → logout
-  // ---------------------------
-  it("debe ejecutar logout si jwtDecode lanza error", async () => {
-    const fakeToken = "INVALID";
-    localStorageMock.setItem("token", fakeToken);
+  it("debe ejecutar logout si persist() lanza error 401", async () => {
+    (AuthService as jest.Mock).mockImplementation(() => ({
+      persist: jest.fn().mockRejectedValue({ response: { status: 401 } }),
+      logout: jest.fn(),
+    }));
 
-    (jwtDecode as jest.Mock).mockImplementation(() => {
-      throw new Error("invalid token");
-    });
+    const { result } = renderHook(() => useAuth());
 
-    await act(async () => {
-      renderHook(() => useAuth());
-    });
+    await waitFor(() => expect(result.current.initialized).toBe(true));
 
     expect(mockLogout).toHaveBeenCalled();
   });
 
-  // ---------------------------
-  // 3. Token expirado → logout
-  // ---------------------------
-  it("debe ejecutar logout si el token está expirado", async () => {
-    localStorageMock.setItem("token", "FAKE");
+  it("debe inicializar sin logout si persist() lanza otro error", async () => {
+    const consoleSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+    (AuthService as jest.Mock).mockImplementation(() => ({
+      persist: jest.fn().mockRejectedValue(new Error("Backend error")),
+      logout: jest.fn(),
+    }));
 
-    (jwtDecode as jest.Mock).mockReturnValue({
-      exp: Date.now() / 1000 - 10, // expirado hace 10s
-    });
+    const { result } = renderHook(() => useAuth());
 
-    await act(async () => {
-      renderHook(() => useAuth());
-    });
+    await waitFor(() => expect(result.current.initialized).toBe(true));
 
-    expect(mockLogout).toHaveBeenCalled();
+    expect(mockLogout).not.toHaveBeenCalled();
+    expect(consoleSpy).toHaveBeenCalledWith(
+      "Error verificando sesión:",
+      expect.any(Error)
+    );
+
+    consoleSpy.mockRestore();
   });
 
-  // ---------------------------
-  // 4. Backend falla → logout
-  // ---------------------------
-  it("debe ejecutar logout si getUserByToken falla", async () => {
-    const fakeToken = "FAKE_JWT";
-    localStorageMock.setItem("token", fakeToken);
+  it("debe exponer funciones logout y loginWithGoogle", async () => {
+    (AuthService as jest.Mock).mockImplementation(() => ({
+      persist: jest.fn().mockResolvedValue({ user: null }),
+      logout: jest.fn(),
+    }));
 
-    (jwtDecode as jest.Mock).mockReturnValue({
-      id: "123",
-      email: "test@example.com",
-      role: "user",
-      exp: Date.now() / 1000 + 60,
-    });
+    const { result } = renderHook(() => useAuth());
 
-    mockGetUserByToken.mockRejectedValue(new Error("backend error"));
+    await waitFor(() => expect(result.current.initialized).toBe(true));
 
-    await act(async () => {
-      renderHook(() => useAuth());
-    });
-
-    expect(mockLogout).toHaveBeenCalled();
+    expect(typeof result.current.logout).toBe("function");
+    expect(typeof result.current.loginWithGoogle).toBe("function");
   });
 });
