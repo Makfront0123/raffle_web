@@ -1,5 +1,12 @@
 import { PrizeService } from "@/services/prizeService";
 import { api } from "@/api/api";
+import { Prizes } from "@/type/Prizes";
+ 
+
+interface BackendResponse<T> {
+  message: string;
+  data: T;
+}
 
 jest.mock("@/api/api", () => ({
   api: {
@@ -20,9 +27,8 @@ describe("PrizeService", () => {
   });
 
   it("getAllPrizes retorna premios", async () => {
-    mockedApi.get.mockResolvedValueOnce({
-      data: [{ id: 1 }],
-    } as any);
+    const mockData: Prizes[] = [{ id: 1 } as Prizes];
+    mockedApi.get.mockResolvedValueOnce({ data: mockData });
 
     const res = await service.getAllPrizes();
 
@@ -31,9 +37,8 @@ describe("PrizeService", () => {
   });
 
   it("getPrizeById obtiene un premio", async () => {
-    mockedApi.get.mockResolvedValueOnce({
-      data: { id: 50 },
-    } as any);
+    const mockPrize: Prizes= { id: 50 } as Prizes;
+    mockedApi.get.mockResolvedValueOnce({ data: mockPrize });
 
     const res = await service.getPrizeById(50);
 
@@ -42,12 +47,11 @@ describe("PrizeService", () => {
   });
 
   it("createPrize retorna BackendResponse", async () => {
-    mockedApi.post.mockResolvedValueOnce({
-      data: {
-        message: "ok",
-        data: { id: 5 },
-      },
-    } as any);
+    const mockResponse: BackendResponse<Prizes> = {
+      message: "ok",
+      data: { id: 5 } as Prizes,
+    };
+    mockedApi.post.mockResolvedValueOnce({ data: mockResponse });
 
     const dto = {
       name: "TV",
@@ -60,36 +64,26 @@ describe("PrizeService", () => {
 
     const res = await service.createPrize(dto);
 
-    expect(mockedApi.post).toHaveBeenCalledWith(
-      "/api/prizes",
-      dto
-    );
-
+    expect(mockedApi.post).toHaveBeenCalledWith("/api/prizes", dto);
     expect(res.data.id).toBe(5);
   });
 
   it("updatePrize retorna BackendResponse", async () => {
-    mockedApi.patch.mockResolvedValueOnce({
-      data: {
-        message: "updated",
-        data: { id: 3 },
-      },
-    } as any);
+    const mockResponse: BackendResponse<Prizes> = {
+      message: "updated",
+      data: { id: 3 } as Prizes,
+    };
+    mockedApi.patch.mockResolvedValueOnce({ data: mockResponse });
 
     const res = await service.updatePrize(3, { name: "Nuevo" });
 
-    expect(mockedApi.patch).toHaveBeenCalledWith(
-      "/api/prizes/3",
-      { name: "Nuevo" }
-    );
-
+    expect(mockedApi.patch).toHaveBeenCalledWith("/api/prizes/3", { name: "Nuevo" });
     expect(res.message).toBe("updated");
   });
 
   it("getWinners retorna lista de ganadores", async () => {
-    mockedApi.get.mockResolvedValueOnce({
-      data: [{ id: 1 }],
-    } as any);
+    const mockData: Prizes[] = [{ id: 1 } as Prizes];
+    mockedApi.get.mockResolvedValueOnce({ data: mockData });
 
     const res = await service.getWinners();
 
@@ -98,9 +92,8 @@ describe("PrizeService", () => {
   });
 
   it("deletePrize envía DELETE", async () => {
-    mockedApi.delete.mockResolvedValueOnce({
-      data: { message: "deleted" },
-    } as any);
+    const mockResponse: { message: string } = { message: "deleted" };
+    mockedApi.delete.mockResolvedValueOnce({ data: mockResponse });
 
     const res = await service.deletePrize(10);
 

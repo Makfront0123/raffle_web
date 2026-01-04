@@ -6,6 +6,7 @@ import { useAuth } from "@/hook/useAuth";
 import { AuthService } from "@/services/authService";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { GoogleTokenResponse, GoogleTokenClient } from "@/type/GoogleUserData";
 
 const mockSetUser = jest.fn();
 const mockLogout = jest.fn();
@@ -33,12 +34,13 @@ beforeEach(() => {
 
   (useRouter as jest.Mock).mockReturnValue({ push: jest.fn() });
 
-  (globalThis as unknown as { google: any }).google = {
+  // Mock de Google OAuth con tipos
+  (globalThis as unknown as { google: { accounts: { oauth2: { initTokenClient: (opts: { callback: (resp: GoogleTokenResponse) => void }) => GoogleTokenClient } } } }).google = {
     accounts: {
       oauth2: {
         initTokenClient: jest.fn().mockImplementation(
-          ({ callback }: { callback: (resp: any) => void }) => ({
-            requestAccessToken: () => callback({ access_token: "test-google-token" }),
+          (opts: { callback: (resp: GoogleTokenResponse) => void }): GoogleTokenClient => ({
+            requestAccessToken: () => opts.callback({ access_token: "test-google-token" }),
           })
         ),
       },
@@ -68,6 +70,7 @@ test("loginWithGoogle → ejecuta OAuth, obtiene usuario, muestra toast y actual
   await act(async () => {
     result.current.loginWithGoogle();
   });
+
   act(() => {
     jest.runAllTimers();
   });

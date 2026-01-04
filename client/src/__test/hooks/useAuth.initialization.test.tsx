@@ -1,7 +1,7 @@
 /**
  * @jest-environment jsdom
  */
-import { renderHook, act, waitFor } from "@testing-library/react";
+import { renderHook,  waitFor } from "@testing-library/react";
 import { useAuth } from "@/hook/useAuth";
 import { AuthStore } from "@/store/authStore";
 import { AuthService } from "@/services/authService";
