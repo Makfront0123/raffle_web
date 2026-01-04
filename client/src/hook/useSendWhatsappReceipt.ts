@@ -1,6 +1,4 @@
 "use client";
-
-import axios from "axios";
 import { AuthStore } from "@/store/authStore";
 import { useState } from "react";
 import { api } from "@/api/api";

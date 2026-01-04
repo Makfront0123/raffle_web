@@ -4,7 +4,6 @@ import { useRaffles } from "@/hook/useRaffles";
 import { useRaffleForm } from "@/hook/useRaffleForm";
 import { RaffleForm } from "@/components/admin/raffle/RaffleForm";
 import { RafflesTable } from "@/components/admin/raffle/RaffleTable";
-import { paginate } from "@/app/utils/paginate";
 
 const RafflesAdmin = () => {
   const {
