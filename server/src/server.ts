@@ -14,15 +14,12 @@ const app = express();
 app.set("trust proxy", 1);
 
 app.use(cookieParser());
+app.use(
+  "/api/payment/wompi/webhook",
+  express.raw({ type: "application/json" })
+);
 
-app.use((req, res, next) => {
-  if (req.originalUrl === "/api/payment/wompi/webhook") {
-    next();
-  } else {
-    express.json()(req, res, next);
-  }
-});
-
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(
