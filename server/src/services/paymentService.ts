@@ -411,12 +411,15 @@ export class PaymentService {
 
 
 
-  async wompiWebhook(req: Request, res: Response) {
+  async handleWompiWebhook(
+    event: any,
+    rawBody: string,
+    headers: any,
+    res: Response
+  ) {
     try {
-      const event = req.body;
-
       if (process.env.WOMPI_MODE === "production") {
-        const checksum = req.headers["x-event-checksum"] as string;
+        const checksum = headers["x-event-checksum"] as string;
         const integritySecret = process.env.WOMPI_INTEGRITY_SECRET;
 
         if (!checksum || !integritySecret) {
@@ -425,7 +428,7 @@ export class PaymentService {
 
         const generatedHash = crypto
           .createHash("sha256")
-          .update(JSON.stringify(event) + integritySecret)
+          .update(rawBody + integritySecret)
           .digest("hex");
 
         if (generatedHash !== checksum) {
@@ -434,7 +437,6 @@ export class PaymentService {
       } else {
         console.log("Modo sandbox: no se verifica firma de Wompi");
       }
-
 
       const tx = event?.data?.transaction;
       if (!tx?.reference || !tx?.status) {
@@ -467,6 +469,7 @@ export class PaymentService {
           break;
 
         case "DECLINED":
+        case "ERROR":
           payment.status = PaymentStatus.CANCELLED;
           for (const d of payment.details) {
             d.ticket.status = TicketStatus.AVAILABLE;
@@ -474,23 +477,11 @@ export class PaymentService {
             await this.ticketRepository.save(d.ticket);
           }
           break;
-
-        case "ERROR":
-          payment.status = PaymentStatus.FAILED;
-          for (const d of payment.details) {
-            d.ticket.status = TicketStatus.AVAILABLE;
-            d.ticket.held_until = null;
-            await this.ticketRepository.save(d.ticket);
-          }
-          break;
-
-        default:
-          payment.status = PaymentStatus.PENDING;
       }
 
       await this.paymentRepo.save(payment);
 
-      return res.status(200).json({ message: "Webhook procesado correctamente (sandbox)" });
+      return res.status(200).json({ message: "Webhook procesado correctamente" });
 
     } catch (error) {
       console.error("Error en webhook Wompi:", error);

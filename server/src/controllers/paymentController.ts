@@ -169,14 +169,26 @@ export class PaymentController {
 
 
     async wompiWebhook(req: Request, res: Response) {
+        console.log("🔥 WOMPÍ WEBHOOK RECIBIDO");
+
+        const rawBody = req.body.toString("utf8");
+        console.log("Raw body:", rawBody);
+
+        let event;
         try {
-            const result = await this.paymentService.wompiWebhook(req, res);
-            return result;
-        } catch (error) {
-            console.log(error);
-            return res.status(500).json({ message: "Error en webhook", error });
+            event = JSON.parse(rawBody);
+        } catch {
+            return res.status(400).json({ message: "JSON inválido" });
         }
+
+        return this.paymentService.handleWompiWebhook(
+            event,
+            rawBody,
+            req.headers,
+            res
+        );
     }
+
 
     async getWompiSignature(req: Request, res: Response) {
         try {

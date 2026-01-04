@@ -7,18 +7,14 @@ import helmet from "helmet";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import { AppDataSource } from "./data-source";
-import { PaymentService } from "./services/paymentService";
-import { PaymentController } from "./controllers/paymentController";
+
 dotenv.config();
 
 const app = express();
 app.set("trust proxy", 1);
 
 app.use(cookieParser());
-
-const paymentService = new PaymentService(AppDataSource);
-const paymentController = new PaymentController(paymentService);
-
+ 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -28,8 +24,6 @@ app.use(
       "http://localhost:3000",
       "http://127.0.0.1:4321",
       "https://dewayne-polluted-angel.ngrok-free.dev",
-      "https://lobby-spray-officials-suddenly.trycloudflare.com",
-      "https://raffle-f925zeu6d-armandos-projects-bf6157fe.vercel.app",
       "https://raffle-web-seven.vercel.app"
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
@@ -47,10 +41,6 @@ fs.readdirSync(routesPath).forEach((file) => {
     const routeName = file.replace(/Routes\.(ts|js)/, "").toLowerCase();
     app.use(`/api/${routeName}`, route.default);
   }
-});
-
-app.post("/payments/wompi/webhook", (req, res) => {
-  return paymentController.wompiWebhook(req, res);
 });
 
 
