@@ -1,5 +1,3 @@
-import axios from "axios";
-
 import { Reservation } from "@/type/Reservation";
 import { ReservationService } from "@/services/reservationService";
 import { api } from "@/api/api";

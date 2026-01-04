@@ -1,5 +1,8 @@
 import { PaymentService } from "@/services/paymentService";
 import { api } from "@/api/api";
+import { AxiosResponse } from "axios";
+import { WidgetPaymentDto } from "@/type/Payment";
+import { WompiSignatureDto } from "@/type/WompiSignature";
 
 jest.mock("@/api/api", () => ({
   api: {
@@ -18,9 +21,11 @@ describe("PaymentService", () => {
   });
 
   it("createPayment hace POST y retorna payment", async () => {
-    mockedApi.post.mockResolvedValueOnce({
-      data: { id: 1 },
-    } as any);
+    mockedApi.post.mockResolvedValueOnce(
+      {
+        data: { id: 1 },
+      } as unknown as AxiosResponse<{ id: number }>
+    );
 
     const payload = {
       raffle_id: 2,
@@ -41,7 +46,9 @@ describe("PaymentService", () => {
   });
 
   it("cancelPayment hace PUT", async () => {
-    mockedApi.put.mockResolvedValueOnce({} as any);
+    mockedApi.put.mockResolvedValueOnce(
+      {} as unknown as AxiosResponse<void>
+    );
 
     await PaymentService.cancelPayment(10);
 
@@ -51,7 +58,9 @@ describe("PaymentService", () => {
   });
 
   it("completePayment hace PUT", async () => {
-    mockedApi.put.mockResolvedValueOnce({} as any);
+    mockedApi.put.mockResolvedValueOnce(
+      {} as unknown as AxiosResponse<void>
+    );
 
     await PaymentService.completePayment(99);
 
@@ -61,9 +70,11 @@ describe("PaymentService", () => {
   });
 
   it("getPayments retorna lista de pagos", async () => {
-    mockedApi.get.mockResolvedValueOnce({
-      data: [{ id: 1 }],
-    } as any);
+    mockedApi.get.mockResolvedValueOnce(
+      {
+        data: [{ id: 1 }],
+      } as unknown as AxiosResponse<Array<{ id: number }>>
+    );
 
     const res = await PaymentService.getPayments();
 
@@ -72,9 +83,11 @@ describe("PaymentService", () => {
   });
 
   it("getPaymentsUser retorna lista de pagos del usuario", async () => {
-    mockedApi.get.mockResolvedValueOnce({
-      data: [{ id: 2 }],
-    } as any);
+    mockedApi.get.mockResolvedValueOnce(
+      {
+        data: [{ id: 2 }],
+      } as unknown as AxiosResponse<Array<{ id: number }>>
+    );
 
     const res = await PaymentService.getPaymentsUser();
 
@@ -83,14 +96,20 @@ describe("PaymentService", () => {
   });
 
   it("widgetPayment hace POST a wompi", async () => {
-    mockedApi.post.mockResolvedValueOnce({
-      data: { id: 3 },
-    } as any);
+    mockedApi.post.mockResolvedValueOnce(
+      {
+        data: { id: 3 },
+      } as unknown as AxiosResponse<{ id: number }>
+    );
 
-    const payload = {
-      amount: 100,
-      currency: "COP",
-    } as any;
+    const payload: WidgetPaymentDto = {
+      method: "WOMPI",
+      raffle_id: 1,
+      ticket_ids: [1, 2],
+      reference: "ref-123",
+      total_amount: 100,
+    };
+
 
     const res = await PaymentService.widgetPayment(payload);
 
@@ -98,18 +117,22 @@ describe("PaymentService", () => {
       "/api/payment/wompi",
       payload
     );
+
     expect(res.id).toBe(3);
   });
 
   it("getWompiSignature retorna firma", async () => {
-    mockedApi.post.mockResolvedValueOnce({
-      data: { signature: "abc123" },
-    } as any);
-
-    const payload = {
-      amount: 100,
+    mockedApi.post.mockResolvedValueOnce(
+      {
+        data: { signature: "abc123" },
+      } as unknown as AxiosResponse<{ signature: string }>
+    );
+    const payload: WompiSignatureDto = {
+      reference: "ref-123",
+      amount_in_cents: 100,
       currency: "COP",
-    } as any;
+    };
+
 
     const res = await PaymentService.getWompiSignature(payload);
 

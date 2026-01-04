@@ -1,35 +1,36 @@
-import { AuthService } from "@/services/authService";
 import { AuthStore } from "@/store/authStore";
 import { act } from "@testing-library/react";
 
-jest.mock("sonner", () => ({
-  toast: {
-    success: jest.fn(),
-    error: jest.fn(),
-    info: jest.fn(),
-  },
-}));
-
 describe("AuthStore", () => {
   beforeEach(() => {
-    AuthStore.setState({ user: null, token: null });
+    AuthStore.setState({ user: null });
     localStorage.clear();
   });
 
-  it("devLogin guarda user/token", async () => {
-    // 👈 El mock correcto
-    jest
-      .spyOn(AuthService.prototype, "devLogin")
-      .mockResolvedValue({
-        user: { name: "Armando" },
-        token: "tok123",
-      });
+  it("inicializa con user null", () => {
+    expect(AuthStore.getState().user).toBeNull();
+  });
 
-    await act(async () => {
-      await AuthStore.getState().devLogin("armando@test.com");
+  it("setUser guarda el user correctamente", () => {
+    const mockUser = { id: 1, name: "Armando", email: "armando@test.com" };
+    
+    act(() => {
+      AuthStore.getState().setUser(mockUser);
     });
 
-    expect(AuthStore.getState().token).toBe("tok123");
-    expect(AuthStore.getState().user?.name).toBe("Armando");
+    expect(AuthStore.getState().user).toEqual(mockUser);
+  });
+
+  it("logout resetea el user a null", () => {
+    const mockUser = { id: 1, name: "Armando", email: "armando@test.com" };
+    act(() => {
+      AuthStore.getState().setUser(mockUser);
+    });
+    expect(AuthStore.getState().user).toEqual(mockUser);
+
+    act(() => {
+      AuthStore.getState().logout();
+    });
+    expect(AuthStore.getState().user).toBeNull();
   });
 });

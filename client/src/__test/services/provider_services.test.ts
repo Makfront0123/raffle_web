@@ -1,6 +1,7 @@
 import { ProviderService } from "@/services/providerService";
 import { api } from "@/api/api";
 import { Providers } from "@/type/Providers";
+import { AxiosResponse } from "axios";
 
 jest.mock("@/api/api", () => ({
   api: {
@@ -31,7 +32,7 @@ describe("ProviderService", () => {
   it("getAllProviders → retorna lista de providers", async () => {
     mockedApi.get.mockResolvedValueOnce({
       data: [providerMock],
-    } as any);
+    } as AxiosResponse<Providers[]>);
 
     const res = await service.getAllProviders();
 
@@ -42,7 +43,7 @@ describe("ProviderService", () => {
   it("getProviderById → retorna un provider", async () => {
     mockedApi.get.mockResolvedValueOnce({
       data: providerMock,
-    } as any);
+    } as AxiosResponse<Providers>);
 
     const res = await service.getProviderById(1);
 
@@ -53,7 +54,7 @@ describe("ProviderService", () => {
   it("createProvider → retorna provider creado", async () => {
     mockedApi.post.mockResolvedValueOnce({
       data: providerMock,
-    } as any);
+    } as AxiosResponse<Providers>);
 
     const res = await service.createProvider(providerMock);
 
@@ -66,11 +67,14 @@ describe("ProviderService", () => {
   });
 
   it("updateProvider → retorna provider actualizado", async () => {
-    const updated = { ...providerMock, name: "Nuevo Nombre" };
+    const updated: Providers = {
+      ...providerMock,
+      name: "Nuevo Nombre",
+    };
 
     mockedApi.put.mockResolvedValueOnce({
       data: updated,
-    } as any);
+    } as AxiosResponse<Providers>);
 
     const res = await service.updateProvider(1, updated);
 
@@ -85,7 +89,7 @@ describe("ProviderService", () => {
   it("deleteProvider → retorna void", async () => {
     mockedApi.delete.mockResolvedValueOnce({
       data: undefined,
-    } as any);
+    } as AxiosResponse<void>);
 
     const res = await service.deleteProvider(1);
 

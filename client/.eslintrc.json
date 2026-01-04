@@ -8,8 +8,7 @@
   ],
   "env": {
     "browser": true,
-    "es2021": true,
-    "jest": true
+    "es2021": true
   },
   "parserOptions": {
     "ecmaFeatures": {
@@ -19,14 +18,6 @@
     "sourceType": "module"
   },
   "rules": {
-  },
-  "overrides": [
-    {
-      "files": ["**/*.test.ts", "**/*.spec.ts"],
-      "rules": {
-        "@typescript-eslint/no-explicit-any": "off",
-        "@typescript-eslint/no-unused-vars": "off"
-      }
-    }
-  ]
+    // aquí puedes añadir tus reglas personalizadas
+  }
 }

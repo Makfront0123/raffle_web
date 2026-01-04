@@ -1,5 +1,6 @@
 import { AuthService } from "@/services/authService";
 import { api } from "@/api/api";
+import { AxiosResponse } from "axios";
 
 jest.mock("@/api/api", () => ({
   api: {
@@ -18,9 +19,11 @@ describe("AuthService", () => {
   });
 
   it("getUserByGoogle envía token y retorna data", async () => {
-    mockedApi.post.mockResolvedValueOnce({
-      data: { user: "test" },
-    } as any);
+    mockedApi.post.mockResolvedValueOnce(
+      {
+        data: { user: "test" },
+      } as unknown as AxiosResponse<{ user: string }>
+    );
 
     const res = await service.getUserByGoogle({ token: "123" });
 
@@ -33,9 +36,11 @@ describe("AuthService", () => {
   });
 
   it("devLogin envía email", async () => {
-    mockedApi.post.mockResolvedValueOnce({
-      data: { token: "xyz" },
-    } as any);
+    mockedApi.post.mockResolvedValueOnce(
+      {
+        data: { token: "xyz" },
+      } as unknown as AxiosResponse<{ token: string }>
+    );
 
     const res = await service.devLogin("correo@example.com");
 
@@ -48,9 +53,11 @@ describe("AuthService", () => {
   });
 
   it("refreshToken envía refreshToken", async () => {
-    mockedApi.post.mockResolvedValueOnce({
-      data: { access: "newToken" },
-    } as any);
+    mockedApi.post.mockResolvedValueOnce(
+      {
+        data: { access: "newToken" },
+      } as unknown as AxiosResponse<{ access: string }>
+    );
 
     const res = await service.refreshToken("refresh123");
 
