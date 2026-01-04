@@ -14,7 +14,7 @@ const mockedApi = api as jest.Mocked<typeof api>;
 
 describe("ReservationService tests", () => {
     const service = new ReservationService();
-    const token = "xyz";
+ 
 
     const reservationMock: Reservation = {
         id: 1,

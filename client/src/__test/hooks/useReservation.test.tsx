@@ -1,62 +1,44 @@
-import { useReservation } from "@/hook/useReservation";
-import { AuthStore } from "@/store/authStore";
+import { renderHook, act } from "@testing-library/react";
 import { useReservationStore } from "@/store/reservationStore";
-import { renderHook } from "@testing-library/react";
+import { AuthStore } from "@/store/authStore";
+import { useReservation } from "@/hook/useReservation";
 
-interface MockAuthState {
-  token: string;
-  user: { id: string };
-}
-
-interface MockReservationState {
-  reservations: any[];
-  getAllReservationsByUser: jest.Mock;
-}
-
-jest.mock("@/hook/useReservation", () => ({
-  useReservation: jest.fn(),
+jest.mock("@/store/reservationStore", () => ({
+  useReservationStore: jest.fn(),
 }));
 
-jest.mock("@/store/authStore");
-jest.mock("@/store/reservationStore");
+jest.mock("@/store/authStore", () => ({
+  AuthStore: jest.fn(),
+}));
+
+const mockUseReservationStore = useReservationStore as unknown as jest.Mock;
+const mockGetAllReservationsByUser = jest.fn();
 
 describe("useReservation Hook", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-
-    // mock AuthStore tipado
-    (AuthStore as unknown as jest.Mock).mockImplementation(
-      (selector?: (state: MockAuthState) => any) => {
-        const state: MockAuthState = { token: "TEST_TOKEN", user: { id: "user1" } };
-        return selector ? selector(state) : state;
-      }
+    mockUseReservationStore.mockImplementation((selector) =>
+      selector({
+        reservations: [],
+        getAllReservationsByUser: mockGetAllReservationsByUser,
+      })
     );
 
-    // mock useReservation
-    (useReservation as jest.Mock).mockReturnValue({
-      reservations: [],
-      loading: false,
-      error: null,
-      fetchReservations: jest.fn(),
-    });
-
-    // mock useReservationStore tipado
-    (useReservationStore as unknown as jest.Mock).mockImplementation(
-      (selector?: (state: MockReservationState) => any) => {
-        const state: MockReservationState = {
-          reservations: [],
-          getAllReservationsByUser: jest.fn(),
-        };
-        return selector ? selector(state) : state;
-      }
-    );
+    (AuthStore as unknown as jest.Mock).mockImplementation(() => ({
+      user: { id: 1, name: "Test User" },
+    }));
   });
 
-  it("carga reservas al montarse", async () => {
+  test("carga reservas al montarse", async () => {
+    mockGetAllReservationsByUser.mockResolvedValueOnce(undefined);
     const { result } = renderHook(() => useReservation());
 
-    expect(result.current.reservations).toEqual([]);
+    expect(result.current.loading).toBe(true);
+
+    await act(async () => {}); // Espera al efecto
+
+    expect(mockGetAllReservationsByUser).toHaveBeenCalled();
     expect(result.current.loading).toBe(false);
-    expect(result.current.error).toBeNull();
+    expect(result.current.error).toBe(null);
   });
 });
