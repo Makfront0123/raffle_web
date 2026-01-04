@@ -1,10 +1,12 @@
-import { useProvidersLogic } from "@/hook/useProviderLogic";
 import { renderHook, act } from "@testing-library/react";
 import type { ChangeEvent, FormEvent } from "react";
+import { useProvidersLogic } from "@/hook/useProviderLogic";
+
 
 jest.mock("@/store/authStore", () => ({
-  AuthStore: () => ({ token: "fake-token" }),
+  AuthStore: () => ({ user: { id: 1, name: "Armando" }, token: "fake-token" }),
 }));
+
 
 const mockUseProviders = {
   providers: [
@@ -38,16 +40,18 @@ describe("useProvidersLogic", () => {
   it("debe llamar addProvider cuando form no tiene id", async () => {
     const { result } = setup();
 
+
     const changeEvent: ChangeEvent<HTMLInputElement> = {
       target: {
         name: "name",
         value: "Nuevo",
       },
-    } as ChangeEvent<HTMLInputElement>;
+    } as unknown as ChangeEvent<HTMLInputElement>;
 
     act(() => {
       result.current.handleChange(changeEvent);
     });
+
 
     const submitEvent = {
       preventDefault: jest.fn(),
@@ -58,6 +62,7 @@ describe("useProvidersLogic", () => {
     });
 
     expect(mockUseProviders.addProvider).toHaveBeenCalledTimes(1);
+    expect(mockUseProviders.fetchProviders).toHaveBeenCalledTimes(1);
   });
 
   it("debe llamar deleteProvider y luego fetchProviders", async () => {
@@ -67,14 +72,12 @@ describe("useProvidersLogic", () => {
       result.current.requestDeleteProvider(1);
     });
 
+
     await act(async () => {
       await result.current.confirmDeleteProvider();
     });
 
-    expect(mockUseProviders.deleteProvider).toHaveBeenCalledWith(
-      1,
-      "fake-token"
-    );
+    expect(mockUseProviders.deleteProvider).toHaveBeenCalledWith(1);
     expect(mockUseProviders.fetchProviders).toHaveBeenCalledTimes(1);
   });
 });
