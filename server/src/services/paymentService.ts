@@ -414,10 +414,11 @@ export class PaymentService {
   async wompiWebhook(req: Request, res: Response) {
     try {
       const event = req.body;
-      const checksum = req.headers["x-event-checksum"] as string;
-      const integritySecret = process.env.WOMPI_INTEGRITY_SECRET;
 
-      if (process.env.NODE_ENV === "production") {
+      if (process.env.WOMPI_MODE === "production") {
+        const checksum = req.headers["x-event-checksum"] as string;
+        const integritySecret = process.env.WOMPI_INTEGRITY_SECRET;
+
         if (!checksum || !integritySecret) {
           return res.status(400).json({ message: "Firma no encontrada" });
         }
@@ -430,7 +431,11 @@ export class PaymentService {
         if (generatedHash !== checksum) {
           return res.status(401).json({ message: "Firma inválida" });
         }
+      } else {
+        console.log("Modo sandbox: no se verifica firma de Wompi");
       }
+
+
       const tx = event?.data?.transaction;
       if (!tx?.reference || !tx?.status) {
         return res.status(400).json({ message: "Evento inválido" });
@@ -444,6 +449,7 @@ export class PaymentService {
       if (!payment) {
         return res.status(404).json({ message: "Pago no encontrado" });
       }
+
       if (payment.status !== PaymentStatus.PENDING) {
         return res.status(200).json({ message: "Evento ya procesado" });
       }
@@ -453,14 +459,29 @@ export class PaymentService {
       switch (tx.status) {
         case "APPROVED":
           payment.status = PaymentStatus.COMPLETED;
+          for (const d of payment.details) {
+            d.ticket.status = TicketStatus.PURCHASED;
+            d.ticket.purchased_at = new Date();
+            await this.ticketRepository.save(d.ticket);
+          }
           break;
 
         case "DECLINED":
           payment.status = PaymentStatus.CANCELLED;
+          for (const d of payment.details) {
+            d.ticket.status = TicketStatus.AVAILABLE;
+            d.ticket.held_until = null;
+            await this.ticketRepository.save(d.ticket);
+          }
           break;
 
         case "ERROR":
           payment.status = PaymentStatus.FAILED;
+          for (const d of payment.details) {
+            d.ticket.status = TicketStatus.AVAILABLE;
+            d.ticket.held_until = null;
+            await this.ticketRepository.save(d.ticket);
+          }
           break;
 
         default:
@@ -469,28 +490,14 @@ export class PaymentService {
 
       await this.paymentRepo.save(payment);
 
-      if (tx.status === "APPROVED") {
-        for (const d of payment.details) {
-          d.ticket.status = TicketStatus.PURCHASED;
-          d.ticket.purchased_at = new Date();
-          await this.ticketRepository.save(d.ticket);
-        }
-      }
+      return res.status(200).json({ message: "Webhook procesado correctamente (sandbox)" });
 
-      if (tx.status === "DECLINED" || tx.status === "ERROR") {
-        for (const d of payment.details) {
-          d.ticket.status = TicketStatus.AVAILABLE;
-          d.ticket.held_until = null;
-          await this.ticketRepository.save(d.ticket);
-        }
-      }
-
-      return res.status(200).json({ message: "Webhook procesado correctamente" });
     } catch (error) {
       console.error("Error en webhook Wompi:", error);
       return res.status(500).json({ message: "Error interno procesando webhook" });
     }
   }
+
 
   async getWompiSignature(
     reference: string,
