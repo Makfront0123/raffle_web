@@ -34,12 +34,10 @@ export const useRaffleStore = create<RaffleStore>()((set) => ({
     try {
       const raffleService = new RaffleService();
       const raffles = await raffleService.getAllRaffles();
-      console.log("🔥 raffles:", raffles);
       set({ raffles });
     } catch (err: unknown) {
       const msg = getErrorMessage(err);
       toast.error(msg);
-      console.error(err);
     }
   },
   getRaffleById: async (id) => {
@@ -57,7 +55,6 @@ export const useRaffleStore = create<RaffleStore>()((set) => ({
     } catch (err: unknown) {
       const msg = getErrorMessage(err);
       toast.error(msg);
-      console.error(err);
       throw err;
     }
   },
@@ -71,7 +68,6 @@ export const useRaffleStore = create<RaffleStore>()((set) => ({
     } catch (err: unknown) {
       const msg = getErrorMessage(err);
       toast.error(msg);
-      console.error(err);
       throw err;
     }
   },
@@ -89,7 +85,6 @@ export const useRaffleStore = create<RaffleStore>()((set) => ({
     } catch (err: unknown) {
       const msg = getErrorMessage(err);
       toast.error(msg || "Error actualizando la rifa");
-      console.error(err);
       throw err;
     }
   },
@@ -106,7 +101,6 @@ export const useRaffleStore = create<RaffleStore>()((set) => ({
     } catch (err: unknown) {
       const msg = getErrorMessage(err);
       toast.error(msg || "Error eliminando la rifa");
-      console.error(err);
       return false;
     }
   },
@@ -119,7 +113,6 @@ export const useRaffleStore = create<RaffleStore>()((set) => ({
     } catch (err: unknown) {
       const msg = getErrorMessage(err);
       toast.error(msg || "Error regenerando tickets");
-      console.error(err);
       return false;
     }
   },
@@ -131,7 +124,6 @@ export const useRaffleStore = create<RaffleStore>()((set) => ({
     } catch (err: unknown) {
       const msg = getErrorMessage(err);
       toast.error(msg || "Error activando la rifa");
-      console.error(err);
     }
   },
 
@@ -143,7 +135,6 @@ export const useRaffleStore = create<RaffleStore>()((set) => ({
     } catch (err: unknown) {
       const msg = getErrorMessage(err);
       toast.error(msg || "Error desactivando la rifa");
-      console.error(err);
     }
   },
 }));

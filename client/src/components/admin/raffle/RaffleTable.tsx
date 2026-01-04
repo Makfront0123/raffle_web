@@ -23,16 +23,36 @@ export const RafflesTable = ({
     currentPage,
     setCurrentPage,
     totalPages,
+    statusFilter,
+    setStatusFilter,
     deleteRaffle,
     activateRaffle,
     deactivateRaffle,
     updateRaffle,
 }: RafflesTableProps) => {
+
     return (
         <Card>
             <CardHeader>
                 <CardTitle>Rifas Existentes</CardTitle>
+
+                <div className="flex gap-2 mt-3">
+                    {(["all", "pending", "active", "ended"] as const).map((status) => (
+                        <button
+                            key={status}
+                            onClick={() => {
+                                setCurrentPage(1);
+                                setStatusFilter(status);
+                            }}
+                            className={`px-3 py-1 text-xs rounded border
+          ${statusFilter === status ? "bg-black text-white" : "bg-white"}`}
+                        >
+                            {status === "all" ? "Todas" : status}
+                        </button>
+                    ))}
+                </div>
             </CardHeader>
+
             <CardContent>
                 {loading && <p>Cargando...</p>}
                 {error && <p className="text-red-500">{error}</p>}

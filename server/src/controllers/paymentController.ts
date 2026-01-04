@@ -15,7 +15,6 @@ export class PaymentController {
     }
     async getPaymentUser(req: Request, res: Response) {
         try {
-            // Filtramos solo los pagos del usuario logueado
             const payments = await this.paymentService.getPaymentUser((req as any).user.id);
             res.status(200).json(payments);
         } catch (error) {
@@ -72,18 +71,10 @@ export class PaymentController {
                 return res.status(400).json({ message: "Datos incompletos o inválidos" });
             }
 
-            // 🔥 LOG CLAVE PARA DEBUG
-            console.log("CREATE PAYMENT BODY:", {
-                raffle_id,
-                ticket_ids,
-                reservation_id,
-                reference,
-            });
-
             const payment = await this.paymentService.createPayment({
                 raffle_id,
                 ticket_ids,
-                reservation_id, // ✅ AHORA SÍ
+                reservation_id,
                 reference,
                 user_id: userId,
             });
@@ -178,10 +169,6 @@ export class PaymentController {
 
 
     async wompiWebhook(req: Request, res: Response) {
-        console.log("🔥🔥🔥 WEBHOOK WOMPI LLAMADO 🔥🔥🔥");
-        console.log("Headers:", req.headers);
-        console.log("Body:", req.body);
-
         try {
             const result = await this.paymentService.wompiWebhook(req, res);
             return result;
@@ -216,75 +203,3 @@ export class PaymentController {
     }
 
 }
-
-
-/*
-  async createWompiPayment(req: Request, res: Response) {
-        try {
-            const userId = (req as any).user.id;
-            const { ticket_id, method, reference } = req.body;
-
-            if (!ticket_id || !method || !reference)
-                return res.status(400).json({ message: "Datos incompletos" });
-
-
-            const result = await this.paymentService.createWompiPayment({
-                userId,
-                ticketId: ticket_id,
-                method,
-                reference,
-
-            });
-
-            return res.status(201).json(result);
-
-        } catch (error: any) {
-            console.error(error);
-            return res.status(400).json({
-                message: error.message || "Error creando pago Wompi"
-            });
-        }
-    }
-
-
-    async wompiWebhook(req: Request, res: Response) {
-        console.log("🔥🔥🔥 WEBHOOK WOMPI LLAMADO 🔥🔥🔥");
-        console.log("Headers:", req.headers);
-        console.log("Body:", req.body);
-
-        try {
-            const result = await this.paymentService.wompiWebhook(req, res);
-            return result;
-        } catch (error) {
-            console.log(error);
-            return res.status(500).json({ message: "Error en webhook", error });
-        }
-    }
-
-    async getWompiSignature(req: Request, res: Response) {
-        try {
-            const { reference, amount_in_cents, currency } = req.body;
-
-            if (!reference || !amount_in_cents || !currency) {
-                return res.status(400).json({ message: "Datos incompletos" });
-            }
-
-            const signature = await this.paymentService.getWompiSignature(
-                reference,
-                amount_in_cents,
-                currency
-            );
-
-            return res.json({ signature });
-
-        } catch (error: any) {
-            return res.status(500).json({
-                message: "Error generando firma",
-                error: error.message,
-            });
-        }
-    }
-
-
-
-*/

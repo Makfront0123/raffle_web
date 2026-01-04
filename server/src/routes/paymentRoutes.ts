@@ -20,7 +20,7 @@ router.post("/:id/complete", authMiddleware, adminMiddleware, paymentController.
 router.post("/:id/cancel", authMiddleware, adminMiddleware, paymentController.cancelPayment.bind(paymentController));
 
 router.post("/wompi", authMiddleware, blockAdminMiddleware, paymentController.createWompiPayment.bind(paymentController));
-router.post("/wompi/webhook", blockAdminMiddleware, paymentController.wompiWebhook.bind(paymentController));
+router.post("/wompi/webhook",paymentController.wompiWebhook.bind(paymentController));
 
 router.post(
     "/wompi/signature",
