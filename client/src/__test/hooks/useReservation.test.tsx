@@ -1,4 +1,4 @@
-import { renderHook, act } from "@testing-library/react";
+import { renderHook, act, waitFor } from "@testing-library/react";
 import { useReservationStore } from "@/store/reservationStore";
 import { AuthStore } from "@/store/authStore";
 import { useReservation } from "@/hook/useReservation";
@@ -35,7 +35,8 @@ describe("useReservation Hook", () => {
 
     expect(result.current.loading).toBe(true);
 
-    await act(async () => {}); // Espera al efecto
+
+    await waitFor(() => expect(result.current.loading).toBe(false));
 
     expect(mockGetAllReservationsByUser).toHaveBeenCalled();
     expect(result.current.loading).toBe(false);
