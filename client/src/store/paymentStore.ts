@@ -15,14 +15,17 @@ interface PaymentStore {
   getPayments: () => Promise<Payment[]>;
   getPaymentsUser: () => Promise<Payment[]>;
 
-  createPayment: (data: PaymentCreateDto, ) => Promise<Payment>;
-  widgetPayment: (data: WidgetPaymentDto, ) => Promise<Payment>;
+  createPayment: (data: PaymentCreateDto,) => Promise<Payment>;
+  widgetPayment: (data: WidgetPaymentDto,) => Promise<Payment>;
 
 
-  completePayment: (id: number, ) => Promise<void>;
-  cancelPayment: (id: number, ) => Promise<void>;
+  completePayment: (id: number,) => Promise<void>;
+  cancelPayment: (id: number,) => Promise<void>;
 
-  getWompiSignature: (data: WompiSignatureDto, ) => Promise<{ signature: string }>;
+  getWompiSignature: (data: WompiSignatureDto,) => Promise<{ signature: string }>;
+  getPaymentStatusByReference: (
+    reference: string
+  ) => Promise<PaymentStatusEnum>;
 }
 
 export const usePaymentStore = create<PaymentStore>((set, get) => ({
@@ -52,7 +55,7 @@ export const usePaymentStore = create<PaymentStore>((set, get) => ({
     }
   },
 
-  createPayment: async (data: PaymentCreateDto, ) => {
+  createPayment: async (data: PaymentCreateDto,) => {
     const payment = await PaymentService.createPayment(data);
     set((state) => ({
       userPayments: [...state.userPayments, payment],
@@ -60,8 +63,8 @@ export const usePaymentStore = create<PaymentStore>((set, get) => ({
     return payment;
   },
 
-  widgetPayment: async (data: WidgetPaymentDto, ) => {
-    return PaymentService.widgetPayment(data, );
+  widgetPayment: async (data: WidgetPaymentDto,) => {
+    return PaymentService.widgetPayment(data,);
   },
 
   completePayment: async (id: number) => {
@@ -73,14 +76,21 @@ export const usePaymentStore = create<PaymentStore>((set, get) => ({
     });
   },
 
-  cancelPayment: async (id: number, ) => {
+  cancelPayment: async (id: number,) => {
     await PaymentService.cancelPayment(id);
     set({
       payments: get().payments.filter((p) => p.id !== id),
     });
   },
 
-  getWompiSignature: async (data: WompiSignatureDto, ) => {
+  getWompiSignature: async (data: WompiSignatureDto,) => {
     return PaymentService.getWompiSignature(data,);
   },
+
+  getPaymentStatusByReference: async (reference: string) => {
+    const { status } =
+      await PaymentService.getPaymentStatusByReference(reference);
+    return status;
+  },
+
 }));

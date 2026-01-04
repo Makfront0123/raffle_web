@@ -1,5 +1,5 @@
 import { api } from "@/api/api";
-import { Payment, PaymentCreateDto, WidgetPaymentDto } from "@/type/Payment";
+import { Payment, PaymentCreateDto, PaymentStatusEnum, WidgetPaymentDto } from "@/type/Payment";
 import { WompiSignatureDto } from "@/type/WompiSignature";
 
 export class PaymentService {
@@ -34,4 +34,11 @@ export class PaymentService {
     const response = await api.post("/api/payment/wompi/signature", data);
     return response.data;
   }
+  static async getPaymentStatusByReference(
+    reference: string
+  ): Promise<{ status: PaymentStatusEnum }> {
+    const res = await api.get(`/api/payment/status/${reference}`);
+    return res.data;
+  }
+
 }

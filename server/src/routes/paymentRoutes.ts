@@ -5,7 +5,7 @@ import { AppDataSource } from "../data-source";
 import { authMiddleware } from "../middleware/authMiddleware";
 import { adminMiddleware } from "../middleware/adminMiddleware";
 import { blockAdminMiddleware } from "../middleware/blockAdminMiddleware";
-
+import express from "express";
 const router = Router();
 
 const paymentService = new PaymentService(AppDataSource);
@@ -16,23 +16,33 @@ router.get("/user", authMiddleware, paymentController.getPaymentUser.bind(paymen
 router.get("/:id", authMiddleware, paymentController.getPaymentById.bind(paymentController));
 router.delete("/:id", authMiddleware, adminMiddleware, paymentController.deletePayment.bind(paymentController));
 router.put("/:id", authMiddleware, adminMiddleware, paymentController.updatePayment.bind(paymentController));
-router.post("/:id/complete", authMiddleware, adminMiddleware, paymentController.completePayment.bind(paymentController));
-router.post("/:id/cancel", authMiddleware, adminMiddleware, paymentController.cancelPayment.bind(paymentController));
+router.put("/:id/complete", authMiddleware, adminMiddleware, paymentController.completePayment.bind(paymentController));
+router.put("/:id/cancel", authMiddleware, adminMiddleware, paymentController.cancelPayment.bind(paymentController));
 
 router.post("/wompi", authMiddleware, blockAdminMiddleware, paymentController.createWompiPayment.bind(paymentController));
-router.post("/wompi/webhook",paymentController.wompiWebhook.bind(paymentController));
-
 router.post(
-    "/wompi/signature",
-    authMiddleware,
-    paymentController.getWompiSignature.bind(paymentController)
+  "/wompi/webhook",
+  express.raw({ type: "application/json" }),
+  paymentController.wompiWebhook.bind(paymentController)
 );
 
 router.post(
-    "/whatsapp/receipt",
-    authMiddleware,
-    paymentController.sendWhatsappReceipt.bind(paymentController)
-    
+  "/wompi/signature",
+  authMiddleware,
+  paymentController.getWompiSignature.bind(paymentController)
+);
+
+router.get(
+  "/status/:reference",
+  paymentController.getPaymentStatusByReference.bind(paymentController)
+);
+
+
+router.post(
+  "/whatsapp/receipt",
+  authMiddleware,
+  paymentController.sendWhatsappReceipt.bind(paymentController)
+
 );
 
 

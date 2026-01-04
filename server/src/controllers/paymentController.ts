@@ -213,5 +213,22 @@ export class PaymentController {
             });
         }
     }
+    async getPaymentStatusByReference(req: Request, res: Response) {
+        try {
+            const { reference } = req.params;
+
+            const payment = await this.paymentService.getPaymentByReference(reference);
+
+            if (!payment) {
+                return res.status(404).json({ status: "NOT_FOUND" });
+            }
+
+            return res.status(200).json({
+                status: payment.status,
+            });
+        } catch (error) {
+            return res.status(500).json({ message: "Error obteniendo estado" });
+        }
+    }
 
 }

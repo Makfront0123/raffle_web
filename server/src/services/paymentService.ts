@@ -5,7 +5,7 @@ import { Ticket, TicketStatus } from "../entities/ticket.entity";
 import { User } from "../entities/user.entity";
 import { Raffle } from "../entities/raffle.entity";
 import { PaymentDetail } from "../entities/payment_details.entity";
-import type { Request, Response } from "express";
+import type { Response } from "express";
 import crypto from "crypto";
 import { WhatsappService } from "../services/whatpsappService";
 import { Reservation } from "../entities/reservation.entity";
@@ -271,28 +271,19 @@ export class PaymentService {
     reservation_id?: number;
     reference: string;
   }) {
-    return await this.dataSource.transaction(async (manager) => {
-      const user = await manager.getRepository(User).findOne({
-        where: { id: userId },
-      });
+    const paymentData = await this.dataSource.transaction(async (manager) => {
+      const user = await manager.getRepository(User).findOne({ where: { id: userId } });
       if (!user) throw new Error("Usuario no encontrado");
 
-      const raffle = await manager.getRepository(Raffle).findOne({
-        where: { id: raffle_id },
-      });
+      const raffle = await manager.getRepository(Raffle).findOne({ where: { id: raffle_id } });
       if (!raffle) throw new Error("Rifa no encontrada");
 
       const heldTickets = await manager.getRepository(Ticket).find({
-        where: {
-          id_ticket: In(ticket_ids),
-          status: In(["held", "reserved"]),
-        },
+        where: { id_ticket: In(ticket_ids), status: In(["held", "reserved"]) },
       });
 
       if (heldTickets.length && !reservation_id) {
-        throw new Error(
-          "Hay tickets reservados. El pago debe realizarse desde una reserva"
-        );
+        throw new Error("Hay tickets reservados. El pago debe realizarse desde una reserva");
       }
 
       let tickets: Ticket[] = [];
@@ -301,72 +292,32 @@ export class PaymentService {
       if (reservation_id) {
         reservation = await manager.getRepository(Reservation).findOne({
           where: { id: reservation_id },
-          relations: [
-            "user",
-            "raffle",
-            "reservationTickets",
-            "reservationTickets.ticket",
-          ],
+          relations: ["user", "raffle", "reservationTickets", "reservationTickets.ticket"],
         });
-
         if (!reservation) throw new Error("No se encontró la reserva");
-        if (reservation.user.id !== userId)
-          throw new Error("La reserva no pertenece al usuario");
+        if (reservation.user.id !== userId) throw new Error("La reserva no pertenece al usuario");
 
         tickets = reservation.reservationTickets
           .map((rt) => rt.ticket)
           .filter((t) => ticket_ids.includes(t.id_ticket));
 
-        if (!tickets.length)
-          throw new Error("No hay tickets válidos en la reserva");
-
+        if (!tickets.length) throw new Error("No hay tickets válidos en la reserva");
         for (const ticket of tickets) {
-          const belongsToReservation = reservation.reservationTickets.some(
-            (rt) => rt.ticket.id_ticket === ticket.id_ticket
-          );
-
-          if (!belongsToReservation) {
-            throw new Error(
-              `El ticket ${ticket.id_ticket} no pertenece a esta reserva`
-            );
-          }
-
-          if (ticket.status === TicketStatus.AVAILABLE) {
-            throw new Error(
-              `El ticket ${ticket.id_ticket} no pertenece a esta reserva`
-            );
-          }
-
-          if (ticket.status === TicketStatus.PURCHASED) {
-            throw new Error(`El ticket ${ticket.id_ticket} ya fue comprado`);
-          }
-
-          if (
-            ticket.status === TicketStatus.HELD &&
-            ticket.held_until &&
-            ticket.held_until < new Date()
-          ) {
-            throw new Error(
-              `El ticket ${ticket.id_ticket} tiene el hold expirado`
-            );
+          if (ticket.status === TicketStatus.AVAILABLE) throw new Error(`El ticket ${ticket.id_ticket} no pertenece a esta reserva`);
+          if (ticket.status === TicketStatus.PURCHASED) throw new Error(`El ticket ${ticket.id_ticket} ya fue comprado`);
+          if (ticket.status === TicketStatus.HELD && ticket.held_until && ticket.held_until < new Date()) {
+            throw new Error(`El ticket ${ticket.id_ticket} tiene el hold expirado`);
           }
         }
-      }
-      else {
+      } else {
         tickets = await manager.getRepository(Ticket).find({
           where: { id_ticket: In(ticket_ids) },
           relations: ["raffle"],
         });
 
-        if (!tickets.length)
-          throw new Error("No hay tickets seleccionados");
-
+        if (!tickets.length) throw new Error("No hay tickets seleccionados");
         for (const ticket of tickets) {
-          if (ticket.status !== TicketStatus.AVAILABLE) {
-            throw new Error(
-              `El ticket ${ticket.id_ticket} no está disponible`
-            );
-          }
+          if (ticket.status !== TicketStatus.AVAILABLE) throw new Error(`El ticket ${ticket.id_ticket} no está disponible`);
         }
       }
 
@@ -382,13 +333,13 @@ export class PaymentService {
       });
 
       await manager.getRepository(Payment).save(payment);
+
       for (const ticket of tickets) {
         const detail = manager.getRepository(PaymentDetail).create({
           payment,
           ticket,
           amount: Number(raffle.price),
         });
-
         await manager.getRepository(PaymentDetail).save(detail);
 
         ticket.status = TicketStatus.HELD;
@@ -407,8 +358,13 @@ export class PaymentService {
         currency: "COP",
       };
     });
-  }
 
+    if (process.env.NODE_ENV !== "production") {
+      await this.simulateWebhook(paymentData.reference, "APPROVED");
+    }
+
+    return paymentData;
+  }
 
 
   async handleWompiWebhook(
@@ -488,6 +444,39 @@ export class PaymentService {
       return res.status(500).json({ message: "Error interno procesando webhook" });
     }
   }
+
+
+  async simulateWebhook(reference: string, status: "APPROVED" | "DECLINED" | "ERROR" = "APPROVED") {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("Simulación de webhook solo disponible en demo/sandbox");
+    }
+
+    const fakeEvent = {
+      data: {
+        transaction: {
+          id: `SIMULATED_${Date.now()}`,
+          reference,
+          status,
+        },
+      },
+    };
+
+    const resFake = {
+      status: (code: number) => ({
+        json: (obj: any) => obj,
+      }),
+    } as unknown as Response;
+
+    return this.handleWompiWebhook(fakeEvent, "", {}, resFake);
+  }
+
+
+  async getPaymentByReference(reference: string) {
+    return this.paymentRepo.findOne({
+      where: { reference },
+    });
+  }
+
 
 
   async getWompiSignature(

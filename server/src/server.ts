@@ -7,17 +7,14 @@ import helmet from "helmet";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import { AppDataSource } from "./data-source";
-
+ 
 dotenv.config();
 
 const app = express();
 app.set("trust proxy", 1);
 
 app.use(cookieParser());
-app.use(
-  "/api/payment/wompi/webhook",
-  express.raw({ type: "application/json" })
-);
+
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
