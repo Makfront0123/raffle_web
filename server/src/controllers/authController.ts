@@ -46,20 +46,22 @@ export class AuthController {
         process.env.JWT_REFRESH_SECRET!,
         { expiresIn: "7d" }
       );
-
       const isProd = process.env.NODE_ENV === "production";
+      const simulateProd = process.env.SIMULATE_PROD === "true";
+
+      const cookieSecure = isProd || simulateProd;
 
       res.cookie("access_token", accessToken, {
         httpOnly: true,
-        secure: isProd,
-        sameSite: isProd ? "none" : "lax",
+        secure: cookieSecure,
+        sameSite: cookieSecure ? "none" : "lax",
         maxAge: 1000 * 60 * 60,
       });
 
       res.cookie("refresh_token", refreshToken, {
         httpOnly: true,
-        secure: isProd,
-        sameSite: isProd ? "none" : "lax",
+        secure: cookieSecure,
+        sameSite: cookieSecure ? "none" : "lax",
         maxAge: 1000 * 60 * 60 * 24 * 7,
       });
 

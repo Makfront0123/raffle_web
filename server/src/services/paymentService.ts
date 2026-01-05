@@ -359,9 +359,13 @@ export class PaymentService {
       };
     });
 
-    if (process.env.NODE_ENV !== "production") {
+    const simulateWebhookEnabled =
+      process.env.NODE_ENV !== "production" || process.env.SIMULATE_PROD === "true";
+
+    if (simulateWebhookEnabled) {
       await this.simulateWebhook(paymentData.reference, "APPROVED");
     }
+
 
     return paymentData;
   }
