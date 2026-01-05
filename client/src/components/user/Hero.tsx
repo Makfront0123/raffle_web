@@ -3,9 +3,10 @@
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { AuthDialog } from "./AuthDialog";
+
 import { useAuth } from "@/hook/useAuth";
 import { useState } from "react";
+import { AuthDialog } from "./AuthDialog";
 
 export default function Hero() {
   const { user } = useAuth();
@@ -32,7 +33,7 @@ export default function Hero() {
       <div className="absolute inset-0 pointer-events-none bg-[url('/images/gold-grid.svg')] opacity-[0.05]" />
 
 
-      <div className="relative z-20 max-w-4xl  mx-auto px-6 text-center flex flex-col items-center gap-8">
+      <div className="relative z-20 max-w-4xl md:mt-2 mt-20 md:mb-2 mb-20  mx-auto px-6 text-center flex flex-col items-center gap-8">
 
 
         <motion.h1

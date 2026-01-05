@@ -1,22 +1,17 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
-/* src/app/globals.css o styles/globals.css */
 html,
 body {
   overflow-x: hidden;
-  /* 🔒 evita desplazamiento horizontal */
   width: 100%;
-  max-width: 100vw;
-  /* asegura que nada exceda el viewport */
+  max-width: 100%;
 }
 
 main {
   overflow-x: clip;
-  /* previene scroll si alguna animación o tabla se sale */
 }
 
-/* Efecto borde LED dorado premium */
 .premium-led-border {
   position: relative;
 }

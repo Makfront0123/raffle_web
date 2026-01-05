@@ -1,7 +1,7 @@
 
 "use client";
 
-import NotFoundPage from "@/components/NotFoundPage";
+import NotFoundPage from "@/components/user/NotFoundPage";
 
 
 export default function page() {

@@ -1,8 +1,8 @@
 "use client";
 
-import LoadingScreen from "@/components/LoadingScreen";
-import { PaymentSuccessModal } from "@/components/PaymentSuccessModal";
-import { PaymentFailedModal } from "@/components/user/PaymentFailedModal";
+import LoadingScreen from "@/components/user/LoadingScreen";
+import { PaymentSuccessModal } from "@/components/user/payment/PaymentSuccessModal";
+import { PaymentFailedModal } from "@/components/user/payment/PaymentFailedModal";
 import PaginationControls from "@/components/user/reservations/PaginationControls";
 import ReservationsList from "@/components/user/reservations/ReservationList";
 import { usePayment } from "@/hook/usePayment";

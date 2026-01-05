@@ -2,8 +2,8 @@
 
 import React, { useState } from "react";
 import { useAuth } from "@/hook/useAuth";
-import HeaderAdmin from "@/components/HeaderAdmin";
-import { Sidebar } from "@/components/Sidebar";
+import HeaderAdmin from "@/components/admin/HeaderAdmin";
+import { Sidebar } from "@/components/admin/Sidebar";
 import {
   Sheet,
   SheetContent,

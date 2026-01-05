@@ -35,7 +35,7 @@ export function AuthDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md p-8 bg-[#0f172a] border border-[#334155] text-white">
+      <DialogContent className="min-w-[1vh] p-8 bg-[#0f172a] border border-[#334155] text-white">
         <DialogHeader>
           <DialogTitle className="text-center text-2xl font-semibold mb-6">
             Iniciar Sesión

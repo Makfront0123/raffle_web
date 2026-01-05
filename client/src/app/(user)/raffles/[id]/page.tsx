@@ -1,15 +1,15 @@
 "use client";
 
-import RaffleInfo from "@/components/RaffleInfo";
+import RaffleInfo from "@/components/user/raffles/RaffleInfo";
 import RaffleLegend from "@/components/user/raffles/RaffleLegend";
 import RaffleTicketModal from "@/components/user/raffles/RaffleTickedModal";
 import RaffleTicketsGrid from "@/components/user/raffles/RaffleTicketsGrid";
 import RafflePagination from "@/components/user/raffles/RafflesPagination";
 import { useRaffleDetail } from "@/hook/useRaffleDetail";
 import { usePayment } from "@/hook/usePayment";
-import LoadingScreen from "@/components/LoadingScreen";
-import { PaymentSuccessModal } from "@/components/PaymentSuccessModal";
-import { PaymentFailedModal } from "@/components/user/PaymentFailedModal";
+import LoadingScreen from "@/components/user/LoadingScreen";
+import { PaymentSuccessModal } from "@/components/user/payment/PaymentSuccessModal";
+import { PaymentFailedModal } from "@/components/user/payment/PaymentFailedModal";
 
 
 export default function RaffleDetailPage() {

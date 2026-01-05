@@ -14,7 +14,7 @@ import { motion } from "framer-motion";
 import { Timer } from "lucide-react";
 import { Prizes } from "@/type/Prizes";
 import { AuthStore } from "@/store/authStore";
-import { AuthDialog } from "@/components/AuthDialog";
+import { AuthDialog } from "@/components/user/AuthDialog";
 import { formatCOP } from "@/app/utils/formatCOP";
 import { Raffle } from "@/type/Raffle";
  
@@ -90,7 +90,7 @@ export default function RaffleCard({
         viewport={{ once: true }}
       >
         <Card
-          className={`relative w-full min-w-[24rem] mx-auto overflow-hidden
+          className={`relative w-full md:min-w-[24rem] min-w-[22rem] mx-auto overflow-hidden
           rounded-2xl border border-gold/40 bg-black/60 backdrop-blur-xl
           shadow-xl transition-all duration-300
           ${isExpired
@@ -100,7 +100,7 @@ export default function RaffleCard({
         >
           <div className="absolute inset-0 bg-gradient-to-br from-gold/10 via-transparent to-gold/5 pointer-events-none" />
 
-          <CardHeader className="relative z-10 space-y-3">
+          <CardHeader className="relative z-10 space-y-3 md:ml-0 -ml-3">
             <h3 className="text-xl font-bold text-yellow-500 drop-shadow">
               {raffle.title}
             </h3>

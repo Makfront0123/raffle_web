@@ -9,11 +9,11 @@ import {
     PaginationLink,
 } from "@/components/ui/pagination";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { ConfirmDialog } from "@/components/ConfirmActionDialog";
+import { ConfirmDialog } from "@/components/user/ConfirmActionDialog";
 
-import RegenerateTicketsButton from "@/components/RegenerateTicketsButton";
+import RegenerateTicketsButton from "@/components/user/tickets/RegenerateTicketsButton";
 import { Raffle } from "@/type/Raffle";
-import { EditRaffleDialog } from "@/components/EditRaffleDialog";
+import { EditRaffleDialog } from "@/components/user/raffles/EditRaffleDialog";
 import { RafflesTableProps } from "@/type/RaffleTableProps";
 
 export const RafflesTable = ({

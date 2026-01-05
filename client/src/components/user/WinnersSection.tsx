@@ -7,7 +7,7 @@ import Image from "next/image";
 import { useState } from "react";
 
 export default function WinnersSection({ winners }: { winners: Winner[] }) {
-  const itemsPerPage = 3;
+  const itemsPerPage = 2;
   const [page, setPage] = useState(1);
 
   const totalPages = Math.max(1, Math.ceil(winners.length / itemsPerPage));
@@ -63,13 +63,13 @@ export default function WinnersSection({ winners }: { winners: Winner[] }) {
                     />
 
                     <div>
-                      <p className="text-gold font-semibold">
+                      <p className="text-gold font-semibold md:text-lg text-sm">
                         {w.winner_user?.name ?? "Usuario desconocido"}
                       </p>
-                      <p className="text-sm text-yellow-500">
+                      <p className="md:text-lg text-sm text-yellow-500">
                         {w.raffle_title}
                       </p>
-                      <p className="text-xs text-gray-400">
+                      <p className="md:text-lg text-xs text-gray-400">
                         Ticket #{w.winner_ticket.ticket_number}
                       </p>
                     </div>
