@@ -29,6 +29,11 @@ export function usePayment({ onPaymentSuccess }: UsePaymentProps = {}) {
     tickets?: string[];
   } | null>(null);
 
+
+  const [failedModalOpen, setFailedModalOpen] = useState(false);
+  const [failedPaymentInfo, setFailedPaymentInfo] = useState<{ raffleName?: string; tickets?: string[]; reason?: string } | null>(null);
+
+
   useEffect(() => {
     if (user) getPaymentsUser();
   }, [user, getPaymentsUser]);
@@ -112,8 +117,19 @@ export function usePayment({ onPaymentSuccess }: UsePaymentProps = {}) {
           onPaymentSuccess?.();
         }
 
-        if (tx.status === "DECLINED") toast.error("Pago rechazado ❌");
-        if (tx.status === "ERROR") toast.error("Error en el pago ⚠️");
+        if (tx.status === "DECLINED" || tx.status === "ERROR") {
+          toast.error(`Pago ${tx.status === "DECLINED" ? "rechazado" : "fallido"}`);
+
+          setFailedPaymentInfo({
+            raffleName: raffle.title,
+            tickets: ticketsForPayment.map((t) => t.ticket_number),
+            reason: tx.status === "DECLINED" ? "El pago fue rechazado por el banco" : "Error en el procesamiento del pago",
+          });
+
+          setFailedModalOpen(true);
+        }
+
+        if (tx.status === "ERROR") toast.error("Error en el pago");
       });
     } catch (e) {
       console.error(e);
@@ -128,5 +144,9 @@ export function usePayment({ onPaymentSuccess }: UsePaymentProps = {}) {
     successModalOpen,
     setSuccessModalOpen,
     paymentInfo,
+    failedModalOpen,
+    setFailedModalOpen,
+    failedPaymentInfo,
+    setFailedPaymentInfo,
   };
 }

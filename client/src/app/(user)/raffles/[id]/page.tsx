@@ -9,10 +9,11 @@ import { useRaffleDetail } from "@/hook/useRaffleDetail";
 import { usePayment } from "@/hook/usePayment";
 import LoadingScreen from "@/components/LoadingScreen";
 import { PaymentSuccessModal } from "@/components/PaymentSuccessModal";
+import { PaymentFailedModal } from "@/components/user/PaymentFailedModal";
 
 
 export default function RaffleDetailPage() {
-  
+
   const payment = usePayment({
     onPaymentSuccess: async () => {
       await raffleDetail.refreshRaffle();
@@ -82,6 +83,15 @@ export default function RaffleDetailPage() {
         tickets={payment.paymentInfo?.tickets}
         amount={raffleDetail.raffle?.price ?? 0}
       />
+
+      <PaymentFailedModal
+        open={payment.failedModalOpen}
+        onClose={() => payment.setFailedModalOpen(false)}
+        raffleName={payment.failedPaymentInfo?.raffleName}
+        tickets={payment.failedPaymentInfo?.tickets}
+        reason={payment.failedPaymentInfo?.reason}
+      />
+
 
     </div>
   );

@@ -2,6 +2,7 @@
 
 import LoadingScreen from "@/components/LoadingScreen";
 import { PaymentSuccessModal } from "@/components/PaymentSuccessModal";
+import { PaymentFailedModal } from "@/components/user/PaymentFailedModal";
 import PaginationControls from "@/components/user/reservations/PaginationControls";
 import ReservationsList from "@/components/user/reservations/ReservationList";
 import { usePayment } from "@/hook/usePayment";
@@ -58,6 +59,15 @@ export default function ReservationsPage() {
         tickets={payment.paymentInfo?.tickets}
         amount={raffleDetail.raffle?.price ?? 0}
       />
+
+      <PaymentFailedModal
+        open={payment.failedModalOpen}
+        onClose={() => payment.setFailedModalOpen(false)}
+        raffleName={payment.failedPaymentInfo?.raffleName}
+        tickets={payment.failedPaymentInfo?.tickets}
+        reason={payment.failedPaymentInfo?.reason}
+      />
+
 
     </div>
   );
