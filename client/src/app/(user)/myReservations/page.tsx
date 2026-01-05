@@ -55,9 +55,9 @@ export default function ReservationsPage() {
       <PaymentSuccessModal
         open={payment.successModalOpen}
         onClose={() => payment.setSuccessModalOpen(false)}
-        raffleName={payment.paymentInfo?.raffleName}
+        raffleId={payment.paymentInfo?.raffle.id ?? 0}
         tickets={payment.paymentInfo?.tickets}
-        amount={raffleDetail.raffle?.price ?? 0}
+        amount={payment.paymentInfo?.amount ?? 0}
       />
 
       <PaymentFailedModal

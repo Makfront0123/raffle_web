@@ -10,32 +10,25 @@ export function useWhatsappReceipt() {
 
   const sendReceipt = async ({
     phone,
-    raffleName,
+    raffleId,
     tickets,
     amount,
   }: {
     phone: string;
-    raffleName: string;
+    raffleId: number;
     tickets: string[];
     amount: number;
   }) => {
-    if (!user) {
-      throw new Error("Debes iniciar sesión");
-    }
+    if (!user) throw new Error("Debes iniciar sesión");
 
+    let cleanPhone = phone.replace(/\D/g, "");
+    if (!cleanPhone.startsWith("57")) cleanPhone = "57" + cleanPhone;
+
+    setLoading(true);
     try {
-      let cleanPhone = phone.replace(/\D/g, "");
-
-      if (!cleanPhone.startsWith("57")) {
-        cleanPhone = "57" + cleanPhone;
-      }
-
-      cleanPhone = `+${cleanPhone}`;
-
-      setLoading(true);
       await api.post("/api/payment/whatsapp/receipt", {
-        phone: cleanPhone,
-        raffleName,
+        phone: `+${cleanPhone}`,
+        raffleId,
         tickets,
         amount,
       });
@@ -44,6 +37,7 @@ export function useWhatsappReceipt() {
       setLoading(false);
     }
   };
+
 
   return { sendReceipt, loading, sent };
 }

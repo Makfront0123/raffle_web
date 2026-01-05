@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { PaymentService } from '../services/paymentService';
+import { Raffle } from '../entities/raffle.entity';
 
 
 export class PaymentController {
@@ -23,21 +24,19 @@ export class PaymentController {
     }
     async sendWhatsappReceipt(req: Request, res: Response) {
         try {
-            const { phone, raffleName, tickets, amount } = req.body;
+            const { phone, raffleId, tickets, amount } = req.body;
 
-            if (
-                !phone ||
-                !raffleName ||
-                !Array.isArray(tickets) ||
-                tickets.length === 0 ||
-                !amount
-            ) {
+            if (!phone || !raffleId || !Array.isArray(tickets) || tickets.length === 0 || !amount) {
                 return res.status(400).json({ message: "Datos incompletos" });
             }
 
+            const raffle = await this.paymentService.getRaffleById(raffleId);
+
+            if (!raffle) return res.status(404).json({ message: "Rifa no encontrada" });
+
             await this.paymentService.sendWhatsappReceipt({
                 phone,
-                raffleName,
+                raffle,
                 tickets,
                 amount,
             });
@@ -51,6 +50,7 @@ export class PaymentController {
             });
         }
     }
+
 
 
 

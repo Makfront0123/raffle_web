@@ -23,18 +23,18 @@ export class PaymentService {
 
   async sendWhatsappReceipt({
     phone,
-    raffleName,
+    raffle,
     tickets,
     amount,
   }: {
     phone: string;
-    raffleName: string;
+    raffle: Raffle;
     tickets: string[]; // ✅
     amount: number;
   }) {
     await this.whatsappService.sendReceipt({
       phone,
-      raffleName,
+      raffle,
       tickets,
       amount,
     });
@@ -47,6 +47,15 @@ export class PaymentService {
       relations: ["details", "user", "raffle"],
     });
   }
+
+
+  async getRaffleById(id: number): Promise<Raffle | null> {
+    return this.dataSource.getRepository(Raffle).findOne({
+      where: { id },
+      relations: ["prizes"],
+    });
+  }
+
 
   async deletePayment(id: number) {
     await this.paymentRepo.delete({ id });

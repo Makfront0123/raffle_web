@@ -25,8 +25,9 @@ export function usePayment({ onPaymentSuccess }: UsePaymentProps = {}) {
 
   const [successModalOpen, setSuccessModalOpen] = useState(false);
   const [paymentInfo, setPaymentInfo] = useState<{
-    raffleName?: string;
+    raffle: Raffle
     tickets?: string[];
+    amount?: number;
   } | null>(null);
 
 
@@ -107,8 +108,9 @@ export function usePayment({ onPaymentSuccess }: UsePaymentProps = {}) {
           toast.success("Pago aprobado ✅");
 
           setPaymentInfo({
-            raffleName: raffle.title,
+            raffle,
             tickets: ticketsForPayment.map((t) => t.ticket_number),
+            amount: raffle.price * tickets.length,
           });
 
           setSuccessModalOpen(true);

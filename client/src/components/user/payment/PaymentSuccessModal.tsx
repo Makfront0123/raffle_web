@@ -9,7 +9,7 @@ import { useWhatsappReceipt } from "@/hook/useSendWhatsappReceipt";
 interface Props {
   open: boolean;
   onClose: () => void;
-  raffleName?: string;
+  raffleId: number; // 🔹 ID de la rifa
   tickets?: string[];
   amount: number;
 }
@@ -17,7 +17,7 @@ interface Props {
 export function PaymentSuccessModal({
   open,
   onClose,
-  raffleName,
+  raffleId,
   tickets,
   amount,
 }: Props) {
@@ -25,12 +25,12 @@ export function PaymentSuccessModal({
   const { sendReceipt, loading, sent } = useWhatsappReceipt();
 
   const handleSendReceipt = async () => {
-    if (!phone || !raffleName || !tickets || tickets.length === 0) return;
+    if (!phone || !raffleId || !tickets || tickets.length === 0) return;
 
     try {
       await sendReceipt({
         phone,
-        raffleName,
+        raffleId,
         tickets,
         amount,
       });
@@ -38,7 +38,6 @@ export function PaymentSuccessModal({
       console.error(err);
     }
   };
-
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="bg-[#0B0B0B] border border-yellow-500/20 text-white max-w-md rounded-2xl">
