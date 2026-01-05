@@ -451,9 +451,6 @@ export class PaymentService {
 
 
   async simulateWebhook(reference: string, status: "APPROVED" | "DECLINED" | "ERROR" = "APPROVED") {
-    if (process.env.NODE_ENV === "production") {
-      throw new Error("Simulación de webhook solo disponible en demo/sandbox");
-    }
 
     const fakeEvent = {
       data: {
