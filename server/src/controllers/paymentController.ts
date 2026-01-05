@@ -170,8 +170,10 @@ export class PaymentController {
 
     async wompiWebhook(req: Request, res: Response) {
         console.log("🔥 WOMPÍ WEBHOOK RECIBIDO");
+        const rawBody = Buffer.isBuffer(req.body)
+            ? req.body.toString("utf8")
+            : JSON.stringify(req.body);
 
-        const rawBody = req.body.toString("utf8");
         console.log("Raw body:", rawBody);
 
         let event;
@@ -188,6 +190,7 @@ export class PaymentController {
             res
         );
     }
+
 
 
     async getWompiSignature(req: Request, res: Response) {
