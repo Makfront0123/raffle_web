@@ -3,13 +3,13 @@ import { cleanupExpiredReservations, closeExpiredRaffles } from "./raffleCronLog
 import { schedulePaymentCleanup } from "./expirePayments";
 
 cron.schedule("*/1 * * * *", async () => {
-  console.log("⏰ Ejecutando limpieza de reservas...");
+  console.log("Ejecutando limpieza de reservas...");
   const removed = await cleanupExpiredReservations();
-  console.log(`🧹 Reservas eliminadas: ${removed}`);
+  console.log(`Reservas eliminadas: ${removed}`);
 
-  console.log("⏰ Cerrando rifas expiradas...");
+  console.log("Cerrando rifas expiradas...");
   const closed = await closeExpiredRaffles();
-  console.log("🎉 Rifas cerradas:", closed);
+  console.log("Rifas cerradas:", closed);
 });
 
 schedulePaymentCleanup();
