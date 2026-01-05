@@ -48,7 +48,7 @@ export function useAuth({ skipPersist = false }: UseAuthOptions = {}) {
     }
     googleClient.requestAccessToken();
   }, [googleClient]);
- 
+
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -80,7 +80,6 @@ export function useAuth({ skipPersist = false }: UseAuthOptions = {}) {
       return () => clearInterval(interval);
     }
   }, [handleGoogleLogin]);
-
   useEffect(() => {
     if (skipPersist) {
       setInitialized(true);
@@ -93,7 +92,6 @@ export function useAuth({ skipPersist = false }: UseAuthOptions = {}) {
         setUser(res.user);
       } catch (err: unknown) {
         if (isAxiosError(err) && err.response?.status === 401) {
-
           storeLogout();
         } else {
           console.error("Error verificando sesión:", err);
