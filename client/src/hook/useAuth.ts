@@ -82,7 +82,6 @@ export function useAuth({ skipPersist = false }: UseAuthOptions = {}) {
       return () => clearInterval(interval);
     }
   }, [handleGoogleLogin]);
-
   useEffect(() => {
     if (skipPersist) {
       setInitialized(true);
