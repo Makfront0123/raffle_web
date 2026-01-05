@@ -48,7 +48,7 @@ export function useAuth({ skipPersist = false }: UseAuthOptions = {}) {
     }
     googleClient.requestAccessToken();
   }, [googleClient]);
- 
+
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -60,7 +60,9 @@ export function useAuth({ skipPersist = false }: UseAuthOptions = {}) {
         scope: "openid profile email",
         ux_mode: "popup",
         callback: (response: GoogleTokenResponse) => {
-          if (response.access_token) handleGoogleLogin(response.access_token);
+          if (response.access_token) {
+            handleGoogleLogin(response.access_token);
+          }
         },
       });
 
@@ -93,7 +95,6 @@ export function useAuth({ skipPersist = false }: UseAuthOptions = {}) {
         setUser(res.user);
       } catch (err: unknown) {
         if (isAxiosError(err) && err.response?.status === 401) {
-
           storeLogout();
         } else {
           console.error("Error verificando sesión:", err);
