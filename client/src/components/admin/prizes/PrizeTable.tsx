@@ -57,7 +57,7 @@ export function PrizesTable({
   const [deleteOpen, setDeleteOpen] = useState(false);
 
   return (
-    <Card>
+    <Card className="border-none shadow-lg">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Premios</CardTitle>
         <Select

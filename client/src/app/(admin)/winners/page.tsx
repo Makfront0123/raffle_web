@@ -48,7 +48,7 @@ const WinnersPage = () => {
         </Select>
       </div>
 
-      <Card>
+      <Card className="border-none shadow-lg">
         <CardHeader>
           <CardTitle>Ganadores Recientes</CardTitle>
         </CardHeader>

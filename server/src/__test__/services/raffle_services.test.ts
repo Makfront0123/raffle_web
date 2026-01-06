@@ -14,9 +14,11 @@ beforeEach(() => {
         update: jest.fn(),
         create: jest.fn(),
     };
+
     fakeTicketRepo = {
         create: jest.fn(),
         insert: jest.fn(),
+        count: jest.fn(),
     };
 
     const fakeQueryRunner = {
@@ -48,16 +50,23 @@ beforeEach(() => {
     );
 });
 
+
 describe("RaffleService deleteRaffle y regenerateTickets", () => {
     test("deleteRaffle marca rifa como deleting y llama deleteRaffleAsync", async () => {
         const raffle = { id: 1, status: "pending" };
+
         fakeRaffleRepo.findOne.mockResolvedValue(raffle);
         fakeRaffleRepo.save.mockResolvedValue(raffle);
+
+        fakeTicketRepo.count.mockResolvedValue(0);
 
         const result = await service.deleteRaffle(1);
 
         expect(fakeRaffleRepo.findOne).toHaveBeenCalledWith({ where: { id: 1 } });
-        expect(fakeRaffleRepo.save).toHaveBeenCalledWith({ ...raffle, status: "deleting" });
+        expect(fakeRaffleRepo.save).toHaveBeenCalledWith({
+            ...raffle,
+            status: "deleting",
+        });
         expect(result.message).toBe("Rifa en proceso de eliminación");
     });
 

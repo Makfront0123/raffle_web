@@ -1,11 +1,11 @@
-import { IsNull, Not } from 'typeorm';
+import { In, IsNull, Not } from 'typeorm';
 import { AppDataSource } from '../data-source';
 import { Payment } from '../entities/payment.entity';
 import { PaymentDetail } from '../entities/payment_details.entity';
 import { Prize } from '../entities/prize.entity';
 import { Provider } from '../entities/provider.entity';
 import { Raffle } from '../entities/raffle.entity';
-import { Ticket } from '../entities/ticket.entity';
+import { Ticket, TicketStatus } from '../entities/ticket.entity';
 
 export class PrizesService {
     private prizeRepo = AppDataSource.getRepository(Prize);
@@ -77,40 +77,42 @@ export class PrizesService {
             data: saved
         }
     }
-
     async deletePrize(id: number) {
-        if (!id) throw new Error('ID requerido');
-
+        if (!id) throw new Error("ID requerido");
 
         const prize = await this.prizeRepo.findOne({
             where: { id },
-            relations: ['raffle', 'raffle.tickets', 'winner_ticket'],
+            relations: ["raffle", "winner_ticket"],
         });
 
-        if (!prize) throw new Error('Premio no encontrado');
+        if (!prize) throw new Error("Premio no encontrado");
 
-        if (prize.raffle.status === 'active') {
-            throw new Error('No se puede eliminar el premio porque la rifa está activa');
+        if (prize.raffle.status === "active") {
+            throw new Error("No se puede eliminar el premio porque la rifa está activa");
         }
 
         if (prize.winner_ticket) {
-            throw new Error('No se puede eliminar el premio porque tiene un ticket ganador asociado');
+            throw new Error(
+                "No se puede eliminar el premio porque tiene un ticket ganador asociado"
+            );
         }
 
+        const blockingTicketsCount = await this.ticketRepo.count({
+            where: {
+                raffle: { id: prize.raffle.id },
+                status: In([TicketStatus.PURCHASED, TicketStatus.RESERVED]),
+            },
+        });
 
-        if (prize.raffle && prize.raffle.tickets.length > 0 && prize.raffle.tickets.some(t => t.status === 'purchased')) {
-            throw new Error('No se puede eliminar el premio porque tiene tickets comprados asociados');
-        }
-
-        if (prize.raffle && prize.raffle.tickets.length > 0 && prize.raffle.tickets.some(t => t.status === 'reserved')) {
-            throw new Error('No se puede eliminar el premio porque tiene tickets reservados asociados');
+        if (blockingTicketsCount > 0) {
+            throw new Error(
+                "No se puede eliminar el premio porque tiene tickets comprados o reservados asociados"
+            );
         }
 
         await this.prizeRepo.delete(id);
         return { message: `Premio #${id} eliminado correctamente` };
     }
-
-
 
     async selectWinner(
         prizeId: number

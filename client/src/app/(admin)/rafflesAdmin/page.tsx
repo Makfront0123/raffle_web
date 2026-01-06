@@ -37,7 +37,8 @@ const RafflesAdmin = () => {
   };
 
   return (
-    <main className="p-6">
+    <main className="space-y-8 p-4 sm:p-6 bg-gray-50 min-h-screen">
+
       <h1 className="text-3xl font-bold mb-6">Administrar Rifas</h1>
 
       <RaffleForm

@@ -3,7 +3,9 @@
 import PaymentsFilters from "@/components/admin/payments/PaymentFilters";
 import PaymentsPagination from "@/components/admin/payments/PaymentPagination";
 import PaymentsTable from "@/components/admin/payments/PaymentTable";
+import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { useExportPaymentsToExcel } from "@/hook/useExportPaymentsToExcel";
 import { usePaymentsPageLogic } from "@/hook/usePaymentPageLogic";
 import { toast } from "sonner";
 
@@ -25,6 +27,7 @@ export default function PaymentsPage() {
   const totalPages = Math.ceil(filteredPayments.length / ITEMS_PER_PAGE);
   const start = (currentPage - 1) * ITEMS_PER_PAGE;
   const paginatedPayments = filteredPayments.slice(start, start + ITEMS_PER_PAGE);
+  const { exportPayments } = useExportPaymentsToExcel();
 
   const handleComplete = async (id: number) => {
     try {
@@ -48,9 +51,18 @@ export default function PaymentsPage() {
         setDateTo={setDateTo}
       />
 
-      <Card>
+      <Card className="border-none shadow-lg">
         <CardHeader>
-          <CardTitle>Pagos Recientes</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle>Pagos Recientes</CardTitle>
+            <Button
+              variant="outline" className="max-w-[25vh] flex items-start justify-start"
+              onClick={() => exportPayments(filteredPayments)}
+            >
+              Exportar a Excel
+            </Button>
+          </div>
+
         </CardHeader>
 
         <CardContent>

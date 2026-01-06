@@ -25,15 +25,15 @@ export const RaffleForm = ({
   minDate,
 }: Props) => {
   return (
-    <Card className="mb-6">
+    <Card className="border-0 shadow-sm">
       <CardHeader>
-        <CardTitle>Crear Nueva Rifa</CardTitle>
+        <CardTitle className="text-lg font-semibold">
+          Crear nueva rifa
+        </CardTitle>
       </CardHeader>
+
       <CardContent>
-        <form
-          onSubmit={handleSubmit}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
-        >
+        <form className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           <div className="sm:col-span-2 lg:col-span-1">
             <Label>Título</Label>
             <Input name="title" value={form.title} onChange={handleChange} />

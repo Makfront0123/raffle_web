@@ -18,14 +18,28 @@ export class ProviderController {
   };
 
   create = async (req: Request, res: Response) => {
-    const provider = await this.providerService.createProvider(req.body);
-    res.status(201).json(provider);
+    try {
+      const provider = await this.providerService.createProvider(req.body);
+      res.status(201).json(provider);
+    } catch (error: any) {
+      return res.status(400).json({ message: error.message || 'Error creando el proveedor' });
+    }
   };
 
   delete = async (req: Request, res: Response) => {
-    await this.providerService.deleteProvider(Number(req.params.id));
-    res.status(200).json({ message: "Proveedor eliminado correctamente" });
+    try {
+      await this.providerService.deleteProvider(Number(req.params.id));
+
+      return res.status(200).json({
+        message: 'Proveedor eliminado correctamente',
+      });
+    } catch (error: any) {
+      return res.status(400).json({
+        message: error.message || 'Error eliminando el proveedor',
+      });
+    }
   };
+
 
   getById = async (req: Request, res: Response) => {
     const provider = await this.providerService.getProviderById(
@@ -43,10 +57,14 @@ export class ProviderController {
 
 
   update = async (req: Request, res: Response) => {
-    const provider = await this.providerService.updateProvider(
-      Number(req.params.id),
-      req.body
-    );
-    res.status(200).json(provider);
+    try {
+      const provider = await this.providerService.updateProvider(
+        Number(req.params.id),
+        req.body
+      );
+      res.status(200).json(provider);
+    } catch (error: any) {
+      return res.status(400).json({ message: error.message || 'Error actualizando el proveedor' });
+    }
   };
 }

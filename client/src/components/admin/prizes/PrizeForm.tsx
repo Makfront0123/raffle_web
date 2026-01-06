@@ -74,7 +74,7 @@ export function PrizeForm({
     };
 
     return (
-        <Card className="mb-6">
+        <Card className="mb-6 border-none shadow-lg">
             <CardHeader>
                 <CardTitle>Crear Nuevo Premio</CardTitle>
             </CardHeader>

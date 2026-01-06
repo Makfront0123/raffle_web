@@ -10,26 +10,21 @@ export class AuthService {
     const DEFAULT_PICTURE =
       "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 
-    // Buscar usuario y cargar la relación role
     let user = await this.userRepository.findByEmail(googleUser.email, { relations: ["role"] });
     let isNew = false;
 
     if (!user) {
-      // Crear usuario con roleId
       user = await this.userRepository.createUser({
         name: googleUser.name,
         email: googleUser.email,
         picture: googleUser.picture || DEFAULT_PICTURE,
         roleId: USER_ROLE_ID,
       });
-
-      // Recargar usuario para asegurar que role esté presente
       user = await this.userRepository.findById(user.id, { relations: ["role"] });
 
       isNew = true;
     }
 
-    // Fallback en caso de que role sea undefined
     if (!user.role) {
       user.role = { id: USER_ROLE_ID, name: "Usuario" } as any;
     }

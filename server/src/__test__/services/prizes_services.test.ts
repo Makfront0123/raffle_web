@@ -16,7 +16,6 @@ const mockQueryBuilder = () => ({
   getMany: jest.fn(),
   getRawMany: jest.fn(),
 });
-
 const mockRepo = () => ({
   find: jest.fn(),
   findOne: jest.fn(),
@@ -25,8 +24,10 @@ const mockRepo = () => ({
   delete: jest.fn(),
   create: jest.fn(),
   update: jest.fn(),
+  count: jest.fn(),
   createQueryBuilder: jest.fn().mockReturnValue(mockQueryBuilder()),
 });
+
 
 describe("PrizesService", () => {
   let prizesService: PrizesService;
@@ -137,17 +138,40 @@ describe("PrizesService", () => {
     prizeRepo.findOne.mockResolvedValue({ raffle: { status: "closed", tickets: [] }, winner_ticket: { id_ticket: 99 } });
     await expect(prizesService.deletePrize(1)).rejects.toThrow("No se puede eliminar el premio porque tiene un ticket ganador asociado");
   });
-
   test("deletePrize: tickets purchased", async () => {
-    prizeRepo.findOne.mockResolvedValue({ raffle: { status: "closed", tickets: [{ status: "purchased" }] }, winner_ticket: null });
-    await expect(prizesService.deletePrize(1)).rejects.toThrow("No se puede eliminar el premio porque tiene tickets comprados asociados");
+    prizeRepo.findOne.mockResolvedValue({
+      id: 1,
+      raffle: { id: 10, status: "closed" },
+      winner_ticket: null,
+    });
+
+    ticketRepo.count.mockResolvedValue(2);
+
+    await expect(prizesService.deletePrize(1)).rejects.toThrow(
+      "No se puede eliminar el premio porque tiene tickets comprados o reservados asociados"
+    );
+
+
   });
+
 
   test("deletePrize: elimina correctamente", async () => {
-    prizeRepo.findOne.mockResolvedValue({ raffle: { status: "closed", tickets: [] }, winner_ticket: null });
+    prizeRepo.findOne.mockResolvedValue({
+      id: 5,
+      raffle: { id: 10, status: "closed" },
+      winner_ticket: null,
+    });
+
+    ticketRepo.count.mockResolvedValue(0);
+    prizeRepo.delete.mockResolvedValue({});
+
     const result = await prizesService.deletePrize(5);
-    expect(result).toEqual({ message: "Premio #5 eliminado correctamente" });
+
+    expect(result).toEqual({
+      message: "Premio #5 eliminado correctamente",
+    });
   });
+
 
   test("selectWinner: premio no encontrado", async () => {
     prizeRepo.findOne.mockResolvedValue(null);

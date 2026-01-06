@@ -15,6 +15,7 @@ import RegenerateTicketsButton from "@/components/user/tickets/RegenerateTickets
 import { Raffle } from "@/type/Raffle";
 import { EditRaffleDialog } from "@/components/user/raffles/EditRaffleDialog";
 import { RafflesTableProps } from "@/type/RaffleTableProps";
+import { cn } from "@/lib/utils";
 
 export const RafflesTable = ({
     raffles,
@@ -32,11 +33,12 @@ export const RafflesTable = ({
 }: RafflesTableProps) => {
 
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle>Rifas Existentes</CardTitle>
+        <Card className="border-none shadow-lg">
+            <CardHeader className="space-y-3">
+                <CardTitle>Rifas existentes</CardTitle>
 
-                <div className="flex gap-2 mt-3">
+                <div className="flex flex-wrap gap-2">
+
                     {(["all", "pending", "active", "ended"] as const).map((status) => (
                         <button
                             key={status}
@@ -44,8 +46,13 @@ export const RafflesTable = ({
                                 setCurrentPage(1);
                                 setStatusFilter(status);
                             }}
-                            className={`px-3 py-1 text-xs rounded border
-          ${statusFilter === status ? "bg-black text-white" : "bg-white"}`}
+                            className={cn(
+                                "px-3 py-1 text-xs rounded-md border transition",
+                                statusFilter === status
+                                    ? "bg-indigo-600 text-white border-indigo-600"
+                                    : "bg-white hover:bg-gray-50"
+                            )}
+
                         >
                             {status === "all" ? "Todas" : status}
                         </button>
@@ -62,8 +69,9 @@ export const RafflesTable = ({
                 ) : (
                     <>
                         <div className="overflow-x-auto">
-                            <table className="min-w-full border text-sm">
-                                <thead className="bg-gray-100">
+                            <table className="min-w-full text-sm text-gray-700">
+                                <thead className="bg-gray-50 text-gray-500 uppercase text-xs">
+
                                     <tr>
                                         <th className="px-4 py-2 text-left">Título</th>
                                         <th className="px-4 py-2">Números</th>

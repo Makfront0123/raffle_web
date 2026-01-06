@@ -26,7 +26,7 @@ export default function PaymentsFilters({
   setDateTo,
 }: PaymentsFiltersProps) {
   return (
-    <Card className="mb-6 bg-white shadow-md">
+    <Card className="mb-6 bg-white shadow-md border-none">
       <CardContent className="pt-6">
         <h2 className="text-xl font-semibold mb-4">Filtros</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

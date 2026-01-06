@@ -1,4 +1,5 @@
 import { Raffle } from "./Raffle";
+import { User } from "./User";
 
 export enum PaymentStatusEnum {
   PENDING = 'pending',
@@ -45,6 +46,7 @@ export interface Payment {
   details: TicketDetail[];
   raffle: Raffle;
   reference: string;
+  user: User | null;
 }
 
 export interface TicketDetail {

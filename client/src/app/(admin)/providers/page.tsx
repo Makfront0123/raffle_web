@@ -30,7 +30,7 @@ export default function ProvidersPage() {
   return (
     <main className="p-6 bg-gray-50 flex-1">
       <h1 className="text-3xl font-bold mb-6">Proveedores</h1>
-      <Card className="mb-6">
+      <Card className="mb-6 border-none shadow-lg">
         <CardHeader>
           <CardTitle>Agregar Nuevo Proveedor</CardTitle>
         </CardHeader>
@@ -38,7 +38,7 @@ export default function ProvidersPage() {
           <ProvidersForm form={form} onChange={handleChange} onSubmit={handleSubmit} />
         </CardContent>
       </Card>
-      <Card>
+      <Card className="border-none shadow-lg">
         <CardHeader>
           <CardTitle>Proveedores Existentes</CardTitle>
         </CardHeader>

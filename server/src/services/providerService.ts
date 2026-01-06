@@ -1,9 +1,10 @@
-import { AppDataSource } from '../data-source';
-import { Provider } from '../entities/provider.entity';
-import { Prize } from '../entities/prize.entity';
+import { AppDataSource } from "../data-source";
+import { Provider } from "../entities/provider.entity";
+import { Ticket, TicketStatus } from "../entities/ticket.entity";
+
 export class ProviderService {
   private providerRepo = AppDataSource.getRepository(Provider);
-  private prizeRepo = AppDataSource.getRepository(Prize);
+  private ticketRepo = AppDataSource.getRepository(Ticket);
 
   async getAllProviders() {
     return this.providerRepo.find({ relations: ["prizes"] });
@@ -14,7 +15,7 @@ export class ProviderService {
   }
 
   async createProvider(data: Partial<Provider>) {
-    if (!data.name || typeof data.name !== "string" || data.name.trim() === "") {
+    if (!data.name || data.name.trim() === "") {
       throw new Error("El nombre del proveedor es obligatorio");
     }
 
@@ -26,6 +27,7 @@ export class ProviderService {
     });
 
     const saved = await this.providerRepo.save(provider);
+
     return {
       message: "Proveedor creado correctamente",
       data: saved,
@@ -61,27 +63,32 @@ export class ProviderService {
   }
 
   async deleteProvider(id: number) {
+    if (!id) throw new Error("ID requerido");
+
     const provider = await this.providerRepo.findOne({ where: { id } });
     if (!provider) throw new Error("Proveedor no encontrado");
 
-    const prizes = await this.prizeRepo
-      .createQueryBuilder("prize")
-      .leftJoin("prize.provider", "provider")
+    const blockingTicketsCount = await this.ticketRepo
+      .createQueryBuilder("ticket")
+      .innerJoin("ticket.raffle", "raffle")
+      .innerJoin("raffle.prizes", "prize")
+      .innerJoin("prize.provider", "provider")
       .where("provider.id = :id", { id })
-      .getMany();
+      .andWhere("ticket.status IN (:...statuses)", {
+        statuses: [TicketStatus.RESERVED, TicketStatus.PURCHASED],
+      })
+      .getCount();
 
-    if (prizes.length > 0) {
-      throw new Error("No se puede eliminar el proveedor porque tiene premios asociados");
+    if (blockingTicketsCount > 0) {
+      throw new Error(
+        "No se puede eliminar el proveedor porque tiene premios en rifas con tickets comprados o reservados"
+      );
     }
 
-    try {
-      await this.providerRepo.delete(id);
-      return { message: `Proveedor #${id} eliminado correctamente` };
-    } catch (error: any) {
-      if (error.code === "ER_ROW_IS_REFERENCED_2") {
-        throw new Error("No se puede eliminar el proveedor porque tiene premios asociados");
-      }
-      throw error;
-    }
+    await this.providerRepo.delete(id);
+
+    return {
+      message: `Proveedor #${id} eliminado correctamente`,
+    };
   }
 }
