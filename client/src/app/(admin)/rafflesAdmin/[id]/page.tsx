@@ -36,7 +36,7 @@ const RaffleDetailPage = () => {
         );
     }
 
-    const rafflePayments = payments.filter(p => p?.id === raffleId);
+    const rafflePayments = payments.filter(p => p?.raffle.id === raffleId);
     const rafflePrizes = prizes.filter(p => p.raffle.id === raffleId);
     const raffleWinners = winners.filter(w => w?.raffle_id === raffleId);
 
@@ -48,7 +48,7 @@ const RaffleDetailPage = () => {
         (acc, p) => acc + Number(p.total_amount || 0),
         0
     );
-
+    console.log(totalRevenue);
     const revenueMap: Record<string, number> = {};
     rafflePayments.forEach(p => {
         const date = new Date(p.created_at).toLocaleDateString();
