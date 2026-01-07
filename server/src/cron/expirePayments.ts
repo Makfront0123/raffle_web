@@ -36,14 +36,14 @@ export const cleanupExpiredPayments = async (): Promise<number> => {
 
 export const schedulePaymentCleanup = () => {
     cron.schedule("*/2 * * * *", async () => {
-        console.log("⏰ Revisando pagos expirados...");
+        console.log("Revisando pagos expirados...");
         try {
             const count = await cleanupExpiredPayments();
             if (count > 0) {
-                console.log(`🧹 ${count} pagos expirados liberados`);
+                console.log(`${count} pagos expirados liberados`);
             }
         } catch (err) {
-            console.error("❌ Error al limpiar pagos expirados:", err);
+            console.error("Error al limpiar pagos expirados:", err);
         }
     });
 };

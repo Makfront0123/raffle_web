@@ -1,5 +1,5 @@
 export interface Providers {
-    id?: number;  
+    id?: number;
     name: string;
     contact_name: string;
     contact_email: string;

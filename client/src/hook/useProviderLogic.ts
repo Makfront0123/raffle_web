@@ -13,7 +13,7 @@ export interface ProviderFormState {
 }
 
 export const useProvidersLogic = () => {
-  const { token } = AuthStore();
+  const { user } = AuthStore();
   const {
     providers,
     loading,
@@ -22,7 +22,7 @@ export const useProvidersLogic = () => {
     updateProvider,
     deleteProvider,
     fetchProviders,
-  } = useProviders(token ?? "");
+  } = useProviders();
 
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<Providers>({
@@ -53,18 +53,18 @@ export const useProvidersLogic = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!token) return;
+    if (!user) return;
 
     try {
       if (form.id) {
         const { id, name, contact_name, contact_email, contact_phone } = form;
         const data = { name, contact_name, contact_email, contact_phone };
-        await updateProvider(id, data, token);
+        await updateProvider(id, data);
       } else {
-        await addProvider(form, token);
+        await addProvider(form);
       }
 
-      await fetchProviders(token);
+      await fetchProviders();
       resetForm();
       setOpen(false);
     } catch (err) {
@@ -87,10 +87,10 @@ export const useProvidersLogic = () => {
   };
 
   const confirmDeleteProvider = async () => {
-    if (!token || !providerToDelete?.id) return;
+    if (!user || !providerToDelete?.id) return;
     try {
-      await deleteProvider(providerToDelete.id, token);
-      await fetchProviders(token);
+      await deleteProvider(providerToDelete.id);
+      await fetchProviders();
     } catch (err) {
       console.error("Error eliminando proveedor:", err);
     } finally {

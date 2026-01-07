@@ -1,39 +1,30 @@
-import axios from "axios";
-
+import { api } from "@/api/api";
 
 export class AuthService {
     async getUserByGoogle({ token }: { token: string }) {
-        const res = await axios.post(
-            `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/google`,
-            { token }
-        );
+        const res = await api.post("/api/auth/google", { token });
         return res.data;
     }
 
-
-    async getUserByToken(token: string) {
-        const res = await axios.get(
-            `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/persist`,
-            {
-                headers: { Authorization: `Bearer ${token}` },
-            }
-        );
+    async persist() {
+        const res = await api.get("/api/auth/persist");
         return res.data;
     }
+
 
     async devLogin(email: string) {
-        const res = await axios.post(
-            `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/dev-login`,
-            { email }
-        );
+        const res = await api.post("/api/auth/dev-login", { email });
         return res.data;
     }
 
+
     async refreshToken(refreshToken: string) {
-        const res = await axios.post(
-            `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/refresh`,
-            { refreshToken }
-        );
+        const res = await api.post("/api/auth/refresh", { refreshToken });
         return res.data;
+    }
+
+
+    async logout() {
+        await api.post("/api/auth/logout");
     }
 }

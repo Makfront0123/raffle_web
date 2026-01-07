@@ -1,10 +1,11 @@
 "use client";
 
-import { AuthStore } from "@/store/authStore";
 import { useRaffleStore } from "@/store/raffleStore";
-import { Raffle, UpdateRafflePayload } from "@/type/Raffle";
+import { CreateRaffleDTO, Raffle, UpdateRafflePayload } from "@/type/Raffle";
+import { RaffleStatusFilter } from "@/type/RaffleTableProps";
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { toast } from "sonner";
+
 
 export function useRaffles() {
   const {
@@ -21,9 +22,28 @@ export function useRaffles() {
   const { token } = AuthStore();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] =
+    useState<RaffleStatusFilter>("all");
+
+  const filteredRaffles = useMemo(() => {
+    if (statusFilter === "all") return raffles;
+    return raffles.filter(r => r.status === statusFilter);
+  }, [raffles, statusFilter]);
+
+  const rafflesPerPage = 5;
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const totalPages = Math.ceil(filteredRaffles.length / rafflesPerPage);
+
+  const paginatedRaffles = useMemo(() => {
+    const start = (currentPage - 1) * rafflesPerPage;
+    return filteredRaffles.slice(start, start + rafflesPerPage);
+  }, [filteredRaffles, currentPage]);
+
 
   const refreshRaffles = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       await getRaffles();
     } catch (err) {
@@ -39,18 +59,13 @@ export function useRaffles() {
   }, [refreshRaffles]);
 
   const createRaffle = useCallback(
-    async (
-      form: {
-        title: string;
-        description?: string;
-        price: number;
-        end_date: string;
-        digits: number;
-      },
-      resetForm?: () => void
-    ) => {
-      if (!token) return;
-
+    async (form: {
+      title: string;
+      description: string;
+      price: string;
+      end_date: string;
+      digits: number;
+    }) => {
       try {
         if (!form.end_date) throw new Error("Selecciona una fecha.");
 
@@ -74,77 +89,56 @@ export function useRaffles() {
           total_numbers: 0,
         };
 
-        await addRaffle(payload, token);
-        getRaffles();
+        const created = await addRaffle(payload);
+        if (created) await getRaffles();
       } catch (err: unknown) {
-        const message =
-          err instanceof Error ? err.message : "Error creando la rifa";
+        const message = err instanceof Error ? err.message : "Error creando la rifa";
         toast.error(message);
         throw err;
       }
     },
-    [addRaffle, token]
+    [addRaffle, getRaffles]
   );
 
   const handleDeleteRaffle = useCallback(
     async (id: number) => {
-      if (!token) return;
-      await deleteRaffle(id, token);
-      await refreshRaffles();
+      const success = await deleteRaffle(id);
+      if (success) await refreshRaffles();
     },
-    [deleteRaffle, token, refreshRaffles]
+    [deleteRaffle, refreshRaffles]
   );
 
   const handleUpdateRaffle = useCallback(
     async (id: number, data: Partial<Raffle>) => {
-      if (!token) return;
-      try {
-        const payload: UpdateRafflePayload = {};
-        if (data.price !== undefined) payload.price = data.price;
-        if (data.end_date) {
-          const endDate = new Date(
-            data.end_date.length === 10 ? data.end_date + "T23:59:59" : data.end_date
-          );
-          if (!isNaN(endDate.getTime())) payload.endDate = endDate.toISOString();
-        }
-        if (data.title) payload.title = data.title;
-        if (data.description) payload.description = data.description;
-
-        await updateRaffle(id, payload, token);
-        await refreshRaffles();
-      } catch (err) {
-        toast.error("No se pudo actualizar la rifa");
-        console.error(err);
+      const payload: UpdateRafflePayload = {};
+      if (typeof data.price !== "undefined") payload.price = data.price;
+      if (typeof data.end_date !== "undefined" && data.end_date) {
+        payload.endDate = data.end_date.length === 10
+          ? new Date(data.end_date + "T23:59:59").toISOString()
+          : data.end_date;
       }
+      if (data.title) payload.title = data.title;
+      if (data.description) payload.description = data.description;
+
+      await updateRaffle(id, payload);
+      await refreshRaffles();
     },
-    [updateRaffle, token, refreshRaffles]
+    [updateRaffle, refreshRaffles]
   );
 
   const handleActivateRaffle = useCallback(
-    async (id: number) => {
-      if (!token) return;
-      await activateRaffle(id, token);
-      await refreshRaffles();
-    },
-    [activateRaffle, token, refreshRaffles]
+    async (id: number) => { await activateRaffle(id); await refreshRaffles(); },
+    [activateRaffle, refreshRaffles]
   );
 
   const handleDeactivateRaffle = useCallback(
-    async (id: number) => {
-      if (!token) return;
-      await deactivateRaffle(id, token);
-      await refreshRaffles();
-    },
-    [deactivateRaffle, token, refreshRaffles]
+    async (id: number) => { await deactivateRaffle(id); await refreshRaffles(); },
+    [deactivateRaffle, refreshRaffles]
   );
 
   const handleRegenerateTickets = useCallback(
-    async (id: number, newDigits: number) => {
-      if (!token) return;
-      await regenerateTickets(id, newDigits, token);
-      await refreshRaffles();
-    },
-    [regenerateTickets, token, refreshRaffles]
+    async (id: number, newDigits: number) => { await regenerateTickets(id, newDigits); await refreshRaffles(); },
+    [regenerateTickets, refreshRaffles]
   );
 
   const filteredRaffles = useMemo(() => {
@@ -169,5 +163,11 @@ export function useRaffles() {
     regenerateTickets: handleRegenerateTickets,
     deactivateRaffle: handleDeactivateRaffle,
     activateRaffle: handleActivateRaffle,
+    statusFilter,
+    setStatusFilter,
+    currentPage,
+    setCurrentPage,
+    totalPages,
+    paginatedRaffles,
   };
 }

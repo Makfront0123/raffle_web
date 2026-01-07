@@ -5,6 +5,7 @@ import { AppDataSource } from "../data-source";
 import { generateAllTicketNumbers } from "../utils/generateRandomNumber";
 import { Payment } from "../entities/payment.entity";
 import { Reservation } from "../entities/reservation.entity";
+import { Not } from "typeorm";
 
 export class RaffleService {
     private raffleRepo;
@@ -74,9 +75,6 @@ export class RaffleService {
         type: PrizeType;
     }) {
         const raffleRepo = this.raffleRepo;
-        const ticketRepo = this.ticketRepo;
-
-
         let endDate: Date | null = null;
 
         if (data.end_date instanceof Date) {
@@ -95,6 +93,8 @@ export class RaffleService {
 
         if (!endDate) throw new Error("Debes proporcionar una fecha de finalización");
 
+        const totalNumbers = Math.pow(10, data.digits); // <-- totalTickets
+
         const raffle = raffleRepo.create({
             title: data.title,
             description: data.description,
@@ -102,11 +102,10 @@ export class RaffleService {
             status: "pending",
             end_date: endDate,
             digits: data.digits,
-            total_numbers: Math.pow(10, data.digits),
+            total_numbers: totalNumbers,
         });
 
         await raffleRepo.save(raffle);
-
 
         setImmediate(() => {
             this.generateTicketsAsync(raffle.id, data.digits);
@@ -115,8 +114,10 @@ export class RaffleService {
         return {
             message: "Rifa creada correctamente",
             raffle,
+            totalTickets: totalNumbers,
         };
     }
+
 
     async getRaffleById(id: number) {
         return this.raffleRepo.findOne({
@@ -127,20 +128,44 @@ export class RaffleService {
 
 
     async deleteRaffle(id: number) {
-        const raffle = await this.raffleRepo.findOne({ where: { id } });
-        if (!raffle) throw new Error("Rifa no encontrada");
+        const raffle = await this.raffleRepo.findOne({
+            where: { id },
+        });
 
-        if (raffle.status === "active")
+        if (!raffle) {
+            throw new Error("Rifa no encontrada");
+        }
+
+        if (raffle.status === "active") {
             throw new Error("No se puede eliminar una rifa activa");
+        }
+
+
+        const ticketsUsedCount = await this.ticketRepo.count({
+            where: {
+                raffle: { id },
+                status: Not(TicketStatus.AVAILABLE),
+            },
+        });
+
+        if (ticketsUsedCount > 0) {
+            throw new Error(
+                "No se puede eliminar una rifa con tickets vendidos o reservados"
+            );
+        }
+
 
         raffle.status = "deleting";
         await this.raffleRepo.save(raffle);
+
 
         setImmediate(() => {
             this.deleteRaffleAsync(id);
         });
 
-        return { message: "Rifa en proceso de eliminación" };
+        return {
+            message: "Rifa en proceso de eliminación",
+        };
     }
 
 
@@ -256,7 +281,7 @@ export class RaffleService {
             await ticketRepo.insert(batch);
         }
 
-        await this.raffleRepo.update(raffleId, { status: "ready" });
+        await this.raffleRepo.update(raffleId, { status: "pending" });
     }
 
 
@@ -277,6 +302,8 @@ export class RaffleService {
             await queryRunner.manager.delete(Payment, {
                 raffle: { id: raffleId },
             });
+
+            
 
             await queryRunner.manager.delete(Prize, {
                 raffle: { id: raffleId },

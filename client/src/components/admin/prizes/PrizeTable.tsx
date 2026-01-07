@@ -57,11 +57,9 @@ export function PrizesTable({
   const [deleteOpen, setDeleteOpen] = useState(false);
 
   return (
-    <Card>
+    <Card className="border-none shadow-lg">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Premios</CardTitle>
-
-        {/* 🔽 Filtro por rifa */}
         <Select
           value={String(selectedRaffle)}
           onValueChange={(v) =>
@@ -133,8 +131,6 @@ export function PrizesTable({
                 </tbody>
               </table>
             </div>
-
-            {/* 📄 Paginador */}
             <div className="flex justify-between items-center mt-4">
               <Button variant="outline" disabled={page === 1} onClick={onPrevPage}>
                 Anterior
@@ -154,7 +150,6 @@ export function PrizesTable({
         )}
       </CardContent>
 
-      {/* ✏️ Modal editar */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent>
           <DialogHeader>
@@ -221,7 +216,6 @@ export function PrizesTable({
         </DialogContent>
       </Dialog>
 
-      {/* 🗑️ Modal eliminar */}
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <DialogContent>
           <DialogHeader>

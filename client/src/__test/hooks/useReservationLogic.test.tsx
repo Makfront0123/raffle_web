@@ -8,9 +8,9 @@ import { useReservationStore } from "@/store/reservationStore";
 import { useRaffles } from "@/hook/useRaffles";
 import { AuthStore } from "@/store/authStore";
 import { usePayment } from "@/hook/usePayment";
-import { Raffle } from "@/type/Raffle";
-import { Reservation } from "@/type/Reservation";
 import { TicketStatusEnum } from "@/type/Payment";
+import { Reservation } from "@/type/Reservation";
+import { Raffle } from "@/type/Raffle";
 
 // --- MOCKS ---
 jest.mock("@/hook/useReservation");
@@ -22,49 +22,50 @@ jest.mock("@/hook/usePayment");
 describe("useReservationsLogic", () => {
   const mockCancelReservation = jest.fn();
   const mockFetchReservations = jest.fn();
-  const mockCreatePayment = jest.fn();
-
-  const mockUseReservationStore =
-    useReservationStore as unknown as jest.Mock;
+  const mockPayWithWompiWidget = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
 
-    // useReservation
+    // Mock de useReservation
     (useReservation as jest.Mock).mockReturnValue({
       reservations: [
-        { id: 1, expires_at: "2099-01-01" },
-        { id: 2, expires_at: "2000-01-01" },
+        { id: 1, expires_at: "2099-01-01", reservationTickets: [] },
+        { id: 2, expires_at: "2000-01-01", reservationTickets: [] },
       ],
       loading: false,
       error: null,
       fetchReservations: mockFetchReservations,
     });
 
-    // Zustand store
-    mockUseReservationStore.mockReturnValue({
+    // Mock de useReservationStore
+    ((useReservationStore as unknown) as jest.Mock).mockReturnValue({
       cancelReservation: mockCancelReservation,
+      getReservations: jest.fn(),
+      getAllReservationsByUser: jest.fn(),
+      createReservation: jest.fn(),
+      getReservationById: jest.fn(),
+      reservations: [],
+      setReservations: jest.fn(),
     });
 
-    // Raffles
+
+    // Mock de useRaffles
     (useRaffles as jest.Mock).mockReturnValue({
       raffles: [],
     });
 
-    // Auth
-    (AuthStore as unknown as jest.Mock).mockReturnValue({
-      token: "abc123",
+    // Mock de AuthStore
+    // Mock de AuthStore
+    ((AuthStore as unknown) as jest.Mock).mockReturnValue({
+      user: { id: 1, name: "Test", role: "user", email: "test@example.com" },
     });
 
-    // Payment hook (⚠️ NOMBRE CORRECTO)
+    // Mock de usePayment
     (usePayment as jest.Mock).mockReturnValue({
-      createPayment: mockCreatePayment,
+      payWithWompiWidget: mockPayWithWompiWidget,
     });
   });
-
-  /* -------------------------------------------------------------------------- */
-  /*                                   TESTS                                    */
-  /* -------------------------------------------------------------------------- */
 
   it("filtra reservas activas correctamente", () => {
     const { result } = renderHook(() => useReservationsLogic());
@@ -80,7 +81,7 @@ describe("useReservationsLogic", () => {
       await result.current.handleCancel(1);
     });
 
-    expect(mockCancelReservation).toHaveBeenCalledWith(1, "abc123");
+    expect(mockCancelReservation).toHaveBeenCalledWith(1);
     expect(mockFetchReservations).toHaveBeenCalled();
   });
 
@@ -103,10 +104,7 @@ describe("useReservationsLogic", () => {
       ],
     };
 
-    const mockRaffle: Partial<Raffle> = {
-      id: 5,
-      price: 1000,
-    };
+    const mockRaffle: Partial<Raffle> = { id: 5, price: 1000 };
 
     await act(async () => {
       await result.current.handleAction(
@@ -115,22 +113,25 @@ describe("useReservationsLogic", () => {
       );
     });
 
-
-    expect(mockCreatePayment).toHaveBeenCalledWith(
-      {
-        raffle_id: 5,
-        ticket_ids: [99],
-        reference: expect.stringContaining("RAFFLE_5"),
-        total_amount: 1000,
-        reservation_id: 1,
-      },
-      "abc123"
-    );
+    expect(mockPayWithWompiWidget).toHaveBeenCalledWith({
+      raffle: mockRaffle,
+      tickets: [
+        {
+          id_ticket: 99,
+          raffleId: 5,
+          purchased_at: "2099-01-01",
+          status: TicketStatusEnum.AVAILABLE,
+          ticket_number: "1",
+          raffle: mockRaffle,
+        },
+      ],
+      reservation_id: 1,
+    });
 
     expect(mockFetchReservations).toHaveBeenCalled();
   });
 
-  it("cambia la página", () => {
+  it("cambia la página correctamente", () => {
     const { result } = renderHook(() => useReservationsLogic());
 
     act(() => {

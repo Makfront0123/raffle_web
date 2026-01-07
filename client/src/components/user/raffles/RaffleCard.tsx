@@ -14,9 +14,11 @@ import { motion } from "framer-motion";
 import { Timer } from "lucide-react";
 import { Prizes } from "@/type/Prizes";
 import { AuthStore } from "@/store/authStore";
-import { AuthDialog } from "@/components/AuthDialog";
+import { AuthDialog } from "@/components/user/AuthDialog";
 import { formatCOP } from "@/app/utils/formatCOP";
 import { Raffle } from "@/type/Raffle";
+ 
+import Link from "next/link";
 
 export default function RaffleCard({
   raffle,
@@ -25,17 +27,20 @@ export default function RaffleCard({
   raffle: Raffle;
   setShowExpiredModal: (raffle: Raffle) => void;
 }) {
+ 
   const timeLeft = useCountdown(raffle.end_date);
   const isExpired = new Date(raffle.end_date) <= new Date();
+  const { user } = AuthStore();
 
-  const { token } = AuthStore();
+
+
   const [openAuth, setOpenAuth] = useState(false);
 
   const mainPrize: Prizes | null =
     raffle.prizes && raffle.prizes.length > 0
       ? raffle.prizes.reduce((max: Prizes, p: Prizes) =>
-          Number(p.value) > Number(max.value) ? p : max
-        )
+        Number(p.value) > Number(max.value) ? p : max
+      )
       : null;
 
   const secondaryPrizes: Prizes[] =
@@ -70,15 +75,7 @@ export default function RaffleCard({
 
     return () => clearInterval(counter);
   }, [mainPrize]);
-
-  const handleParticipar = () => {
-    if (!token) {
-      setOpenAuth(true);
-      return;
-    }
-    window.location.href = `/raffles/${raffle.id}`;
-  };
-
+ 
   const isEndingSoon =
     new Date(raffle.end_date).getTime() - Date.now() < 48 * 60 * 60 * 1000;
 
@@ -93,7 +90,7 @@ export default function RaffleCard({
         viewport={{ once: true }}
       >
         <Card
-          className={`relative w-full min-w-[24rem] mx-auto overflow-hidden
+          className={`relative w-full md:min-w-[24rem] min-w-[22rem] mx-auto overflow-hidden
           rounded-2xl border border-gold/40 bg-black/60 backdrop-blur-xl
           shadow-xl transition-all duration-300
           ${isExpired
@@ -103,7 +100,7 @@ export default function RaffleCard({
         >
           <div className="absolute inset-0 bg-gradient-to-br from-gold/10 via-transparent to-gold/5 pointer-events-none" />
 
-          <CardHeader className="relative z-10 space-y-3">
+          <CardHeader className="relative z-10 space-y-3 md:ml-0 -ml-3">
             <h3 className="text-xl font-bold text-yellow-500 drop-shadow">
               {raffle.title}
             </h3>
@@ -201,11 +198,16 @@ export default function RaffleCard({
               >
                 Rifa finalizada
               </Button>
+            ) : user ? (
+              <Link href={`/raffles/${raffle.id}`}>
+                <Button className="w-full bg-yellow-600 text-white font-semibold hover:bg-gold-dark rounded-xl">
+                  Participar ahora
+                </Button>
+              </Link>
             ) : (
               <Button
-                className="w-full bg-yellow-600 text-white font-semibold
-                hover:bg-gold-dark rounded-xl"
-                onClick={handleParticipar}
+                className="w-full bg-yellow-600 text-white font-semibold hover:bg-gold-dark rounded-xl"
+                onClick={() => setOpenAuth(true)}
               >
                 Participar ahora
               </Button>

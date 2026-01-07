@@ -1,6 +1,6 @@
 "use client";
-import RaffleCard from "@/components/RaffleCard";
-import LoadingScreen from "@/components/LoadingScreen";
+import RaffleCard from "@/components/user/raffles/RaffleCard";
+import LoadingScreen from "@/components/user/LoadingScreen";
 import { usePrizes } from "@/hook/usePrizes";
 import RaffleExpiredModal from "@/components/user/raffles/RaffleExpiredModal";
 import { useState} from "react";

@@ -21,14 +21,28 @@ describe("ReservationStore", () => {
     expires_at: "2024",
     userId: 10,
     raffleId: 50,
-    reservationTickets: []
+    reservationTickets: [],
+    raffle: {
+      id: 50,
+      title: "Rifa de prueba",
+      description: "desc",
+      price: 5000,
+      end_date: "2025-12-31",
+      digits: 3,
+      status: "active",
+      created_at: "2025-01-01",
+      prizes: [],
+      tickets: [],
+      total_numbers: 0,
+    }
   };
+
 
   it("getReservations carga reservas", async () => {
     (ReservationService.prototype.getAllReservations as jest.Mock).mockResolvedValue([mockReservation]);
 
     await act(async () => {
-      await useReservationStore.getState().getReservations("token");
+      await useReservationStore.getState().getReservations();
     });
 
     expect(useReservationStore.getState().reservations.length).toBe(1);
@@ -38,7 +52,7 @@ describe("ReservationStore", () => {
     (ReservationService.prototype.getReservationById as jest.Mock).mockResolvedValue(mockReservation);
 
     await act(async () => {
-      await useReservationStore.getState().getReservationById(1, "token");
+      await useReservationStore.getState().getReservationById(1);
     });
 
     expect(useReservationStore.getState().reservations[0].id).toBe(1);
@@ -48,7 +62,7 @@ describe("ReservationStore", () => {
     (ReservationService.prototype.createReservation as jest.Mock).mockResolvedValue(mockReservation);
 
     await act(async () => {
-      await useReservationStore.getState().createReservation(10, 20, "token");
+      await useReservationStore.getState().createReservation(10, 20);
     });
 
     expect(useReservationStore.getState().reservations.length).toBe(1);
@@ -58,7 +72,7 @@ describe("ReservationStore", () => {
     (ReservationService.prototype.getAllReservationsByUser as jest.Mock).mockResolvedValue([mockReservation]);
 
     await act(async () => {
-      await useReservationStore.getState().getAllReservationsByUser("token");
+      await useReservationStore.getState().getAllReservationsByUser();
     });
 
     expect(useReservationStore.getState().reservations.length).toBe(1);
@@ -72,7 +86,7 @@ describe("ReservationStore", () => {
     });
 
     await act(async () => {
-      await useReservationStore.getState().cancelReservation(1, "token");
+      await useReservationStore.getState().cancelReservation(1);
     });
 
     expect(useReservationStore.getState().reservations.length).toBe(0);

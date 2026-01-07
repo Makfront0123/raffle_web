@@ -1,13 +1,10 @@
 "use client";
 
 import { usePrizeStore } from "@/store/prizeStore";
-import { AuthStore } from "@/store/authStore";
 import { useEffect, useState } from "react";
 import { PrizeForm, Prizes } from "@/type/Prizes";
 
 export function usePrizes() {
-  const { token } = AuthStore();
-
   const {
     prizes = [],
     winners = [],
@@ -58,7 +55,6 @@ export function usePrizes() {
   }, [activeRaffleId, getWinners, getWinnersByRaffle]);
 
   const createPrize = async (newPrize: PrizeForm) => {
-    if (!token) return setError("No hay token");
     try {
       await addPrize(
         {
@@ -69,7 +65,6 @@ export function usePrizes() {
           raffleId: Number(newPrize.raffle),
           providerId: Number(newPrize.provider),
         },
-        token
       );
       await getPrizes();
     } catch {
@@ -78,9 +73,8 @@ export function usePrizes() {
   };
 
   const editPrize = async (id: number, updatedPrize: Partial<Prizes>) => {
-    if (!token) return setError("No hay token");
     try {
-      await updatePrize(id, updatedPrize as Prizes, token);
+      await updatePrize(id, updatedPrize as Prizes);
       await getPrizes();
     } catch {
       setError("Error actualizando premio");
@@ -88,9 +82,8 @@ export function usePrizes() {
   };
 
   const removePrize = async (id: number) => {
-    if (!token) return setError("No hay token");
     try {
-      await deletePrize(id, token);
+      await deletePrize(id);
       await getPrizes();
     } catch {
       setError("Error eliminando premio");

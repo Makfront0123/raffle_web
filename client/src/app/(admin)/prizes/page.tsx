@@ -3,18 +3,14 @@
 import { useRaffles } from "@/hook/useRaffles";
 import { useProviders } from "@/hook/useProviders";
 import { usePrizes } from "@/hook/usePrizes";
-import { AuthStore } from "@/store/authStore";
-
-import { PrizesTable } from "@/components/PrizeTable";
+import { PrizesTable } from "@/components/admin/prizes/PrizeTable";
 import { PrizeForm } from "@/components/admin/prizes/PrizeForm";
 import { usePrizeFilter } from "@/hook/usePrizeFilter";
 import { usePagination } from "@/hook/usePagination";
 
 export default function PrizesPage() {
-  const { token } = AuthStore();
-
   const { raffles, loading: loadingRaffles } = useRaffles();
-  const { providers, loading: loadingProviders } = useProviders(token || "");
+  const { providers, loading: loadingProviders } = useProviders();
   const { prizes, createPrize, editPrize, deletePrize } = usePrizes();
 
   const { filteredPrizes, raffleId, setRaffleId } = usePrizeFilter(prizes);

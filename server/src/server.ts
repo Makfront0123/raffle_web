@@ -5,18 +5,16 @@ import path from "path";
 import cors from "cors";
 import helmet from "helmet";
 import dotenv from "dotenv";
-
+import cookieParser from "cookie-parser";
 import { AppDataSource } from "./data-source";
-import { PaymentService } from "./services/paymentService";
-import { PaymentController } from "./controllers/paymentController";
-
+ 
 dotenv.config();
 
 const app = express();
 app.set("trust proxy", 1);
 
-const paymentService = new PaymentService(AppDataSource);
-const paymentController = new PaymentController(paymentService);
+app.use(cookieParser());
+
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -27,8 +25,6 @@ app.use(
       "http://localhost:3000",
       "http://127.0.0.1:4321",
       "https://dewayne-polluted-angel.ngrok-free.dev",
-      "https://lobby-spray-officials-suddenly.trycloudflare.com",
-      "https://raffle-f925zeu6d-armandos-projects-bf6157fe.vercel.app",
       "https://raffle-web-seven.vercel.app"
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
@@ -48,36 +44,22 @@ fs.readdirSync(routesPath).forEach((file) => {
   }
 });
 
-app.post("/payments/wompi/webhook", (req, res) => {
-  return paymentController.wompiWebhook(req, res);
-});
-
 
 const PORT = process.env.PORT || 4000;
 
 async function startServer() {
   try {
-    console.log("ENV CHECK:", {
-      host: process.env.DB_HOST,
-      port: process.env.DB_PORT,
-      user: process.env.DB_USER,
-      database: process.env.DB_DATABASE,
-      nodeEnv: process.env.NODE_ENV,
-    });
-
     await AppDataSource.initialize();
     console.log("Database connected (Aiven)");
     if (process.env.NODE_ENV === "production") {
       await AppDataSource.runMigrations();
     }
-
-    console.log("Migrations executed");
     await import("./cron/cron");
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
   } catch (error) {
-    console.error("❌ ERROR FATAL AL INICIAR EL SERVIDOR:");
+    console.error("ERROR FATAL AL INICIAR EL SERVIDOR:");
     console.error(error);
   }
 }

@@ -3,87 +3,51 @@
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { AuthService } from "@/services/authService";
-
 import { AuthStore } from "@/store/authStore";
 import { toast } from "sonner";
 import { GoogleTokenClient, GoogleTokenResponse } from "@/type/GoogleUserData";
-import { jwtDecode, JwtPayload } from "jwt-decode";
 
-export function useAuth() {
+interface UseAuthOptions {
+  skipPersist?: boolean;
+}
+
+function isAxiosError(err: unknown): err is { response?: { status?: number } } {
+  return typeof err === "object" && err !== null && "response" in err;
+}
+
+export function useAuth({ skipPersist = false }: UseAuthOptions = {}) {
   const router = useRouter();
   const { user, setUser, logout: storeLogout } = AuthStore();
-
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [initialized, setInitialized] = useState(false);
-  const [client, setClient] = useState<GoogleTokenClient | null>(null);
+  const [googleClient, setGoogleClient] = useState<GoogleTokenClient | null>(null);
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    await new AuthService().logout();
     sessionStorage.removeItem("adminSplashShown");
-    sessionStorage.removeItem("adminLoggedIn"); // limpiar flag
     storeLogout();
     router.push("/");
   }, [storeLogout, router]);
 
-
-  const startTokenWatcher = useCallback((token: string) => {
-    try {
-      const decoded = jwtDecode<JwtPayload>(token);
-      const timeLeft = decoded.exp! * 1000 - Date.now();
-
-      if (timeLeft <= 0) {
-        logout();
-        return;
+  const handleGoogleLogin = useCallback(
+    async (googleToken: string) => {
+      try {
+        const res = await new AuthService().getUserByGoogle({ token: googleToken });
+        setUser(res.user);
+        toast.success(`¡Bienvenido ${res.user.name}!`);
+      } catch {
+        toast.error("Error al iniciar sesión");
       }
+    },
+    [setUser]
+  );
 
-      const timer = setTimeout(logout, timeLeft);
-      return () => clearTimeout(timer);
-    } catch {
-      logout();
-    }
-  }, [logout]);
-  // Login con Google
-  const handleGoogleLogin = useCallback(async (accessToken: string) => {
-    try {
-      setLoading(true);
-
-      const userData = await new AuthService().getUserByGoogle({ token: accessToken });
-      localStorage.setItem("token", userData.token);
-
-      const persistRes = await new AuthService().getUserByToken(userData.token);
-      setUser(persistRes.user, userData.token);
-
-      startTokenWatcher(userData.token);
-      setError(null);
-
-      toast.success(`¡Bienvenido ${persistRes.user.name || ""}!`);
-
-    } catch (err: unknown) {
-      if (err instanceof Error) setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }, [setUser, startTokenWatcher]);
-
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token || user) {
-      setInitialized(true);
+  const loginWithGoogle = useCallback(() => {
+    if (!googleClient) {
+      toast.error("Google no está listo todavía");
       return;
     }
-
-    (async () => {
-      try {
-        const res = await new AuthService().getUserByToken(token);
-        setUser(res.user, token);
-        startTokenWatcher(token);
-      } catch {
-        logout();
-      } finally {
-        setInitialized(true);
-      }
-    })();
-  }, [logout, setUser, startTokenWatcher, user]);
+    googleClient.requestAccessToken();
+  }, [googleClient]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -91,16 +55,18 @@ export function useAuth() {
     const initGoogleClient = () => {
       if (!window.google) return;
 
-      const tokenClient = window.google.accounts.oauth2.initTokenClient({
+      const client: GoogleTokenClient = window.google.accounts.oauth2.initTokenClient({
         client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
         scope: "openid profile email",
         ux_mode: "popup",
-        callback: async (response: GoogleTokenResponse) => {
-          if (response.access_token) await handleGoogleLogin(response.access_token);
+        callback: (response: GoogleTokenResponse) => {
+          if (response.access_token) {
+            handleGoogleLogin(response.access_token);
+          }
         },
       });
 
-      setClient(tokenClient);
+      setGoogleClient(client);
     };
 
     if (window.google) {
@@ -116,21 +82,32 @@ export function useAuth() {
       return () => clearInterval(interval);
     }
   }, [handleGoogleLogin]);
-
-  const loginWithGoogle = useCallback(() => {
-    if (!client) {
-      console.error("Cliente OAuth de Google no inicializado aún");
+  useEffect(() => {
+    if (skipPersist) {
+      setInitialized(true);
       return;
     }
-    client.requestAccessToken();
-  }, [client]);
+
+    (async () => {
+      try {
+        const res = await new AuthService().persist();
+        setUser(res.user);
+      } catch (err: unknown) {
+        if (isAxiosError(err) && err.response?.status === 401) {
+          storeLogout();
+        } else {
+          console.error("Error verificando sesión:", err);
+        }
+      } finally {
+        setInitialized(true);
+      }
+    })();
+  }, [setUser, storeLogout, skipPersist]);
 
   return {
     user,
-    loading,
-    error,
-    loginWithGoogle,
-    logout,
     initialized,
+    logout,
+    loginWithGoogle,
   };
 }

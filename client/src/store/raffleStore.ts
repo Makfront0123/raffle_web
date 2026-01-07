@@ -10,13 +10,13 @@ interface RaffleStore {
   raffles: Raffle[];
   setRaffles: (raffles: Raffle[]) => void;
   getRaffles: () => Promise<void>;
-  getRaffleById: (id: number, token: string) => Promise<Raffle>;
-  addRaffle: (raffle: Raffle, token: string) => Promise<Raffle>;
-  deleteRaffle: (id: number, token: string) => Promise<boolean>;
-  regenerateTickets: (id: number, newDigits: number, token: string) => Promise<boolean>;
-  activateRaffle: (id: number, token: string) => Promise<void>;
-  updateRaffle: (id: number, data: UpdateRafflePayload, token: string) => Promise<Raffle>;
-  deactivateRaffle: (id: number, token: string) => Promise<void>;
+  getRaffleById: (id: number) => Promise<Raffle>;
+  addRaffle: (raffle: CreateRaffleDTO) => Promise<Raffle>;
+  updateRaffle: (id: number, data: UpdateRafflePayload) => Promise<Raffle>;
+  deleteRaffle: (id: number) => Promise<boolean>;
+  regenerateTickets: (id: number, newDigits: number) => Promise<boolean>;
+  activateRaffle: (id: number) => Promise<void>;
+  deactivateRaffle: (id: number) => Promise<void>;
 }
 
 const getErrorMessage = (err: unknown): string => {
@@ -39,14 +39,12 @@ export const useRaffleStore = create<RaffleStore>()((set) => ({
     } catch (err: unknown) {
       const msg = getErrorMessage(err);
       toast.error(msg);
-      console.error(err);
     }
   },
-
-  getRaffleById: async (id, token) => {
+  getRaffleById: async (id) => {
     try {
       const raffleService = new RaffleService();
-      const raffle = await raffleService.getRaffleById(id, token);
+      const raffle: Raffle = await raffleService.getRaffleById(id);
 
       set((state) => ({
         raffles: state.raffles.some(r => r.id === id)
@@ -58,62 +56,44 @@ export const useRaffleStore = create<RaffleStore>()((set) => ({
     } catch (err: unknown) {
       const msg = getErrorMessage(err);
       toast.error(msg);
-      console.error(err);
       throw err;
     }
   },
-  addRaffle: async (raffle: Raffle, token: string) => {
-    // 1️⃣ Agregar temporalmente al estado
-    set((state) => ({ raffles: [...state.raffles, raffle] }));
-
-    // Mostrar toast inmediato
-    toast.success("Rifa creada correctamente");
-
+  addRaffle: async (raffle: CreateRaffleDTO) => {
     try {
       const raffleService = new RaffleService();
-      const created = await raffleService.createRaffle(raffle, token);
+      const created: Raffle = await raffleService.createRaffle(raffle);
       set((state) => ({ raffles: [...state.raffles, created] }));
       toast.success("Rifa creada correctamente");
       return created;
     } catch (err: unknown) {
       const msg = getErrorMessage(err);
-      toast.error(msg || "Error creando la rifa");
-
-      // Quitar rifa temporal si falla
-      set((state) => ({
-        raffles: state.raffles.filter(r => r.id !== raffle.id)
-      }));
-
+      toast.error(msg);
       throw err;
     }
-  }
+  },
 
-
-  ,
-  updateRaffle: async (id, data, token) => {
+  updateRaffle: async (id, data) => {
     try {
       const raffleService = new RaffleService();
-      const updated = await raffleService.updateRaffle(id, data, token);
+      const updated: Raffle = await raffleService.updateRaffle(id, data);
 
       set((state) => ({
         raffles: state.raffles.map(r => (r.id === id ? updated : r)),
       }));
       toast.success("Rifa actualizada correctamente");
-
       return updated;
     } catch (err: unknown) {
       const msg = getErrorMessage(err);
       toast.error(msg || "Error actualizando la rifa");
-      console.error(err);
       throw err;
     }
   },
 
-  deleteRaffle: async (id, token) => {
+  deleteRaffle: async (id) => {
     try {
       const raffleService = new RaffleService();
-      await raffleService.deleteRaffle(id, token);
-
+      await raffleService.deleteRaffle(id);
       set((state) => ({
         raffles: state.raffles.filter(r => r.id !== id),
       }));
@@ -122,46 +102,40 @@ export const useRaffleStore = create<RaffleStore>()((set) => ({
     } catch (err: unknown) {
       const msg = getErrorMessage(err);
       toast.error(msg || "Error eliminando la rifa");
-      console.error(err);
       return false;
     }
   },
-
-  regenerateTickets: async (id, newDigits, token) => {
+  regenerateTickets: async (id, newDigits) => {
     try {
       const raffleService = new RaffleService();
-      await raffleService.regenerateTickets(id, newDigits, token);
+      await raffleService.regenerateTickets(id, newDigits);
       toast.success("Tickets regenerados correctamente");
       return true;
     } catch (err: unknown) {
       const msg = getErrorMessage(err);
       toast.error(msg || "Error regenerando tickets");
-      console.error(err);
       return false;
     }
   },
-
-  activateRaffle: async (id, token) => {
+  activateRaffle: async (id) => {
     try {
       const raffleService = new RaffleService();
-      await raffleService.activateRaffle(id, token);
+      await raffleService.activateRaffle(id);
       toast.success("La rifa se ha activado correctamente");
     } catch (err: unknown) {
       const msg = getErrorMessage(err);
       toast.error(msg || "Error activando la rifa");
-      console.error(err);
     }
   },
 
-  deactivateRaffle: async (id, token) => {
+  deactivateRaffle: async (id) => {
     try {
       const raffleService = new RaffleService();
-      await raffleService.deactivateRaffle(id, token);
+      await raffleService.deactivateRaffle(id);
       toast.success("La rifa se ha desactivado correctamente");
     } catch (err: unknown) {
       const msg = getErrorMessage(err);
       toast.error(msg || "Error desactivando la rifa");
-      console.error(err);
     }
   },
 }));

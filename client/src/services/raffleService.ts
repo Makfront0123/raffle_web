@@ -1,106 +1,115 @@
-import { CreateRaffleDTO, Raffle, UpdateRafflePayload } from "@/type/Raffle";
-import axios from "axios";
+ import { CreateRaffleDTO, Raffle, UpdateRafflePayload } from "@/type/Raffle";
+import { api } from "@/api/api";
 
-const API_URL = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/raffle`;
+const API_URL = "/api/raffle";
 
-interface BackendError {
-    message: string;
-    status?: number;
-    data?: Record<string, unknown>;
+export interface BackendError {
+  message: string;
+  status?: number;
+  data?: Record<string, unknown>;
+}
+
+function isAxiosError(
+  error: unknown
+): error is { response?: { data?: unknown; status?: number }; message?: string } {
+  return typeof error === "object" && error !== null && "response" in error;
+}
+
+function hasMessageField(
+  data: unknown
+): data is { message?: string } {
+  return typeof data === "object" && data !== null && "message" in data;
 }
 
 export class RaffleService {
-    private handleError(error: unknown, defaultMessage: string): never {
-        let backendMessage = defaultMessage;
-        let status: number | undefined;
-        let data: Record<string, unknown> | undefined;
+  private handleError(error: unknown, defaultMessage: string): never {
+    let backendMessage = defaultMessage;
+    let status: number | undefined;
+    let data: Record<string, unknown> | undefined;
 
-        if (axios.isAxiosError(error)) {
-            backendMessage = error.response?.data?.message || error.message || defaultMessage;
-            status = error.response?.status;
-            data = error.response?.data;
-            console.error("Backend error:", error.response?.data || error.message);
-        } else if (error instanceof Error) {
-            backendMessage = error.message;
-            console.error("Backend error:", error.message);
-        } else {
-            console.error("Backend error:", error);
-        }
-
-        throw { message: backendMessage, status, data } as BackendError;
+    if (isAxiosError(error)) {
+      const responseData = error.response?.data;
+      if (hasMessageField(responseData)) {
+        backendMessage = responseData.message ?? error.message ?? defaultMessage;
+      } else {
+        backendMessage = error.message ?? defaultMessage;
+      }
+      status = error.response?.status;
+      if (typeof responseData === "object" && responseData !== null) {
+        data = responseData as Record<string, unknown>;
+      }
+    } else if (error instanceof Error) {
+      backendMessage = error.message;
     }
 
-    async getAllRaffles(): Promise<Raffle[]> {
-        try {
-            const res = await axios.get<Raffle[]>(API_URL);
-            return res.data;
-        } catch (error: unknown) {
-            return this.handleError(error, "Error obteniendo las rifas");
-        }
-    }
+    throw { message: backendMessage, status, data } as BackendError;
+  }
 
-    async getRaffleById(id: number, token: string): Promise<Raffle> {
-        try {
-            const res = await axios.get<Raffle>(`${API_URL}/${id}`, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            return res.data;
-        } catch (error: unknown) {
-            return this.handleError(error, "Error obteniendo la rifa");
-        }
+  async getAllRaffles(): Promise<Raffle[]> {
+    try {
+      const res = await api.get<Raffle[]>(API_URL);
+      return res.data;
+    } catch (error: unknown) {
+      return this.handleError(error, "Error obteniendo las rifas");
     }
+  }
 
-    async createRaffle(data: CreateRaffleDTO, token: string): Promise<Raffle> {
-        const res = await axios.post<Raffle>(API_URL, data, {
-            headers: { Authorization: `Bearer ${token}` },
-        });
-        return res.data;
+  async getRaffleById(id: number): Promise<Raffle> {
+    try {
+      const res = await api.get<Raffle>(`${API_URL}/${id}`);
+      return res.data;
+    } catch (error: unknown) {
+      return this.handleError(error, "Error obteniendo la rifa");
     }
+  }
 
-    async updateRaffle(id: number, data: UpdateRafflePayload, token: string): Promise<Raffle> {
-        const res = await axios.patch<Raffle>(`${API_URL}/${id}`, data, {
-            headers: { Authorization: `Bearer ${token}` },
-        });
-        return res.data;
+  async createRaffle(data: CreateRaffleDTO): Promise<Raffle> {
+    try {
+      const res = await api.post<Raffle>(API_URL, data);
+      return res.data;
+    } catch (error: unknown) {
+      return this.handleError(error, "Error creando la rifa");
     }
+  }
 
-    async deleteRaffle(id: number, token: string): Promise<void> {
-        try {
-            await axios.delete(`${API_URL}/${id}`, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-        } catch (error: unknown) {
-            return this.handleError(error, "Error eliminando la rifa");
-        }
+  async updateRaffle(id: number, data: UpdateRafflePayload): Promise<Raffle> {
+    try {
+      const res = await api.patch<Raffle>(`${API_URL}/${id}`, data);
+      return res.data;
+    } catch (error: unknown) {
+      return this.handleError(error, "Error actualizando la rifa");
     }
+  }
 
-    async regenerateTickets(raffleId: number, newDigits: number, token: string): Promise<void> {
-        try {
-            await axios.put(`${API_URL}/${raffleId}/regenerate-tickets/${newDigits}`, {}, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-        } catch (error: unknown) {
-            return this.handleError(error, "Error regenerando los tickets");
-        }
+  async deleteRaffle(id: number): Promise<void> {
+    try {
+      await api.delete(`${API_URL}/${id}`);
+    } catch (error: unknown) {
+      return this.handleError(error, "Error eliminando la rifa");
     }
+  }
 
-    async activateRaffle(id: number, token: string): Promise<void> {
-        try {
-            await axios.put(`${API_URL}/${id}/activate`, {}, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-        } catch (error: unknown) {
-            return this.handleError(error, "Error activando la rifa");
-        }
+  async regenerateTickets(raffleId: number, newDigits: number): Promise<void> {
+    try {
+      await api.put(`${API_URL}/${raffleId}/regenerate-tickets/${newDigits}`);
+    } catch (error: unknown) {
+      return this.handleError(error, "Error regenerando los tickets");
     }
+  }
 
-    async deactivateRaffle(id: number, token: string): Promise<void> {
-        try {
-            await axios.put(`${API_URL}/${id}/deactivate`, {}, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-        } catch (error: unknown) {
-            return this.handleError(error, "Error desactivando la rifa");
-        }
+  async activateRaffle(id: number): Promise<void> {
+    try {
+      await api.put(`${API_URL}/${id}/activate`);
+    } catch (error: unknown) {
+      return this.handleError(error, "Error activando la rifa");
     }
+  }
+
+  async deactivateRaffle(id: number): Promise<void> {
+    try {
+      await api.put(`${API_URL}/${id}/deactivate`);
+    } catch (error: unknown) {
+      return this.handleError(error, "Error desactivando la rifa");
+    }
+  }
 }

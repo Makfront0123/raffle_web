@@ -1,10 +1,11 @@
 "use client";
-import { Header } from "@/components/Header";
-import Footer from "@/components/Footer";
+
+import Footer from "@/components/user/Footer";
 import { useAdminSplash } from "@/hook/useAdminSplash";
 import AdminAccessDeniedScreen from "@/components/admin/AdminDeniedScreen";
 import { usePathname } from "next/navigation";
-import AdminSplashScreen from "@/components/admin/AdminSplashScreen";
+import AdminSplashScreen from "@/components/admin/AdminSplashScreen"
+import { Header } from "@/components/user/Header";
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   const { showSplash, user } = useAdminSplash();
@@ -34,7 +35,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
         }}
       />
       <Header />
-      <main className="relative z-10 mx-auto w-full max-w-7xl px-6 py-10">
+      <main className="relative z-10 mx-auto w-full max-w-7xl md:px-6 px-0 py-10">
         {children}
       </main>
       <Footer />

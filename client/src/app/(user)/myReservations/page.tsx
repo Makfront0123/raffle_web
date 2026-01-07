@@ -1,7 +1,8 @@
 "use client";
 
-import LoadingScreen from "@/components/LoadingScreen";
-import { PaymentSuccessModal } from "@/components/PaymentSuccessModal";
+import LoadingScreen from "@/components/user/LoadingScreen";
+import { PaymentSuccessModal } from "@/components/user/payment/PaymentSuccessModal";
+import { PaymentFailedModal } from "@/components/user/payment/PaymentFailedModal";
 import PaginationControls from "@/components/user/reservations/PaginationControls";
 import ReservationsList from "@/components/user/reservations/ReservationList";
 import { usePayment } from "@/hook/usePayment";
@@ -54,10 +55,19 @@ export default function ReservationsPage() {
       <PaymentSuccessModal
         open={payment.successModalOpen}
         onClose={() => payment.setSuccessModalOpen(false)}
-        raffleName={payment.paymentInfo?.raffleName}
+        raffleId={payment.paymentInfo?.raffle.id ?? 0}
         tickets={payment.paymentInfo?.tickets}
-        amount={raffleDetail.raffle?.price ?? 0}
+        amount={payment.paymentInfo?.amount ?? 0}
       />
+
+      <PaymentFailedModal
+        open={payment.failedModalOpen}
+        onClose={() => payment.setFailedModalOpen(false)}
+        raffleName={payment.failedPaymentInfo?.raffleName}
+        tickets={payment.failedPaymentInfo?.tickets}
+        reason={payment.failedPaymentInfo?.reason}
+      />
+
 
     </div>
   );

@@ -1,39 +1,41 @@
 "use client";
 
-import RaffleCard from "@/components/RaffleCard";
+import RaffleCard from "@/components/user/raffles/RaffleCard";
 import { Raffle } from "@/type/Raffle";
+import { motion } from "framer-motion";
 
-interface Props {
-  raffles: Raffle[];
-  currentPage: number;
-  rafflesPerPage: number;
-  setShowExpiredModal: (raffle: Raffle) => void; // un solo parámetro
-}
-export default function RafflesGrid({
+export default function RaffleGrid({
   raffles,
-  currentPage,
-  rafflesPerPage,
   setShowExpiredModal,
-}: Props) {
-  const startIndex = (currentPage - 1) * rafflesPerPage;
-  const endIndex = startIndex + rafflesPerPage;
-  const paginatedRaffles = raffles.slice(startIndex, endIndex);
-
+}: {
+  raffles: Raffle[];
+  setShowExpiredModal: (open: boolean, raffle?: Raffle) => void;
+}) {
   return (
-    <div className="flex flex-wrap justify-start gap-10 mt-10">
-      {paginatedRaffles.length === 0 ? (
-        <p className="text-gray-400 mt-10">
-          No se encontraron rifas con esos criterios 😢
-        </p>
-      ) : (
-        paginatedRaffles.map((raffle) => (
-          <RaffleCard
-            key={raffle.id}
-            raffle={raffle}
-            setShowExpiredModal={setShowExpiredModal}
-          />
-        ))
-      )}
-    </div>
+    <section className="py-16 relative w-full">
+      <div className="max-w-7xl mx-auto px-6">
+        <h2 className="text-3xl font-bold text-gold mb-10 drop-shadow-lg">
+          Rifas Disponibles
+        </h2>
+
+ 
+        <motion.div
+          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 xl:grid-cols-3 gap-8 justify-items-center"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.4 }}
+        >
+          {raffles.map((r) => (
+            <RaffleCard
+              key={r.id}
+              raffle={r}
+              setShowExpiredModal={() => setShowExpiredModal}
+            />
+          ))}
+        </motion.div>
+
+      </div>
+    </section>
   );
 }

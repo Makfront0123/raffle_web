@@ -1,5 +1,5 @@
 "use client";
-import { ChangeEvent} from "react";
+import { ChangeEvent } from "react";
 import { useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -74,7 +74,7 @@ export function PrizeForm({
     };
 
     return (
-        <Card className="mb-6">
+        <Card className="mb-6 border-none shadow-lg">
             <CardHeader>
                 <CardTitle>Crear Nuevo Premio</CardTitle>
             </CardHeader>
@@ -96,14 +96,22 @@ export function PrizeForm({
                     </div>
 
                     <div>
-                        <Label>Valor</Label>
-                        <Input
-                            type="number"
-                            name="value"
-                            value={form.value}
-                            onChange={handleChange}
-                        />
+                        <Label>Valor del Premio</Label>
+                        <div className="relative">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                            <Input
+                                type="number"
+                                step="0.01"
+                                min="0.01"
+                                name="value"
+                                value={form.value}
+                                onChange={handleChange}
+                                placeholder="Ej: 10.00"
+                                className="pl-7"
+                            />
+                        </div>
                     </div>
+
 
                     <div className="flex gap-10">
                         <div>

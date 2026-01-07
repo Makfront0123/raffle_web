@@ -1,6 +1,6 @@
 "use client";
 
-import LoadingScreen from "@/components/LoadingScreen";
+import LoadingScreen from "@/components/user/LoadingScreen";
 import { useAuth } from "@/hook/useAuth";
 import UserLayout from "@/layouts/UserLayout";
 import { useMounted } from "@/hook/useMounted";

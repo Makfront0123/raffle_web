@@ -1,0 +1,30 @@
+"use client";
+
+import * as XLSX from "xlsx";
+import { Payment } from "@/type/Payment";
+
+export function useExportPaymentsToExcel() {
+    const exportPayments = (payments: Payment[]) => {
+        if (!payments || payments.length === 0) {
+            throw new Error("No hay pagos para exportar");
+        }
+
+        const data = payments.map((p) => ({
+            ID: p.id,
+            Usuario: p.user?.email ?? "—",
+            Rifa: p.raffle.title,
+            Valor: p.total_amount,
+            Estado: p.status,
+            Fecha: new Date(p.created_at).toLocaleDateString("es-CO"),
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(data);
+        const workbook = XLSX.utils.book_new();
+
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Pagos");
+
+        XLSX.writeFile(workbook, "payments.xlsx");
+    };
+
+    return { exportPayments };
+}

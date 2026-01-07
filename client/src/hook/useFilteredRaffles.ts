@@ -48,8 +48,6 @@ export function useFilteredRaffles() {
     });
   }, [raffles, search, filterPrize, sortBy, tab]);
 
-
-
   useEffect(() => {
     if (showExpiredModal?.id) setActiveRaffleId(showExpiredModal.id);
   }, [showExpiredModal, setActiveRaffleId]);

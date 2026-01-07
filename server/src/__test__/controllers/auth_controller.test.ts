@@ -9,21 +9,20 @@ jest.mock("jsonwebtoken", () => ({
 }));
 
 const mockRequest = (data: any = {}) => ({ ...data }) as any;
-
 const mockResponse = () => {
   const res: any = {};
   res.status = jest.fn().mockReturnValue(res);
   res.json = jest.fn().mockReturnValue(res);
   res.send = jest.fn().mockReturnValue(res);
+  res.cookie = jest.fn().mockReturnValue(res);
+  res.clearCookie = jest.fn().mockReturnValue(res);
   return res;
 };
-
 
 const mockUserRepo = {
   findById: jest.fn(),
   findOneBy: jest.fn(),
 };
-
 
 const mockAuthService = {
   findOrCreateUser: jest.fn(),
@@ -40,36 +39,24 @@ describe("AuthController", () => {
     controller = new AuthController(mockAuthService as any, mockUserRepo as any);
   });
 
- 
- 
-
   test("loginWithGoogle retorna datos del usuario y tokens", async () => {
     (axios.get as jest.Mock).mockResolvedValue({
-      data: {
-        email: "test@test.com",
-        name: "Test User",
-        picture: "img.png",
-      },
+      data: { email: "test@test.com", name: "Test User", picture: "img.png" },
     });
 
     mockAuthService.findOrCreateUser.mockResolvedValue({
-      user: {
-        id: 1,
-        name: "Test User",
-        email: "test@test.com",
-        picture: "img.png",
-        role: { id: 1, name: "user" },
-      },
+      user: { id: 1, name: "Test User", email: "test@test.com", picture: "img.png", role: { id: 1, name: "user" } },
       isNew: false,
     });
 
-    jwt.sign = jest.fn().mockReturnValue("FAKE_TOKEN");
+    (jwt.sign as jest.Mock).mockReturnValue("FAKE_TOKEN");
 
     const req = mockRequest({ body: { token: "GOOGLE_TOKEN" } });
     const res = mockResponse();
 
     await controller.loginWithGoogle(req, res);
 
+    expect(res.cookie).toHaveBeenCalledTimes(2);
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalled();
   });
@@ -81,9 +68,7 @@ describe("AuthController", () => {
     await controller.loginWithGoogle(req, res);
 
     expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.json).toHaveBeenCalledWith({
-      message: "Falta el token de Google",
-    });
+    expect(res.json).toHaveBeenCalledWith({ message: "Falta el token de Google" });
   });
 
   test("persistToken devuelve el usuario si el token es válido", async () => {
@@ -95,9 +80,7 @@ describe("AuthController", () => {
       role: { name: "user" },
     });
 
-    const req = mockRequest({
-      headers: { authorization: "Bearer FAKE_JWT" },
-    });
+    const req = mockRequest({ cookies: { access_token: "FAKE_JWT" } });
     const res = mockResponse();
 
     await controller.persistToken(req, res);
@@ -107,77 +90,71 @@ describe("AuthController", () => {
   });
 
   test("persistToken retorna 401 si no se envía token", async () => {
-    const req = mockRequest({ headers: {} });
+    const req = mockRequest({ cookies: {} });
     const res = mockResponse();
 
     await controller.persistToken(req, res);
 
     expect(res.status).toHaveBeenCalledWith(401);
-    expect(res.json).toHaveBeenCalledWith({
-      message: "Token no proporcionado",
-    });
+    expect(res.json).toHaveBeenCalledWith({ message: "No autenticado" });
   });
 
   test("persistToken retorna 404 si el usuario no existe", async () => {
     mockAuthService.getUserByToken.mockResolvedValue(null);
 
-    const req = mockRequest({
-      headers: { authorization: "Bearer FAKE" },
-    });
+    const req = mockRequest({ cookies: { access_token: "FAKE_JWT" } });
     const res = mockResponse();
 
     await controller.persistToken(req, res);
 
     expect(res.status).toHaveBeenCalledWith(404);
-    expect(res.json).toHaveBeenCalledWith({
-      message: "Usuario no encontrado",
-    });
+    expect(res.json).toHaveBeenCalledWith({ message: "Usuario no encontrado" });
   });
 
   test("refreshToken devuelve nuevo token si todo es válido", async () => {
-    const req = mockRequest({ body: { refreshToken: "REFRESH123" } });
+    const req = mockRequest({ cookies: { refresh_token: "REFRESH123" } });
     const res = mockResponse();
 
     mockAuthService.verifyRefreshToken.mockResolvedValue(true);
-
     (jwt.verify as jest.Mock).mockReturnValue({ id: 1 });
-
-    mockAuthService.getUserById.mockResolvedValue({
-      id: 1,
-      email: "test@test.com",
-      role: { id: 1 },
-    });
-
-    jwt.sign = jest.fn().mockReturnValue("NEW_ACCESS_TOKEN");
+    mockAuthService.getUserById.mockResolvedValue({ id: 1, email: "test@test.com", role: { id: 1 } });
+    (jwt.sign as jest.Mock).mockReturnValue("NEW_ACCESS_TOKEN");
 
     await controller.refreshToken(req, res);
 
-    expect(res.json).toHaveBeenCalledWith({ token: "NEW_ACCESS_TOKEN" });
+    expect(res.cookie).toHaveBeenCalledWith(
+      "access_token",
+      "NEW_ACCESS_TOKEN",
+      expect.objectContaining({ httpOnly: true })
+    );
+    expect(res.json).toHaveBeenCalledWith({ message: "Token renovado" });
   });
 
-  test("refreshToken retorna 400 si no se envía token", async () => {
-    const req = mockRequest({ body: {} });
+  test("refreshToken retorna 401 si no se envía token", async () => {
+    const req = mockRequest({ cookies: {} });
     const res = mockResponse();
 
     await controller.refreshToken(req, res);
 
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.json).toHaveBeenCalledWith({
-      message: "Falta el refresh token",
-    });
+    expect(res.status).toHaveBeenCalledWith(401);
+    expect(res.json).toHaveBeenCalledWith({ message: "Refresh token faltante" });
   });
-
   test("refreshToken retorna 401 si refresh token es inválido", async () => {
-    mockAuthService.verifyRefreshToken.mockResolvedValue(false);
+    (jwt.verify as jest.Mock).mockImplementation(() => {
+      throw new Error("invalid token");
+    });
 
-    const req = mockRequest({ body: { refreshToken: "X" } });
+    const req = mockRequest({
+      cookies: { refresh_token: "INVALID_TOKEN" },
+    });
     const res = mockResponse();
 
     await controller.refreshToken(req, res);
 
     expect(res.status).toHaveBeenCalledWith(401);
     expect(res.json).toHaveBeenCalledWith({
-      message: "Refresh token inválido",
+      message: "Refresh token inválido o expirado",
     });
   });
+
 });

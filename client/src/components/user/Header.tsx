@@ -18,8 +18,8 @@ import {
 } from "@/components/ui/sheet";
 
 import { appRoutes } from "@/routes/AppRoutes";
-import { AuthDialog } from "./AuthDialog";
 import { useAuth } from "@/hook/useAuth";
+import { AuthDialog } from "./AuthDialog";
 
 const mainRoutes = appRoutes[0]?.children || [];
 
@@ -53,7 +53,7 @@ export function Header() {
         </Link>
 
 
-        <div className="hidden md:flex items-center gap-x-10">
+        <div className="hidden lg:flex items-center gap-x-10">
           {mainRoutes.map((route) => {
             const isProtected = route.protected;
 
@@ -87,7 +87,7 @@ export function Header() {
         </div>
 
 
-        <div className="hidden md:flex items-center gap-5">
+        <div className="hidden lg:flex items-center gap-5">
           {user ? (
             <>
               <Image
@@ -148,7 +148,7 @@ export function Header() {
             </button>
           )}
         </div>
-        <div className="md:hidden">
+        <div className="lg:hidden">
           <Sheet open={openMenu} onOpenChange={setOpenMenu}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon">

@@ -50,7 +50,7 @@ export class RaffleController {
       if (!raffle) return res.status(404).json({ message: 'No se encontró la rifa' });
 
       const result = await raffleService.deleteRaffle(Number(id));
-      res.status(200).json(result);
+      return res.status(200).json(result);
     } catch (error: any) {
       return res.status(400).json({ message: error.message || 'Error eliminando la rifa' });
     }
@@ -70,8 +70,11 @@ export class RaffleController {
       });
 
       res.status(200).json(raffle);
-    } catch (error) {
-      return res.status(500).json({ message: 'Error actualizando la rifa', error });
+    } catch (error: any) {
+      console.error(error);
+      res.status(500).json({
+        message: error.message || 'Error actualizando la rifa',
+      });
     }
   }
 
@@ -105,9 +108,8 @@ export class RaffleController {
       const { id } = req.params;
       const raffle = await raffleService.deactivateRaffle(Number(id));
       res.status(200).json(raffle);
-    } catch (error) {
-      console.error(error);
-      return res.status(500).json({ message: 'Error desactivando la rifa', error });
+    } catch (error: any) {
+      return res.status(500).json({ message: error.message || 'Error desactivando la rifa' });
     }
   }
 }

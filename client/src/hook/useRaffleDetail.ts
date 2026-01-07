@@ -20,15 +20,16 @@ interface Props {
 }
 
 export function useRaffleDetail({ payWithWompiWidget }: Props) {
-  const params = useParams<{ id: string }>();
-  const id = Number(params?.id);
+  const params = useParams<{ id?: string }>();
+  const id = params?.id ? Number(params.id) : undefined;
+
   const MAX_TICKETS = 5;
   const perPage = 50;
 
-  const { token } = AuthStore();
+  const { user } = AuthStore();
   const { raffles, getRaffleById } = useRaffleStore();
   const { createReservation } = useReservationStore();
-  const { soldPercentage, getSoldPercentage } = useTicketStore();
+  const { getSoldPercentage } = useTicketStore();
 
   const [raffle, setRaffle] = useState<Raffle | null>(null);
   const [localTickets, setLocalTickets] = useState<Ticket[]>([]);
@@ -36,35 +37,43 @@ export function useRaffleDetail({ payWithWompiWidget }: Props) {
   const [open, setOpen] = useState(false);
   const [page, setPage] = useState(1);
 
-  // --- useCallback para evitar recreación en cada render
+  const [soldPercentage, setSoldPercentage] = useState<number>(0);
+
   const refreshRaffle = useCallback(async () => {
-    if (!id || !token) return;
+    if (!id || !user) return;
     try {
-      const updated = await getRaffleById(id, token);
+      const updated = await getRaffleById(id);
       setRaffle(updated);
+      if (updated?.id) {
+        const percentNumber = await getSoldPercentage(updated.id);
+        setSoldPercentage(percentNumber);
+
+      }
     } catch {
       console.error("Error cargando rifa");
     }
-  }, [id, token, getRaffleById]);
+  }, [id, getRaffleById, getSoldPercentage, user]);
 
-  // --- Cargar rifa al montar o cuando id/token cambian
+
   useEffect(() => {
     refreshRaffle();
   }, [refreshRaffle]);
 
-  // --- Actualizar rifa si cambia el store de raffles
   useEffect(() => {
+    if (!id) return;
     const found = raffles.find((r) => r.id === id);
     if (found) setRaffle(found);
   }, [raffles, id]);
-
-  // --- Actualizar tickets y porcentaje vendidos cuando cambia la rifa
   useEffect(() => {
-    if (raffle?.tickets) {
-      setLocalTickets(raffle.tickets);
-      if (token) getSoldPercentage(raffle.id, token);
+    if (!raffle) return;
+    setLocalTickets(raffle.tickets || []);
+    if (raffle.id && user) {
+      (async () => {
+        const percentObj = await getSoldPercentage(raffle.id);
+        setSoldPercentage(percentObj ?? 0);
+      })();
     }
-  }, [raffle, token, getSoldPercentage]);
+  }, [raffle, getSoldPercentage, user]);
 
   const totalPages = Math.ceil(localTickets.length / perPage);
   const start = (page - 1) * perPage;
@@ -91,15 +100,11 @@ export function useRaffleDetail({ payWithWompiWidget }: Props) {
 
     setSelectedTickets((prev) => {
       const exists = prev.some((t) => t.id_ticket === ticket.id_ticket);
-
-      if (exists) {
-        return prev.filter((t) => t.id_ticket !== ticket.id_ticket);
-      }
+      if (exists) return prev.filter((t) => t.id_ticket !== ticket.id_ticket);
       if (prev.length >= MAX_TICKETS) {
         toast.error(`Máximo ${MAX_TICKETS} tickets por compra`);
         return prev;
       }
-
       return [...prev, ticket];
     });
   };
@@ -110,14 +115,10 @@ export function useRaffleDetail({ payWithWompiWidget }: Props) {
     if (action === "reserved") {
       try {
         await Promise.all(
-          selectedTickets.map((t) =>
-            createReservation(t.id_ticket, raffle.id, token!)
-          )
+          selectedTickets.map((t) => createReservation(t.id_ticket, raffle.id))
         );
-
         toast.success("Tickets reservados 🕒");
         setOpen(false);
-
         setLocalTickets((prev) =>
           prev.map((t) =>
             selectedTickets.some((s) => s.id_ticket === t.id_ticket)
@@ -125,7 +126,6 @@ export function useRaffleDetail({ payWithWompiWidget }: Props) {
               : t
           )
         );
-
         setSelectedTickets([]);
       } catch {
         toast.error("No se pudo reservar");
@@ -134,11 +134,7 @@ export function useRaffleDetail({ payWithWompiWidget }: Props) {
     }
 
     setOpen(false);
-    await payWithWompiWidget({
-      tickets: selectedTickets,
-      raffle,
-      method: "pay",
-    });
+    await payWithWompiWidget({ tickets: selectedTickets, raffle, method: "pay" });
   };
 
   return {

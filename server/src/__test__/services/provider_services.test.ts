@@ -1,4 +1,3 @@
-
 import { AppDataSource } from "../../data-source";
 import { ProviderService } from "../../services/providerService";
 
@@ -8,6 +7,13 @@ jest.mock("../../data-source", () => ({
     },
 }));
 
+const mockQueryBuilder = () => ({
+    innerJoin: jest.fn().mockReturnThis(),
+    where: jest.fn().mockReturnThis(),
+    andWhere: jest.fn().mockReturnThis(),
+    getCount: jest.fn(),
+});
+
 const mockRepo = () => ({
     find: jest.fn(),
     findOne: jest.fn(),
@@ -15,29 +21,26 @@ const mockRepo = () => ({
     save: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
-    createQueryBuilder: jest.fn().mockReturnValue({
-        leftJoin: jest.fn().mockReturnThis(),
-        where: jest.fn().mockReturnThis(),
-        getMany: jest.fn(),
-    }),
+    createQueryBuilder: jest.fn(() => mockQueryBuilder()),
 });
 
 describe("ProviderService", () => {
     let providerService: ProviderService;
-
     let providerRepo: any;
-    let prizeRepo: any;
+    let ticketRepo: any;
 
     beforeEach(() => {
         jest.clearAllMocks();
 
         providerRepo = mockRepo();
-        prizeRepo = mockRepo();
+        ticketRepo = mockRepo();
 
-        (AppDataSource.getRepository as jest.Mock).mockImplementation((entity: any) => {
-            if (entity.name === "Provider") return providerRepo;
-            if (entity.name === "Prize") return prizeRepo;
-        });
+        (AppDataSource.getRepository as jest.Mock).mockImplementation(
+            (entity: any) => {
+                if (entity.name === "Provider") return providerRepo;
+                if (entity.name === "Ticket") return ticketRepo;
+            }
+        );
 
         providerService = new ProviderService();
     });
@@ -50,7 +53,6 @@ describe("ProviderService", () => {
         expect(result).toEqual([{ id: 1 }]);
     });
 
- 
     test("getProviderById: retorna datos", async () => {
         providerRepo.findOne.mockResolvedValue({ id: 7 });
 
@@ -59,7 +61,6 @@ describe("ProviderService", () => {
         expect(result).toEqual({ id: 7 });
     });
 
-   
     test("createProvider: nombre faltante", async () => {
         await expect(
             providerService.createProvider({ name: "" })
@@ -77,15 +78,15 @@ describe("ProviderService", () => {
         });
 
         expect(result).toEqual({
-            data: created,
             message: "Proveedor creado correctamente",
+            data: created,
         });
     });
 
-   
     test("updateProvider: sin campos válidos", async () => {
-        await expect(providerService.updateProvider(1, {}))
-            .rejects.toThrow("No se enviaron campos válidos para actualizar");
+        await expect(
+            providerService.updateProvider(1, {})
+        ).rejects.toThrow("No se enviaron campos válidos para actualizar");
     });
 
     test("updateProvider: actualiza correctamente", async () => {
@@ -99,25 +100,38 @@ describe("ProviderService", () => {
 
         expect(result.message).toBe("Proveedor actualizado correctamente");
     });
-
     test("deleteProvider: no existe", async () => {
         providerRepo.findOne.mockResolvedValue(null);
 
-        await expect(providerService.deleteProvider(8))
-            .rejects.toThrow("Proveedor no encontrado");
+        await expect(providerService.deleteProvider(8)).rejects.toThrow(
+            "Proveedor no encontrado"
+        );
     });
 
     test("deleteProvider: tiene premios asociados", async () => {
         providerRepo.findOne.mockResolvedValue({ id: 1 });
-        prizeRepo.createQueryBuilder().getMany.mockResolvedValue([{ id: 9 }]);
 
-        await expect(providerService.deleteProvider(1))
-            .rejects.toThrow("No se puede eliminar el proveedor porque tiene premios asociados");
+        const qb = {
+            innerJoin: jest.fn().mockReturnThis(),
+            where: jest.fn().mockReturnThis(),
+            andWhere: jest.fn().mockReturnThis(),
+            getCount: jest.fn().mockResolvedValue(3),
+        };
+
+        ticketRepo.createQueryBuilder.mockReturnValue(qb);
+
+        await expect(providerService.deleteProvider(1)).rejects.toThrow(
+            "No se puede eliminar el proveedor porque tiene premios en rifas con tickets comprados o reservados"
+        );
     });
 
     test("deleteProvider: elimina correctamente", async () => {
         providerRepo.findOne.mockResolvedValue({ id: 1 });
-        prizeRepo.createQueryBuilder().getMany.mockResolvedValue([]);
+
+        const qb = ticketRepo.createQueryBuilder();
+        qb.getCount.mockResolvedValue(0);
+
+        providerRepo.delete.mockResolvedValue({});
 
         const result = await providerService.deleteProvider(1);
 

@@ -1,17 +1,19 @@
 "use client";
 
-import RaffleInfo from "@/components/RaffleInfo";
+import RaffleInfo from "@/components/user/raffles/RaffleInfo";
 import RaffleLegend from "@/components/user/raffles/RaffleLegend";
 import RaffleTicketModal from "@/components/user/raffles/RaffleTickedModal";
 import RaffleTicketsGrid from "@/components/user/raffles/RaffleTicketsGrid";
 import RafflePagination from "@/components/user/raffles/RafflesPagination";
 import { useRaffleDetail } from "@/hook/useRaffleDetail";
 import { usePayment } from "@/hook/usePayment";
-import LoadingScreen from "@/components/LoadingScreen";
-import { PaymentSuccessModal } from "@/components/PaymentSuccessModal";
+import LoadingScreen from "@/components/user/LoadingScreen";
+import { PaymentSuccessModal } from "@/components/user/payment/PaymentSuccessModal";
+import { PaymentFailedModal } from "@/components/user/payment/PaymentFailedModal";
 
 
 export default function RaffleDetailPage() {
+
   const payment = usePayment({
     onPaymentSuccess: async () => {
       await raffleDetail.refreshRaffle();
@@ -67,7 +69,7 @@ export default function RaffleDetailPage() {
           open={raffleDetail.open}
           setOpen={raffleDetail.setOpen}
           tickets={raffleDetail.selectedTickets}
-          raffle={raffleDetail.raffle} // ✅ ya es Raffle, no null
+          raffle={raffleDetail.raffle}
           handleAction={raffleDetail.handleAction}
         />
       )}
@@ -77,10 +79,19 @@ export default function RaffleDetailPage() {
       <PaymentSuccessModal
         open={payment.successModalOpen}
         onClose={() => payment.setSuccessModalOpen(false)}
-        raffleName={payment.paymentInfo?.raffleName}
+        raffleId={payment.paymentInfo?.raffle.id ?? 0}
         tickets={payment.paymentInfo?.tickets}
-        amount={raffleDetail.raffle?.price ?? 0}
+        amount={payment.paymentInfo?.amount ?? 0}
       />
+
+      <PaymentFailedModal
+        open={payment.failedModalOpen}
+        onClose={() => payment.setFailedModalOpen(false)}
+        raffleName={payment.failedPaymentInfo?.raffleName}
+        tickets={payment.failedPaymentInfo?.tickets}
+        reason={payment.failedPaymentInfo?.reason}
+      />
+
 
     </div>
   );

@@ -20,7 +20,6 @@ export default function AdminSplashScreen({ name }: { name?: string }) {
     <div
       className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-black text-white"
     >
-      {/* glow */}
       <div
         className="absolute inset-0"
         style={{
@@ -29,7 +28,6 @@ export default function AdminSplashScreen({ name }: { name?: string }) {
         }}
       />
 
-      {/* logo / title */}
       <motion.div
         initial={{ scale: 0.6, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -44,7 +42,6 @@ export default function AdminSplashScreen({ name }: { name?: string }) {
         </p>
       </motion.div>
 
-      {/* welcome */}
       <motion.p
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -54,7 +51,6 @@ export default function AdminSplashScreen({ name }: { name?: string }) {
         Bienvenido{name ? `, ${name}` : ""}
       </motion.p>
 
-      {/* loading ring */}
       <motion.div
         className="mt-12 w-16 h-16 border-4 border-yellow-400 border-t-transparent rounded-full"
         animate={{ rotate: 360 }}

@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { PaymentService } from '../services/paymentService';
+import { Raffle } from '../entities/raffle.entity';
 
 
 export class PaymentController {
@@ -15,7 +16,6 @@ export class PaymentController {
     }
     async getPaymentUser(req: Request, res: Response) {
         try {
-            // Filtramos solo los pagos del usuario logueado
             const payments = await this.paymentService.getPaymentUser((req as any).user.id);
             res.status(200).json(payments);
         } catch (error) {
@@ -24,21 +24,19 @@ export class PaymentController {
     }
     async sendWhatsappReceipt(req: Request, res: Response) {
         try {
-            const { phone, raffleName, tickets, amount } = req.body;
+            const { phone, raffleId, tickets, amount } = req.body;
 
-            if (
-                !phone ||
-                !raffleName ||
-                !Array.isArray(tickets) ||
-                tickets.length === 0 ||
-                !amount
-            ) {
+            if (!phone || !raffleId || !Array.isArray(tickets) || tickets.length === 0 || !amount) {
                 return res.status(400).json({ message: "Datos incompletos" });
             }
 
+            const raffle = await this.paymentService.getRaffleById(raffleId);
+
+            if (!raffle) return res.status(404).json({ message: "Rifa no encontrada" });
+
             await this.paymentService.sendWhatsappReceipt({
                 phone,
-                raffleName,
+                raffle,
                 tickets,
                 amount,
             });
@@ -52,6 +50,7 @@ export class PaymentController {
             });
         }
     }
+
 
 
 
@@ -72,18 +71,10 @@ export class PaymentController {
                 return res.status(400).json({ message: "Datos incompletos o inválidos" });
             }
 
-            // 🔥 LOG CLAVE PARA DEBUG
-            console.log("CREATE PAYMENT BODY:", {
-                raffle_id,
-                ticket_ids,
-                reservation_id,
-                reference,
-            });
-
             const payment = await this.paymentService.createPayment({
                 raffle_id,
                 ticket_ids,
-                reservation_id, // ✅ AHORA SÍ
+                reservation_id,
                 reference,
                 user_id: userId,
             });
@@ -178,18 +169,29 @@ export class PaymentController {
 
 
     async wompiWebhook(req: Request, res: Response) {
-        console.log("🔥🔥🔥 WEBHOOK WOMPI LLAMADO 🔥🔥🔥");
-        console.log("Headers:", req.headers);
-        console.log("Body:", req.body);
+        console.log("🔥 WOMPÍ WEBHOOK RECIBIDO");
+        const rawBody = Buffer.isBuffer(req.body)
+            ? req.body.toString("utf8")
+            : JSON.stringify(req.body);
 
+        console.log("Raw body:", rawBody);
+
+        let event;
         try {
-            const result = await this.paymentService.wompiWebhook(req, res);
-            return result;
-        } catch (error) {
-            console.log(error);
-            return res.status(500).json({ message: "Error en webhook", error });
+            event = JSON.parse(rawBody);
+        } catch {
+            return res.status(400).json({ message: "JSON inválido" });
         }
+
+        return this.paymentService.handleWompiWebhook(
+            event,
+            rawBody,
+            req.headers,
+            res
+        );
     }
+
+
 
     async getWompiSignature(req: Request, res: Response) {
         try {
@@ -212,79 +214,24 @@ export class PaymentController {
                 message: "Error generando firma",
                 error: error.message,
             });
+        }
+    }
+    async getPaymentStatusByReference(req: Request, res: Response) {
+        try {
+            const { reference } = req.params;
+
+            const payment = await this.paymentService.getPaymentByReference(reference);
+
+            if (!payment) {
+                return res.status(404).json({ status: "NOT_FOUND" });
+            }
+
+            return res.status(200).json({
+                status: payment.status,
+            });
+        } catch (error) {
+            return res.status(500).json({ message: "Error obteniendo estado" });
         }
     }
 
 }
-
-
-/*
-  async createWompiPayment(req: Request, res: Response) {
-        try {
-            const userId = (req as any).user.id;
-            const { ticket_id, method, reference } = req.body;
-
-            if (!ticket_id || !method || !reference)
-                return res.status(400).json({ message: "Datos incompletos" });
-
-
-            const result = await this.paymentService.createWompiPayment({
-                userId,
-                ticketId: ticket_id,
-                method,
-                reference,
-
-            });
-
-            return res.status(201).json(result);
-
-        } catch (error: any) {
-            console.error(error);
-            return res.status(400).json({
-                message: error.message || "Error creando pago Wompi"
-            });
-        }
-    }
-
-
-    async wompiWebhook(req: Request, res: Response) {
-        console.log("🔥🔥🔥 WEBHOOK WOMPI LLAMADO 🔥🔥🔥");
-        console.log("Headers:", req.headers);
-        console.log("Body:", req.body);
-
-        try {
-            const result = await this.paymentService.wompiWebhook(req, res);
-            return result;
-        } catch (error) {
-            console.log(error);
-            return res.status(500).json({ message: "Error en webhook", error });
-        }
-    }
-
-    async getWompiSignature(req: Request, res: Response) {
-        try {
-            const { reference, amount_in_cents, currency } = req.body;
-
-            if (!reference || !amount_in_cents || !currency) {
-                return res.status(400).json({ message: "Datos incompletos" });
-            }
-
-            const signature = await this.paymentService.getWompiSignature(
-                reference,
-                amount_in_cents,
-                currency
-            );
-
-            return res.json({ signature });
-
-        } catch (error: any) {
-            return res.status(500).json({
-                message: "Error generando firma",
-                error: error.message,
-            });
-        }
-    }
-
-
-
-*/

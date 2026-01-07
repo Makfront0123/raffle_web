@@ -9,8 +9,6 @@ import { useRaffles } from "@/hook/useRaffles";
 
 const WinnersPage = () => {
   const { winners, loading, error, setActiveRaffleId } = usePrizes();
-  console.log(winners);
-
   const { raffles } = useRaffles();
 
   const [filterRaffle, setFilterRaffle] = useState<number | "all">("all");
@@ -50,7 +48,7 @@ const WinnersPage = () => {
         </Select>
       </div>
 
-      <Card>
+      <Card className="border-none shadow-lg">
         <CardHeader>
           <CardTitle>Ganadores Recientes</CardTitle>
         </CardHeader>
