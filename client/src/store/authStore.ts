@@ -1,13 +1,15 @@
 import { create } from "zustand";
 import { User } from "@/type/User";
 import { AuthService } from "@/services/authService";
- 
+import { toast } from "sonner";
+import { isAxiosError } from "axios";
+
 
 interface AuthState {
   user: User | null;
   setUser: (user: User | null) => void;
   loginAdmin: (email: string, password: string) => Promise<void>;
-  registerAdmin: (name: string, email: string, password: string) => Promise<void>;
+
   logout: () => Promise<void>;
   loginWithGoogle: (token: string) => Promise<void>;
   persist: () => Promise<void>;
@@ -34,19 +36,9 @@ export const AuthStore = create<AuthState>((set) => ({
       const authService = new AuthService();
       const res = await authService.loginAdmin({ email, password });
       set({ user: res.user });
-    } catch (err: any) {
-      console.error("Error login admin:", err);
-      throw err;
-    }
-  },
-
-  registerAdmin: async (name, email, password) => {
-    try {
-      const authService = new AuthService();
-      const res = await authService.registerAdmin({ name, email, password });
-      set({ user: res.user });
-    } catch (err: any) {
-      console.error("Error register admin:", err);
+    } catch (err: unknown) {
+      const msg = isAxiosError(err) ? err.response?.data?.message || err.message : "Error al iniciar sesión";
+      toast.error(msg);
       throw err;
     }
   },

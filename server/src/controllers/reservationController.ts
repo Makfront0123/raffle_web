@@ -4,7 +4,7 @@ import { ReservationService } from "../services/reservationService";
 const service = new ReservationService();
 
 export class ReservationController {
-    
+
     async getAllReservations(req: Request, res: Response) {
         try {
             const data = await service.getAllReservations();
@@ -54,13 +54,18 @@ export class ReservationController {
 
     async deleteReservation(req: Request, res: Response) {
         try {
+            if (!req.user || typeof (req.user as any).id !== 'number') {
+                return res.status(401).json({ message: 'Usuario no autenticado' });
+            }
+
+            const currentUserId = (req.user as any).id;
             const id = Number(req.params.id);
 
-            const result = await service.deleteReservation(id);
+            const result = await service.deleteReservation(id, currentUserId);
             return res.status(200).json({ id: result.reservation.id });
 
-        } catch (error) {
-            return res.status(500).json({ message: "Error eliminando reserva" });
+        } catch (error: any) {
+            return res.status(400).json({ message: error.message });
         }
     }
 

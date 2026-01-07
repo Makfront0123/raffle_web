@@ -43,7 +43,6 @@ export function useAuth({ skipPersist = false }: UseAuthOptions = {}) {
 
         toast.success(`¡Bienvenido ${currentUser?.name || "usuario"}!`);
       } catch (err: any) {
-        toast.error(err.message || "Error al iniciar sesión");
         throw err;
       }
     },

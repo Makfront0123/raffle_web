@@ -42,9 +42,10 @@ const AdminAuthPage = () => {
         const { email, password } = getValidatedPayload();
         await loginAdmin(email, password);
     };
+
+    if (showSplash && user) return <AdminSplashScreen name={user.name} />;
     if (path.startsWith("/rw_admin") &&
         user) return <AdminDeniedScreen />;
-    if (showSplash && user) return <AdminSplashScreen name={user.name} />;
 
     return (
         <div className="min-h-screen w-full bg-[#0B0B0B] flex items-center justify-center text-white relative flex-col">
@@ -73,7 +74,7 @@ const AdminAuthPage = () => {
                             name="email"
                             value={loginForm.email}
                             onChange={handleChange}
-                            placeholder="admin@test.com"
+                            placeholder="Ingresa tu email"
                             className="w-full px-4 py-2 rounded-md bg-[#0B0B0B] border border-yellow-400 text-white placeholder-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-400"
                         />
                     </div>

@@ -10,9 +10,9 @@ const router = express.Router();
 const providersService = new ProviderService();
 const providersController = new ProviderController(providersService);
 
-router.get('/', authMiddleware, providersController.getAll);
+router.get('/', authMiddleware, adminMiddleware, providersController.getAll);
 router.post('/', authMiddleware, adminMiddleware, providersController.create);
-router.get('/:id', authMiddleware, providersController.getById);
+router.get('/:id', authMiddleware, adminMiddleware, providersController.getById);
 router.put('/:id', authMiddleware, adminMiddleware, providersController.update);
 router.delete('/:id', authMiddleware, adminMiddleware, providersController.delete);
 

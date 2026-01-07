@@ -13,7 +13,7 @@ const paymentController = new PaymentController(paymentService);
 
 router.get("/", authMiddleware, adminMiddleware, paymentController.getAllPayments.bind(paymentController));
 router.get("/user", authMiddleware, paymentController.getPaymentUser.bind(paymentController));
-router.get("/:id", authMiddleware, paymentController.getPaymentById.bind(paymentController));
+router.get("/:id", authMiddleware, adminMiddleware, paymentController.getPaymentById.bind(paymentController));
 router.delete("/:id", authMiddleware, adminMiddleware, paymentController.deletePayment.bind(paymentController));
 router.put("/:id", authMiddleware, adminMiddleware, paymentController.updatePayment.bind(paymentController));
 router.put("/:id/complete", authMiddleware, adminMiddleware, paymentController.completePayment.bind(paymentController));

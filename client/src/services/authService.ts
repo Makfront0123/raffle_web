@@ -17,12 +17,6 @@ export class AuthService {
         return res.data;
     }
 
-    async registerAdmin({ name, email, password }: { name: string; email: string; password: string }) {
-        const res = await api.post("/api/auth/admin/setup", { name,email, password });
-        return res.data;
-    }
-
-
     async refreshToken(refreshToken: string) {
         const res = await api.post("/api/auth/refresh", { refreshToken });
         return res.data;

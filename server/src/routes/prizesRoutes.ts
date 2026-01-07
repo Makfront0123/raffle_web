@@ -4,6 +4,7 @@ import { adminMiddleware } from '../middleware/adminMiddleware';
 import { authMiddleware } from '../middleware/authMiddleware';
 import { PrizesController } from '../controllers/prizesController';
 import { PrizesService } from '../services/prizesService';
+import cronMiddleware from '../middleware/cronMiddleware';
 
 const router = express.Router();
 const prizesService = new PrizesService();
@@ -11,16 +12,11 @@ const prizesController = new PrizesController(prizesService);
 
 
 router.get('/', prizesController.getAllPrizes.bind(prizesController));
-router.post('/', authMiddleware, adminMiddleware, prizesController.createPrize.bind(prizesController));
-
-
 router.get('/winners', prizesController.getWinners.bind(prizesController));
-
-
 router.get('/:raffleId/winners', prizesController.getWinnersByRaffle.bind(prizesController));
-router.post('/:id/select-winner', prizesController.selectWinner.bind(prizesController));
+router.post('/', authMiddleware, adminMiddleware, prizesController.createPrize.bind(prizesController));
+router.post('/:id/select-winner', cronMiddleware, prizesController.selectWinner.bind(prizesController));
 router.post('/:raffleId/close-raffle', authMiddleware, adminMiddleware, prizesController.closeRaffle.bind(prizesController));
-
 router.delete('/:id', authMiddleware, adminMiddleware, prizesController.deletePrize.bind(prizesController));
 router.patch('/:id', authMiddleware, adminMiddleware, prizesController.updatePrize.bind(prizesController));
 
