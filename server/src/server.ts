@@ -8,7 +8,7 @@ import helmet from "helmet";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import { AppDataSource } from "./data-source";
- 
+
 dotenv.config();
 
 const app = express();
@@ -29,12 +29,24 @@ app.use(
       "https://raffle-web-seven.vercel.app"
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "X-Requested-With",
+      "Accept",
+      "Origin",
+    ],
+
     credentials: true,
   })
 );
+app.use(
+  helmet({
+    crossOriginResourcePolicy: false,
+    crossOriginEmbedderPolicy: false,
+  })
+);
 
-app.use(helmet({ crossOriginResourcePolicy: false }));
 
 const routesPath = path.join(__dirname, "routes");
 fs.readdirSync(routesPath).forEach((file) => {
