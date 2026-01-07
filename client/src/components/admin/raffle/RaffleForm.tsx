@@ -21,7 +21,6 @@ interface Props {
 export const RaffleForm = ({
   form,
   handleChange,
-  handleSubmit,
   minDate,
 }: Props) => {
   return (

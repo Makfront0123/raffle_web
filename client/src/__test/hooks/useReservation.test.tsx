@@ -1,4 +1,4 @@
-import { renderHook, act, waitFor } from "@testing-library/react";
+import { renderHook,waitFor } from "@testing-library/react";
 import { useReservationStore } from "@/store/reservationStore";
 import { AuthStore } from "@/store/authStore";
 import { useReservation } from "@/hook/useReservation";

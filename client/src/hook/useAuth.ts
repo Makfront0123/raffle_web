@@ -42,7 +42,7 @@ export function useAuth({ skipPersist = false }: UseAuthOptions = {}) {
         }
 
         toast.success(`¡Bienvenido ${currentUser?.name || "usuario"}!`);
-      } catch (err: any) {
+      } catch (err: unknown) {
         throw err;
       }
     },
