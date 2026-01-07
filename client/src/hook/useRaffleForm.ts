@@ -1,7 +1,7 @@
 "use client";
 import { Prizes } from "@/type/Prizes";
 import { Ticket } from "@/type/Ticket";
-import { useState } from "react";
+import { useForm } from "./useForm";
 
 export type RaffleFormLocal = {
   title: string;
@@ -13,54 +13,30 @@ export type RaffleFormLocal = {
   tickets: Ticket[];
   prizes: Prizes[];
 };
-
-const initialForm: RaffleFormLocal = {
-  title: "",
-  description: "",
-  price: "8",
-  end_date: "",
-  digits: 3,
-  status: "active",
-  tickets: [],
-  prizes: [],
-};
-
+ 
 export const useRaffleForm = () => {
-  const [form, setForm] = useState<RaffleFormLocal>(initialForm);
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value, type } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: type === "number" ? Number(value) : value,
-    }));
+  const initialForm: RaffleFormLocal = {
+    title: "",
+    description: "",
+    price: "8",
+    end_date: "",
+    digits: 3,
+    status: "active",
+    tickets: [],
+    prizes: [],
   };
 
-  const resetForm = () => setForm(initialForm);
-
-  const getValidatedPayload = () => {
+  const validate = (form: RaffleFormLocal) => {
     if (!form.end_date) throw new Error("Selecciona una fecha");
-
     const endDate = new Date(form.end_date + "T23:59:59");
     if (isNaN(endDate.getTime())) throw new Error("Fecha inválida");
-
     const min = new Date();
     min.setDate(min.getDate() + 7);
     if (endDate < min) throw new Error("Debe ser mínimo 7 días después");
-
     const price = parseFloat(form.price);
     if (isNaN(price) || price <= 0) throw new Error("Precio inválido");
-
-    return {
-      title: form.title,
-      description: form.description,
-      price,
-      digits: form.digits,
-      endDate: endDate.toISOString(),
-    };
   };
 
-  return { form, setForm, handleChange, resetForm, getValidatedPayload };
+  return useForm<RaffleFormLocal>(initialForm, validate);
 };
+

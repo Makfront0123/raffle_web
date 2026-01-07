@@ -1,8 +1,9 @@
 "use client";
 
+import { User } from "@/type/User";
 import { motion } from "framer-motion";
 
-export default function AdminSplashScreen({ name }: { name?: string }) {
+export default function AdminSplashScreen({ name }: { name?: User["name"] }) {
   return (
     <div
       className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-black text-white"

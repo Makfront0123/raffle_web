@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { AuthService } from "@/services/authService";
 import { AuthStore } from "@/store/authStore";
 import { toast } from "sonner";
 import { GoogleTokenClient, GoogleTokenResponse } from "@/type/GoogleUserData";
@@ -11,35 +10,59 @@ interface UseAuthOptions {
   skipPersist?: boolean;
 }
 
-function isAxiosError(err: unknown): err is { response?: { status?: number } } {
-  return typeof err === "object" && err !== null && "response" in err;
-}
-
 export function useAuth({ skipPersist = false }: UseAuthOptions = {}) {
   const router = useRouter();
-  const { user, setUser, logout: storeLogout } = AuthStore();
+  const {
+    user,
+    logout: storeLogout,
+    loginAdmin: storeLoginAdmin,
+    loginWithGoogle: storeLoginWithGoogle,
+    persist: storePersist,
+  } = AuthStore();
+
   const [initialized, setInitialized] = useState(false);
   const [googleClient, setGoogleClient] = useState<GoogleTokenClient | null>(null);
 
   const logout = useCallback(async () => {
-    await new AuthService().logout();
+    await storeLogout();
     sessionStorage.removeItem("adminSplashShown");
-    storeLogout();
     router.push("/");
   }, [storeLogout, router]);
+
+
+  const loginAdmin = useCallback(
+    async (email: string, password: string, onSplash?: () => void) => {
+      try {
+        await storeLoginAdmin(email, password);
+
+        const currentUser = AuthStore.getState().user;
+        if (currentUser?.role === "admin") {
+          sessionStorage.setItem("justLoggedIn", "true");
+          if (onSplash) onSplash();
+        }
+
+        toast.success(`¡Bienvenido ${currentUser?.name || "usuario"}!`);
+      } catch (err: any) {
+        toast.error(err.message || "Error al iniciar sesión");
+        throw err;
+      }
+    },
+    [storeLoginAdmin]
+  );
 
   const handleGoogleLogin = useCallback(
     async (googleToken: string) => {
       try {
-        const res = await new AuthService().getUserByGoogle({ token: googleToken });
-        setUser(res.user);
-        toast.success(`¡Bienvenido ${res.user.name}!`);
+        await storeLoginWithGoogle(googleToken);
+        const currentUser = AuthStore.getState().user;
+        toast.success(`¡Bienvenido ${currentUser?.name || "usuario"}!`);
       } catch {
-        toast.error("Error al iniciar sesión");
+        toast.error("Error al iniciar sesión con Google");
       }
     },
-    [setUser]
+    [storeLoginWithGoogle]
   );
+
 
   const loginWithGoogle = useCallback(() => {
     if (!googleClient) {
@@ -60,9 +83,7 @@ export function useAuth({ skipPersist = false }: UseAuthOptions = {}) {
         scope: "openid profile email",
         ux_mode: "popup",
         callback: (response: GoogleTokenResponse) => {
-          if (response.access_token) {
-            handleGoogleLogin(response.access_token);
-          }
+          if (response.access_token) handleGoogleLogin(response.access_token);
         },
       });
 
@@ -82,6 +103,7 @@ export function useAuth({ skipPersist = false }: UseAuthOptions = {}) {
       return () => clearInterval(interval);
     }
   }, [handleGoogleLogin]);
+
   useEffect(() => {
     if (skipPersist) {
       setInitialized(true);
@@ -89,25 +111,16 @@ export function useAuth({ skipPersist = false }: UseAuthOptions = {}) {
     }
 
     (async () => {
-      try {
-        const res = await new AuthService().persist();
-        setUser(res.user);
-      } catch (err: unknown) {
-        if (isAxiosError(err) && err.response?.status === 401) {
-          storeLogout();
-        } else {
-          console.error("Error verificando sesión:", err);
-        }
-      } finally {
-        setInitialized(true);
-      }
+      await storePersist();
+      setInitialized(true);
     })();
-  }, [setUser, storeLogout, skipPersist]);
+  }, [storePersist, skipPersist]);
 
   return {
     user,
     initialized,
     logout,
     loginWithGoogle,
+    loginAdmin
   };
 }

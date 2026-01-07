@@ -1,4 +1,6 @@
 export interface GoogleUserData {
+  id?: number;
+  roleId?: number;
   name: string;
   email: string;
   picture?: string;
