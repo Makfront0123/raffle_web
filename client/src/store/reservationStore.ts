@@ -19,8 +19,10 @@ interface ReservationStore {
 }
 
 const getErrorMessage = (err: unknown): string => {
-  if (typeof err === "object" && err !== null && "message" in err) {
-    return (err as { message: string }).message;
+  if (typeof err === "object" && err !== null) {
+    // @ts-ignore
+    if (err.response?.data?.message) return err.response.data.message;
+    if ("message" in err) return (err as { message: string }).message;
   }
   return "Error desconocido";
 };
@@ -92,15 +94,17 @@ export const useReservationStore = create<ReservationStore>()((set) => ({
     try {
       const service = new ReservationService();
       const res: CancelReservationResponse = await service.cancelReservation(id);
-      toast.success(res.message);
+
+      toast.success(res.message || "Reserva cancelada correctamente");
+
       set((state) => ({
         reservations: state.reservations.filter((r) => r.id !== id),
       }));
     } catch (err: unknown) {
       const msg = getErrorMessage(err);
       toast.error(msg || "Error cancelando reserva");
-      console.error(err);
       throw err;
     }
-  },
+  }
+
 }));

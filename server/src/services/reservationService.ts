@@ -153,14 +153,19 @@ export class ReservationService {
     try {
       const reservation = await queryRunner.manager.findOne(Reservation, {
         where: { id },
-        relations: ['reservationTickets', 'reservationTickets.ticket'],
+        relations: [
+          'user',
+          'reservationTickets',
+          'reservationTickets.ticket'
+        ],
       });
+
 
       if (!reservation) {
         throw new Error('Reserva no encontrada');
       }
 
-      if(reservation.user.id !== currentUserId) {
+      if (reservation.user.id !== currentUserId) {
         throw new Error('No se puede eliminar la reserva: No es tu propia.');
       }
 
