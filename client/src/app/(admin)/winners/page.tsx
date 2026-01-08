@@ -6,36 +6,40 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { usePrizes } from "@/hook/usePrizes";
 import { useRaffles } from "@/hook/useRaffles";
-import { useWinners } from "@/hook/useWinners";
 
 const WinnersPage = () => {
-  const {
-    winners,
-    loading,
-    error,
-    raffles,
-    filterRaffle,
-    setFilterRaffle,
-  } = useWinners();
+  const { winners, loading, error, setActiveRaffleId } = usePrizes();
+  const { raffles } = useRaffles();
+
+  const [filterRaffle, setFilterRaffle] = useState<number | "all">("all");
+
+  const handleFilterChange = (val: string) => {
+    if (val === "all") {
+      setFilterRaffle("all");
+      setActiveRaffleId(null);
+    } else {
+      const raffleId = Number(val);
+      setFilterRaffle(raffleId);
+      setActiveRaffleId(raffleId);
+    }
+  };
+
 
   return (
     <main className="flex-1 p-6 bg-gray-50 overflow-y-auto">
       <h1 className="text-3xl font-bold mb-6">Ganadores</h1>
-
       <div className="mb-4 w-64">
         <Label>Filtrar por Rifa</Label>
         <Select
           value={filterRaffle === "all" ? "all" : filterRaffle.toString()}
-          onValueChange={(val) =>
-            setFilterRaffle(val === "all" ? "all" : Number(val))
-          }
+          onValueChange={handleFilterChange}
         >
           <SelectTrigger>
             <SelectValue placeholder="Selecciona una rifa" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas las rifas</SelectItem>
-            {raffles?.map(r => (
+            {raffles?.map((r) => (
               <SelectItem key={r.id} value={r.id.toString()}>
                 {r.title}
               </SelectItem>
@@ -48,7 +52,6 @@ const WinnersPage = () => {
         <CardHeader>
           <CardTitle>Ganadores Recientes</CardTitle>
         </CardHeader>
-
         <CardContent>
           {loading ? (
             <p>Cargando ganadores...</p>
@@ -87,3 +90,5 @@ const WinnersPage = () => {
     </main>
   );
 };
+
+export default WinnersPage;

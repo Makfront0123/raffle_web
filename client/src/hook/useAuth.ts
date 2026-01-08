@@ -113,7 +113,7 @@ export function useAuth({ skipPersist = false }: UseAuthOptions = {}) {
     (async () => {
       try {
         await storePersist();
-      } catch (err) {
+      } catch (err:unknown) {
         await storeLogout();
       } finally {
         setInitialized(true);
