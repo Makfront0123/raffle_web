@@ -94,7 +94,11 @@ describe("ReservationController", () => {
     });
 
     it("debe eliminar una reserva", async () => {
-        const req = { params: { id: "7" } } as any;
+        const req = {
+            params: { id: "7" },
+            user: { id: 99 }
+        } as any;
+
         const res = mockResponse();
 
         mockService.deleteReservation.mockResolvedValue({
@@ -104,7 +108,7 @@ describe("ReservationController", () => {
 
         await controller.deleteReservation(req, res);
 
-        expect(mockService.deleteReservation).toHaveBeenCalledWith(7);
+        expect(mockService.deleteReservation).toHaveBeenCalledWith(7, 99);
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith({ id: 7 });
     });

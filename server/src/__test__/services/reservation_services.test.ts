@@ -30,7 +30,7 @@ beforeEach(() => {
         findOne: jest.fn(),
     };
 
-  
+
     mockQueryRunner = {
         connect: jest.fn(),
         startTransaction: jest.fn(),
@@ -72,7 +72,7 @@ describe("ReservationService SIN BD", () => {
 
         mockQueryRunner.manager.find.mockResolvedValue(tickets);
 
-        mockQueryRunner.manager.save.mockImplementation(async (obj:any) => obj);
+        mockQueryRunner.manager.save.mockImplementation(async (obj: any) => obj);
 
         const result = await service.createReservation(99, 1, [10, 11]);
 
@@ -103,6 +103,7 @@ describe("ReservationService SIN BD", () => {
     test("deleteReservation elimina correctamente", async () => {
         const reservation = {
             id: 5,
+            user: { id: 99 },
             reservationTickets: [
                 { ticket: { status: "reserved" } },
             ],
@@ -110,7 +111,7 @@ describe("ReservationService SIN BD", () => {
 
         mockQueryRunner.manager.findOne.mockResolvedValue(reservation);
 
-        const result = await service.deleteReservation(5);
+        const result = await service.deleteReservation(5, 99);
 
         expect(result.message).toBe("Reserva eliminada correctamente");
         expect(mockQueryRunner.manager.save).toHaveBeenCalled();

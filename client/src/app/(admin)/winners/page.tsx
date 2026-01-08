@@ -77,7 +77,7 @@ const WinnersPage = () => {
                       <td className="px-4 py-2">{w.raffle_title}</td>
                       <td className="px-4 py-2">{w.winner_user.name}</td>
                       <td className="px-4 py-2">{w.prize_name}</td>
-                      <td className="px-4 py-2">{w.winner_ticket.ticket_number}</td>
+                      <td className="px-4 py-2">{w.winner_ticket}</td>
                       <td className="px-4 py-2">${w.value}</td>
                     </tr>
                   ))}
