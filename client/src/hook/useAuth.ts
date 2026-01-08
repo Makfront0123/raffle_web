@@ -103,6 +103,7 @@ export function useAuth({ skipPersist = false }: UseAuthOptions = {}) {
     }
   }, [handleGoogleLogin]);
 
+  // ✅ FIX CRÍTICO AQUÍ
   useEffect(() => {
     if (skipPersist) {
       setInitialized(true);
@@ -110,10 +111,15 @@ export function useAuth({ skipPersist = false }: UseAuthOptions = {}) {
     }
 
     (async () => {
-      await storePersist();
-      setInitialized(true);
+      try {
+        await storePersist();
+      } catch (err) {
+        await storeLogout();
+      } finally {
+        setInitialized(true);
+      }
     })();
-  }, [storePersist, skipPersist]);
+  }, [storePersist, skipPersist, storeLogout]);
 
   return {
     user,
