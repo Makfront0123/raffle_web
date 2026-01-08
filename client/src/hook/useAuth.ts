@@ -103,7 +103,6 @@ export function useAuth({ skipPersist = false }: UseAuthOptions = {}) {
     }
   }, [handleGoogleLogin]);
 
-  // ✅ FIX CRÍTICO AQUÍ
   useEffect(() => {
     if (skipPersist) {
       setInitialized(true);
