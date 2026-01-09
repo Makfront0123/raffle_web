@@ -1,0 +1,18 @@
+Raffles Web - Copyright 2026 Armando Sánchez
+
+Este código y los archivos asociados son parte del producto "Raffles Web",
+vendido en ThemeForest/Envato. Su uso está **regido por la licencia adquirida** por el comprador:
+
+1. **Licencia Regular:** Permite usar este producto en un único proyecto final para uso personal o de un cliente,
+   pero **no permite revender, redistribuir ni sublicenciar** el código fuente a terceros.
+
+2. **Licencia Extendida:** Permite usar este producto en un proyecto final que se venda o distribuya a terceros,
+   bajo los términos adquiridos en la licencia extendida en ThemeForest.
+
+⚠️ **Restricciones importantes:**
+- No copiar, redistribuir ni publicar este código en plataformas externas.
+- No usar este código para crear un producto que compita directamente con "Raffles Web" sin adquirir la licencia correspondiente.
+- El comprador es responsable de cumplir con los términos de la licencia adquirida.
+
+Para más información sobre licencias y términos de uso, visita:
+https://themeforest.net/licenses/standard
