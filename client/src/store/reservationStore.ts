@@ -20,12 +20,13 @@ interface ReservationStore {
 
 const getErrorMessage = (err: unknown): string => {
   if (typeof err === "object" && err !== null) {
-    // @ts-ignore
+    // @ts-expect-error: la librería puede retornar err con response.data.message
     if (err.response?.data?.message) return err.response.data.message;
     if ("message" in err) return (err as { message: string }).message;
   }
   return "Error desconocido";
 };
+
 
 export const useReservationStore = create<ReservationStore>()((set) => ({
   reservations: [],
