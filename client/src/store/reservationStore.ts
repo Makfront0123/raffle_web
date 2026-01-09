@@ -4,7 +4,14 @@ import { create } from "zustand";
 import { toast } from "sonner";
 import { ReservationService, CancelReservationResponse } from "@/services/reservationService";
 import { Reservation } from "@/type/Reservation";
-
+interface AxiosErrorLike {
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
+  message?: string;
+}
 interface ReservationStore {
   reservations: Reservation[];
   setReservations: (
@@ -18,12 +25,12 @@ interface ReservationStore {
   cancelReservation: (id: number) => Promise<void>;
 }
 
+
+
 const getErrorMessage = (err: unknown): string => {
-  if (typeof err === "object" && err !== null) {
-    // @ts-expect-error: la librería puede retornar err con response.data.message
-    if (err.response?.data?.message) return err.response.data.message;
-    if ("message" in err) return (err as { message: string }).message;
-  }
+  const e = err as AxiosErrorLike;
+  if (e.response?.data?.message) return e.response.data.message;
+  if (e.message) return e.message;
   return "Error desconocido";
 };
 
