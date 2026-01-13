@@ -68,3 +68,13 @@ pnpm test
 
 Para ver el demo funcional de la plataforma de rifas, visita el siguiente video:
 <https://youtu.be/uWFRt49Uz7Y>
+
+## Opcional: Ejecutar con Docker (recomendado)
+
+Requisitos:
+
+- Docker
+- Docker Compose
+
+Comando:
+docker compose up --build

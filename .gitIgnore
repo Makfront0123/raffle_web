@@ -1,0 +1,19 @@
+# Node
+node_modules
+.pnpm-store
+
+# Env files
+.env
+.env.*
+!.env.example
+
+# Next
+.next
+out
+
+# Logs
+npm-debug.log*
+pnpm-debug.log*
+
+# OS
+.DS_Store
