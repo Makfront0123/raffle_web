@@ -1,67 +1,52 @@
 import { create } from "zustand";
-import { User } from "@/type/User";
 import { AuthService } from "@/services/authService";
-import { toast } from "sonner";
-import { isAxiosError } from "axios";
-
+import { User } from "@/type/User";
 
 interface AuthState {
   user: User | null;
-  setUser: (user: User | null) => void;
-  loginAdmin: (email: string, password: string) => Promise<void>;
+  initialized: boolean;
+  persistChecked: boolean;
 
-  logout: () => Promise<void>;
-  loginWithGoogle: (token: string) => Promise<void>;
   persist: () => Promise<void>;
+  logout: () => Promise<void>;
+  loginAdmin: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: (token: string) => Promise<void>;
 }
 
-export const AuthStore = create<AuthState>((set) => ({
+export const AuthStore = create<AuthState>((set, get) => ({
   user: null,
-
-  setUser: (user) => set({ user }),
-
-  logout: async () => {
-    try {
-      const authService = new AuthService();
-      await authService.logout();
-      set({ user: null });
-    } catch (err) {
-      console.error("Error logout:", err);
-      set({ user: null });
-    }
-  },
-
-  loginAdmin: async (email, password) => {
-    try {
-      const authService = new AuthService();
-      const res = await authService.loginAdmin({ email, password });
-      set({ user: res.user });
-    } catch (err: unknown) {
-      const msg = isAxiosError(err) ? err.response?.data?.message || err.message : "Error al iniciar sesión";
-      toast.error(msg);
-      throw err;
-    }
-  },
-
-  loginWithGoogle: async (token: string) => {
-    try {
-      const authService = new AuthService();
-      const res = await authService.getUserByGoogle({ token });
-      set({ user: res.user });
-    } catch (err) {
-      console.error("Error Google login:", err);
-      throw err;
-    }
-  },
+  initialized: false,
+  persistChecked: false,
 
   persist: async () => {
+    if (get().persistChecked) return; // 🔥 CLAVE
+
+    set({ persistChecked: true });
+
     try {
       const authService = new AuthService();
       const res = await authService.persist();
-      set({ user: res.user });
-    } catch (err) {
-      console.error("Error persist session:", err);
-      set({ user: null });
+      set({ user: res.user, initialized: true });
+    } catch {
+      set({ user: null, initialized: true });
     }
+  },
+
+  logout: async () => {
+    const authService = new AuthService();
+    await authService.logout();
+    set({ user: null });
+  },
+
+  loginAdmin: async (email, password) => {
+    const authService = new AuthService();
+    const res = await authService.loginAdmin({ email, password });
+    set({ user: res.user });
+  },
+
+  loginWithGoogle: async (token) => {
+    const authService = new AuthService();
+    const res = await authService.getUserByGoogle({ token });
+    set({ user: res.user });
   },
 }));

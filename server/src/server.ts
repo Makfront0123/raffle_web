@@ -8,6 +8,8 @@ import helmet from "helmet";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import { AppDataSource } from "./data-source";
+import connectWithRetry from "./config/connectWriteRetry";
+import { seedRoles } from "./seeder/rolesSeed";
 
 dotenv.config();
 
@@ -62,11 +64,13 @@ const PORT = process.env.PORT || 4000;
 
 async function startServer() {
   try {
-    await AppDataSource.initialize();
-    console.log("Database connected (Aiven)");
+    await connectWithRetry();
+
+    console.log("Database connected");
     if (process.env.NODE_ENV === "production") {
       await AppDataSource.runMigrations();
     }
+    await seedRoles();
     await import("./cron/cron");
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);

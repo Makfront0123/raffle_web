@@ -60,11 +60,15 @@ export class AuthController {
       { expiresIn: "1h" }
     );
 
+    const isProd = process.env.NODE_ENV === "production";
+
     res.cookie("access_token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      secure: isProd,
+      sameSite: isProd ? "none" : "lax",
+      path: "/",
     });
+
 
     return res.json({
       message: "Administrador autenticado",
