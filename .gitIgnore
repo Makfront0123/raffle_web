@@ -1,15 +1,17 @@
 # Node
-node_modules
-.pnpm-store
+node_modules/
+.pnpm-store/
 
 # Env files
-.env
-.env.*
-!.env.example
+.env               # local env
+.env.local         # si existe
+.env.test
+.env.docker        # secrets para Docker
+!.env.example      # mantener versionado
 
-# Next
-.next
-out
+# Next.js
+.next/
+out/
 
 # Logs
 npm-debug.log*
@@ -17,3 +19,9 @@ pnpm-debug.log*
 
 # OS
 .DS_Store
+
+# Docker
+mysql_data/        # volumen de datos
+docker/mysql/init.sql  # si contiene seeds o datos sensibles
+
+docker-compose.yml
