@@ -75,7 +75,6 @@ export function useAuth({ skipPersist = false }: UseAuthOptions = {}) {
     if (typeof window === "undefined") return;
 
     const initGoogleClient = () => {
-      console.log("GOOGLE CLIENT ID", process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID);
       if (!window.google) return;
 
       const client: GoogleTokenClient = window.google.accounts.oauth2.initTokenClient({
