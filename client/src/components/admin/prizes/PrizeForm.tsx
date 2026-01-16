@@ -15,23 +15,7 @@ import {
 } from "@/components/ui/select";
 import { Providers } from "@/type/Providers";
 import { Raffle } from "@/type/Raffle";
-type PrizeType = "product" | "cash" | "trip";
-export interface PrizeFormValues {
-    name: string;
-    description: string;
-    value: number;
-    raffle: string;
-    provider: string;
-    type: PrizeType;
-}
-
-interface PrizeFormProps {
-    raffles: Raffle[];
-    providers: Providers[];
-    loadingRaffles: boolean;
-    loadingProviders: boolean;
-    onSubmit: (values: PrizeFormValues) => Promise<void>;
-}
+import { PrizeFormProps, PrizeFormValues, PrizeType } from "@/type/Prizes";
 
 export function PrizeForm({
     raffles,

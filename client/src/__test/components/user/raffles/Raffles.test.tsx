@@ -8,7 +8,6 @@ import Raffles from "@/app/(user)/raffles/page";
 import { useFilteredRaffles } from "@/hook/useFilteredRaffles";
 import { usePrizes } from "@/hook/usePrizes";
 
-// ---------- Types ----------
 interface MockRaffle {
   id: number;
   title: string;
@@ -19,7 +18,7 @@ interface MockWinner {
   name: string;
 }
 
-// ---------- Mocks ----------
+
 jest.mock("@/hook/useFilteredRaffles");
 jest.mock("@/hook/usePrizes");
 
@@ -32,7 +31,6 @@ jest.mock("next/navigation", () => ({
   }),
 }));
 
-// ---------- Component Mocks ----------
 jest.mock("@/components/user/raffles/RaffleCard", () => {
   const RaffleCardMock: React.FC<{ raffle: MockRaffle }> = ({ raffle }) => (
     <div data-testid="raffle-card">{raffle.title}</div>
@@ -67,7 +65,6 @@ jest.mock("@/components/user/raffles/RafflesFilters", () => {
   return FiltersMock;
 });
 
-// ---------- IntersectionObserver Mock ----------
 beforeAll(() => {
   class IntersectionObserverMock implements IntersectionObserver {
     root = null;
@@ -86,7 +83,6 @@ beforeAll(() => {
   });
 });
 
-// ---------- Tests ----------
 describe("Raffles UI", () => {
   const mockSetShowExpiredModal = jest.fn();
 

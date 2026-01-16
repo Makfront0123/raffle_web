@@ -7,7 +7,6 @@ export function useHomeWinners(itemsPerPage = 2) {
   const [raffleId, setRaffleId] = useState<number | "all">("all");
   const [page, setPage] = useState(1);
 
-  // Rifas únicas para el select
   const raffles = useMemo(() => {
     const map = new Map<number, string>();
     winners.forEach(w => {
@@ -18,20 +17,16 @@ export function useHomeWinners(itemsPerPage = 2) {
       title,
     }));
   }, [winners]);
-
-  // Filtrado frontend
   const filteredWinners = useMemo(() => {
     return raffleId === "all"
       ? winners
       : winners.filter(w => w.raffle_id === raffleId);
   }, [winners, raffleId]);
 
-  // ✅ Reset page correctamente
   useEffect(() => {
     setPage(1);
   }, [raffleId]);
 
-  // Paginación
   const totalPages = Math.max(
     1,
     Math.ceil(filteredWinners.length / itemsPerPage)

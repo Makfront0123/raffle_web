@@ -98,7 +98,13 @@ describe("PaymentService", () => {
 
   test("lanza error si no hay tickets seleccionados", async () => {
     mockUserRepo.findOne.mockResolvedValue({ id: 1 });
-    mockRaffleRepo.findOne.mockResolvedValue({ id: 10, price: 5000 });
+    mockRaffleRepo.findOne.mockResolvedValue({
+      id: 10,
+      price: 5000,
+      status: "active",
+      end_date: new Date(Date.now() + 60_000),
+    });
+
     mockTicketRepo.find.mockResolvedValue([]);
 
     await expect(
@@ -113,7 +119,13 @@ describe("PaymentService", () => {
 
   test("procesa un pago exitoso", async () => {
     const user = { id: 1 };
-    const raffle = { id: 10, price: 5000 };
+    const raffle = {
+      id: 10,
+      price: 5000,
+      status: "active",
+      end_date: new Date(Date.now() + 60_000),
+    };
+
 
     const tickets = [
       { id_ticket: 1, raffleId: 10, status: "available", ticket_number: 101 },

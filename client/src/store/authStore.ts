@@ -1,12 +1,12 @@
 import { create } from "zustand";
 import { AuthService } from "@/services/authService";
 import { User } from "@/type/User";
-
 interface AuthState {
   user: User | null;
   initialized: boolean;
   persistChecked: boolean;
 
+  setUser: (user: User | null) => void;
   persist: () => Promise<void>;
   logout: () => Promise<void>;
   loginAdmin: (email: string, password: string) => Promise<void>;
@@ -18,9 +18,10 @@ export const AuthStore = create<AuthState>((set, get) => ({
   initialized: false,
   persistChecked: false,
 
-  persist: async () => {
-    if (get().persistChecked) return; // 🔥 CLAVE
+  setUser: (user) => set({ user }),
 
+  persist: async () => {
+    if (get().persistChecked) return;
     set({ persistChecked: true });
 
     try {

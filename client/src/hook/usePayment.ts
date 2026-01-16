@@ -7,6 +7,7 @@ import { AuthStore } from "@/store/authStore";
 import { Raffle } from "@/type/Raffle";
 import { Ticket } from "@/type/Ticket";
 import { PaymentTicket, TicketStatusEnum } from "@/type/Payment";
+import axios from "axios";
 
 interface UsePaymentProps {
   onPaymentSuccess?: () => Promise<void>;
@@ -133,10 +134,28 @@ export function usePayment({ onPaymentSuccess }: UsePaymentProps = {}) {
 
         if (tx.status === "ERROR") toast.error("Error en el pago");
       });
-    } catch (e) {
-      console.error(e);
-      toast.error("Error iniciando pago");
+    } catch (error: unknown) {
+
+      let message = "No se pudo iniciar el pago";
+
+      if (axios.isAxiosError(error)) {
+        message = error.response?.data?.message ?? message;
+      }
+
+      toast.error(message);
+
+      setFailedPaymentInfo({
+        raffleName: raffle.title,
+        tickets: tickets.map((t) => t.ticket_number),
+        reason: message,
+      });
+
+      setFailedModalOpen(true);
+
+      throw error;
     }
+
+
   };
 
   return {

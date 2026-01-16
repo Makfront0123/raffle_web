@@ -21,6 +21,18 @@ export class PaymentService {
     this.whatsappService = new WhatsappService();
   }
 
+
+  private validateRaffleIsPurchasable(raffle: Raffle) {
+    if (raffle.status !== "active") {
+      throw new Error("La rifa no está activa");
+    }
+
+    if (raffle.end_date && raffle.end_date < new Date()) {
+      throw new Error("La rifa ya ha expirado");
+    }
+  }
+
+
   async sendWhatsappReceipt({
     phone,
     raffle,
@@ -139,6 +151,8 @@ export class PaymentService {
         where: { id: payment.raffle_id },
       });
       if (!raffle) throw new Error("No se encontró la rifa");
+
+      this.validateRaffleIsPurchasable(raffle);
 
       let tickets: Ticket[] = [];
       let reservation: Reservation | null = null;
@@ -286,6 +300,7 @@ export class PaymentService {
 
       const raffle = await manager.getRepository(Raffle).findOne({ where: { id: raffle_id } });
       if (!raffle) throw new Error("Rifa no encontrada");
+      this.validateRaffleIsPurchasable(raffle);
 
       const heldTickets = await manager.getRepository(Ticket).find({
         where: { id_ticket: In(ticket_ids), status: In(["held", "reserved"]) },
@@ -403,8 +418,6 @@ export class PaymentService {
         if (generatedHash !== checksum) {
           return res.status(401).json({ message: "Firma inválida" });
         }
-      } else {
-        console.log("Modo sandbox: no se verifica firma de Wompi");
       }
 
       const tx = event?.data?.transaction;
@@ -414,7 +427,7 @@ export class PaymentService {
 
       const payment = await this.paymentRepo.findOne({
         where: { reference: tx.reference },
-        relations: ["details", "details.ticket"],
+        relations: ["raffle", "details", "details.ticket"], // 🔴 IMPORTANTE
       });
 
       if (!payment) {
@@ -423,6 +436,24 @@ export class PaymentService {
 
       if (payment.status !== PaymentStatus.PENDING) {
         return res.status(200).json({ message: "Evento ya procesado" });
+      }
+      if (
+        payment.raffle.end_date &&
+        payment.raffle.end_date < new Date()
+      ) {
+        payment.status = PaymentStatus.CANCELLED;
+
+        for (const d of payment.details) {
+          d.ticket.status = TicketStatus.AVAILABLE;
+          d.ticket.held_until = null;
+          await this.ticketRepository.save(d.ticket);
+        }
+
+        await this.paymentRepo.save(payment);
+
+        return res.status(200).json({
+          message: "Pago cancelado: la rifa ya había expirado",
+        });
       }
 
       payment.transaction_id = tx.id;
@@ -449,7 +480,6 @@ export class PaymentService {
       }
 
       await this.paymentRepo.save(payment);
-
       return res.status(200).json({ message: "Webhook procesado correctamente" });
 
     } catch (error) {
@@ -457,7 +487,6 @@ export class PaymentService {
       return res.status(500).json({ message: "Error interno procesando webhook" });
     }
   }
-
 
   async simulateWebhook(reference: string, status: "APPROVED" | "DECLINED" | "ERROR" = "APPROVED") {
 
@@ -507,6 +536,5 @@ export class PaymentService {
       .update(stringToSign)
       .digest("hex");
   }
-
 
 }

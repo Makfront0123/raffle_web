@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { AuthStore } from "@/store/authStore";
 import { useRaffleStore } from "@/store/raffleStore";
@@ -25,7 +25,7 @@ export function useRaffleDetail({ payWithWompiWidget }: Props) {
 
   const MAX_TICKETS = 5;
   const perPage = 50;
-
+  const router = useRouter();
   const { user } = AuthStore();
   const { raffles, getRaffleById } = useRaffleStore();
   const { createReservation } = useReservationStore();
@@ -75,6 +75,25 @@ export function useRaffleDetail({ payWithWompiWidget }: Props) {
     }
   }, [raffle, getSoldPercentage, user]);
 
+  useEffect(() => {
+    if (!raffle?.end_date) return;
+
+    const endTime = new Date(raffle.end_date).getTime();
+
+    const interval = setInterval(() => {
+      if (Date.now() > endTime) {
+        toast.info("La rifa ha finalizado");
+        router.replace("/raffles");
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [raffle?.end_date, router]);
+
+
+
+
+
   const totalPages = Math.ceil(localTickets.length / perPage);
   const start = (page - 1) * perPage;
   const currentTickets = localTickets.slice(start, start + perPage);
@@ -98,6 +117,12 @@ export function useRaffleDetail({ payWithWompiWidget }: Props) {
       return;
     }
 
+    if (raffle?.end_date && new Date(raffle.end_date) < new Date()) {
+      toast.error("La rifa ya finalizó");
+      return;
+    }
+
+
     setSelectedTickets((prev) => {
       const exists = prev.some((t) => t.id_ticket === ticket.id_ticket);
       if (exists) return prev.filter((t) => t.id_ticket !== ticket.id_ticket);
@@ -111,6 +136,12 @@ export function useRaffleDetail({ payWithWompiWidget }: Props) {
 
   const handleAction = async (action: "pay" | "reserved") => {
     if (!raffle || selectedTickets.length === 0) return;
+
+    if (raffle?.end_date && new Date(raffle.end_date) < new Date()) {
+      toast.error("La rifa ya finalizó");
+      return;
+    }
+
 
     if (action === "reserved") {
       try {

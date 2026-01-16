@@ -8,7 +8,6 @@ import { ReservationTicket } from "../entities/reservation_ticket.entity";
 import { ReservationService } from "../services/reservationService";
 import { PrizesService } from "../services/prizesService";
 
-const reservationsService = new ReservationService();
 const prizeService = new PrizesService();
 
 export async function cleanupExpiredReservations() {

@@ -1,6 +1,4 @@
 import * as dateUtils from "@/app/utils/formatDate";
-
-// mock del módulo entero antes del import del hook
 jest.mock("@/app/utils/formatDate", () => ({
   getTimeRemaining: jest.fn(),
   formatCountdown: jest.fn(),
@@ -11,7 +9,6 @@ import { useCountdown } from "@/hook/useCountdown";
 
 describe("useCountdown", () => {
   it("actualiza el tiempo cada segundo usando getTimeRemaining", () => {
-    // valores que debe devolver
     (dateUtils.getTimeRemaining as jest.Mock).mockReturnValue({
       total: 60000,
       days: 0,

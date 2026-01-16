@@ -71,8 +71,6 @@ export function useReservationsLogic() {
 
       await fetchReservations();
     } catch (err) {
-      console.error(err);
-      toast.error("Error creando pago");
     }
   };
 

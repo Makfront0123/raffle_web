@@ -91,7 +91,7 @@ test("loginWithGoogle → ejecuta OAuth, obtiene usuario, muestra toast y actual
 
   await act(async () => {
     result.current.loginWithGoogle();
-    jest.runAllTimers(); // init google + callback
+    jest.runAllTimers();
   });
 
   expect(mockStoreLoginWithGoogle).toHaveBeenCalledWith("test-google-token");

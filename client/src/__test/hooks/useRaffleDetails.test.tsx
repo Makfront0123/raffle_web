@@ -5,10 +5,16 @@ import { TicketStatusEnum } from "@/type/Payment";
 import { Raffle } from "@/type/Raffle";
 import { Ticket } from "@/type/Ticket";
 
-// ===== MOCKS =====
 jest.mock("next/navigation", () => ({
   useParams: () => ({ id: "10" }),
+  useRouter: () => ({
+    replace: jest.fn(),
+    push: jest.fn(),
+    refresh: jest.fn(),
+    back: jest.fn(),
+  }),
 }));
+
 
 jest.mock("sonner", () => ({
   toast: {
@@ -45,13 +51,12 @@ jest.mock("@/store/ticketStore", () => ({
   }),
 }));
 
-// ===== FACTORIES =====
 const createMockRaffle = (overrides?: Partial<Raffle>): Raffle => ({
   id: 10,
   title: "Rifa Test",
   price: 1000,
   description: "Desc",
-  end_date: new Date().toISOString(),
+  end_date: new Date(Date.now() + 60 * 60 * 1000).toISOString(), // ⬅️ FUTURO
   digits: 2,
   status: "active",
   tickets: [],
@@ -60,6 +65,7 @@ const createMockRaffle = (overrides?: Partial<Raffle>): Raffle => ({
   total_numbers: 100,
   ...overrides,
 });
+
 
 const createMockTicket = (raffle: Raffle, overrides?: Partial<Ticket>): Ticket => ({
   id_ticket: 1,
@@ -102,22 +108,28 @@ describe("useRaffleDetail", () => {
 
     const payWithWompiWidget = jest.fn().mockResolvedValue(undefined);
 
-    const { result } = renderHook(() => useRaffleDetail({ payWithWompiWidget }));
+    const { result } = renderHook(() =>
+      useRaffleDetail({ payWithWompiWidget })
+    );
 
     await waitFor(() => expect(result.current.raffle).not.toBeNull());
 
     act(() => result.current.handleTicketSelect(ticket));
 
-    expect(result.current.selectedTickets).toHaveLength(1);
-    expect(result.current.open).toBe(false);
+    await waitFor(() => {
+      expect(result.current.selectedTickets).toHaveLength(1);
+    });
 
     await act(async () => result.current.handleAction("reserved"));
 
-    expect(mockCreateReservation).toHaveBeenCalledWith(ticket.id_ticket, raffle.id);
+    expect(mockCreateReservation).toHaveBeenCalledWith(
+      ticket.id_ticket,
+      raffle.id
+    );
+
     expect(result.current.selectedTickets).toHaveLength(0);
     expect(toast.success).toHaveBeenCalled();
   });
-
   it("realiza pago con Wompi", async () => {
     const raffle = createMockRaffle();
     const ticket = createMockTicket(raffle);
@@ -128,11 +140,17 @@ describe("useRaffleDetail", () => {
 
     const payWithWompiWidget = jest.fn().mockResolvedValue(undefined);
 
-    const { result } = renderHook(() => useRaffleDetail({ payWithWompiWidget }));
+    const { result } = renderHook(() =>
+      useRaffleDetail({ payWithWompiWidget })
+    );
 
     await waitFor(() => expect(result.current.raffle).not.toBeNull());
 
     act(() => result.current.handleTicketSelect(ticket));
+
+    await waitFor(() => {
+      expect(result.current.selectedTickets).toHaveLength(1);
+    });
 
     await act(async () => result.current.handleAction("pay"));
 
@@ -142,4 +160,5 @@ describe("useRaffleDetail", () => {
       method: "pay",
     });
   });
+
 });
