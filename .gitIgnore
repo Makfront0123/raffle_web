@@ -7,6 +7,8 @@ node_modules/
 .env.local
 .env.test
 .env.docker
+.env.server
+.env.client
 !.env.example
 
 # Next.js
@@ -19,9 +21,3 @@ pnpm-debug.log*
 
 # OS
 .DS_Store
-
-# Docker
-mysql_data/
-docker/mysql/init.sql
-
-docker-compose.yml

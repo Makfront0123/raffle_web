@@ -5,6 +5,7 @@ import { AppDataSource } from "../data-source";
 import { authMiddleware } from "../middleware/authMiddleware";
 import { adminMiddleware } from "../middleware/adminMiddleware";
 import { blockAdminMiddleware } from "../middleware/blockAdminMiddleware";
+import { adminMiddlewareLimited } from "../middleware/adminMiddlewareLimited";
 import express from "express";
 const router = Router();
 
@@ -16,8 +17,8 @@ router.get("/user", authMiddleware, paymentController.getPaymentUser.bind(paymen
 router.get("/:id", authMiddleware, adminMiddleware, paymentController.getPaymentById.bind(paymentController));
 router.delete("/:id", authMiddleware, adminMiddleware, paymentController.deletePayment.bind(paymentController));
 router.put("/:id", authMiddleware, adminMiddleware, paymentController.updatePayment.bind(paymentController));
-router.put("/:id/complete", authMiddleware, adminMiddleware, paymentController.completePayment.bind(paymentController));
-router.put("/:id/cancel", authMiddleware, adminMiddleware, paymentController.cancelPayment.bind(paymentController));
+router.put("/:id/complete", authMiddleware, adminMiddleware,adminMiddlewareLimited, paymentController.completePayment.bind(paymentController));
+router.put("/:id/cancel", authMiddleware, adminMiddleware, adminMiddlewareLimited,paymentController.cancelPayment.bind(paymentController));
 
 router.post("/wompi", authMiddleware, blockAdminMiddleware, paymentController.createWompiPayment.bind(paymentController));
 router.post(
