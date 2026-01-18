@@ -6,9 +6,9 @@ async function connectWithRetry(
 ): Promise<void> {
     try {
         await AppDataSource.initialize();
-        console.log("✅ Database connected");
+        console.log("Database connected");
     } catch (error) {
-        console.error("⏳ Database not ready, retrying...", {
+        console.error("Database not ready, retrying...", {
             retriesLeft: retries,
         });
 

@@ -10,7 +10,11 @@ export async function seedRoles() {
     ];
 
     for (const role of roles) {
-        await roleRepo.upsert(role, ["id"]);
+        const exists = await roleRepo.findOneBy({ id: role.id });
+        if (!exists) {
+            await roleRepo.save(role);
+            console.log(`Role ${role.name} created`);
+        }
     }
     console.log("Roles seeded");
 }

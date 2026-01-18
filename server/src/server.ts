@@ -10,10 +10,12 @@ import cookieParser from "cookie-parser";
 import { AppDataSource } from "./data-source";
 import connectWithRetry from "./config/connectWriteRetry";
 import { seedRoles } from "./seeder/rolesSeed";
+import { globalLimiter } from "./middleware/limitRequest";
 
 dotenv.config();
 
 const app = express();
+app.use(globalLimiter)
 app.set("trust proxy", 1);
 
 app.use(cookieParser());
