@@ -11,11 +11,15 @@ import { AppDataSource } from "./data-source";
 import connectWithRetry from "./config/connectWriteRetry";
 import { seedRoles } from "./seeder/rolesSeed";
 import { globalLimiter } from "./middleware/limitRequest";
+import { automationMiddleware } from "./middleware/automationRunner";
+import pingRoutes from "./routes/pingRoutes";
 
 dotenv.config();
 
 const app = express();
 app.use(globalLimiter)
+app.use(automationMiddleware)
+app.use("/api/ping-automation", pingRoutes);
 app.set("trust proxy", 1);
 
 app.use(cookieParser());
@@ -67,19 +71,16 @@ const PORT = process.env.PORT || 4000;
 async function startServer() {
   try {
     await connectWithRetry();
-
-    console.log("Database connected");
     if (process.env.NODE_ENV === "production") {
       await AppDataSource.runMigrations();
     }
     await seedRoles();
-    await import("./cron/cron");
+
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
   } catch (error) {
-    console.error("ERROR FATAL AL INICIAR EL SERVIDOR:");
-    console.error(error);
+    throw error;
   }
 }
 
