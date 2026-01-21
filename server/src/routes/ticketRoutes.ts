@@ -8,13 +8,11 @@ const ticketController = new TicketController();
 router.get(
   '/:raffleId/sold-percentage',
   authMiddleware,
-  authMiddleware,
   ticketController.getSoldPercentage.bind(ticketController)
 );
 
 router.get(
   '/user',
-  authMiddleware,
   authMiddleware,
   ticketController.getTicketsByUser.bind(ticketController)
 );
