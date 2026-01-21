@@ -1,18 +1,25 @@
-Raffles Web - Copyright 2026 Armando Sánchez
+Raffles Web Copyright © 2026 Armando Sánchez
 
-Este código y los archivos asociados son parte del producto "Raffles Web",
-vendido en ThemeForest/Envato. Su uso está **regido por la licencia adquirida** por el comprador:
+Este software es un producto comercial desarrollado por Armando Sánchez.
 
-1. **Licencia Regular:** Permite usar este producto en un único proyecto final para uso personal o de un cliente,
-   pero **no permite revender, redistribuir ni sublicenciar** el código fuente a terceros.
+Al adquirir este código, el comprador obtiene una licencia de uso
+según el tipo de licencia acordada en el momento de la compra.
 
-2. **Licencia Extendida:** Permite usar este producto en un proyecto final que se venda o distribuya a terceros,
-   bajo los términos adquiridos en la licencia extendida en ThemeForest.
+LICENCIAS DISPONIBLES
 
-⚠️ **Restricciones importantes:**
-- No copiar, redistribuir ni publicar este código en plataformas externas.
-- No usar este código para crear un producto que compita directamente con "Raffles Web" sin adquirir la licencia correspondiente.
-- El comprador es responsable de cumplir con los términos de la licencia adquirida.
+1. Licencia Estándar
+- Permite usar el sistema en un único proyecto (propio o para un cliente).
+- No permite revender, redistribuir ni sublicenciar el código fuente.
 
-Para más información sobre licencias y términos de uso, visita:
-https://themeforest.net/licenses/standard
+2. Licencia Comercial / Extendida
+- Permite usar el sistema en múltiples proyectos o como base
+  para un producto comercial, según lo acordado.
+
+RESTRICCIONES
+- Prohibida la redistribución del código fuente.
+- Prohibido revender el sistema tal como se entrega.
+- Prohibido crear productos derivados para reventa sin licencia extendida.
+
+El comprador es responsable de configurar sus propias credenciales
+(API keys, base de datos, servicios externos como Twilio, pasarela de pagos, etc.)
+según el manual proporcionado.
