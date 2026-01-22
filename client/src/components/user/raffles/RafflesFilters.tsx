@@ -37,11 +37,11 @@ export default function RafflesFiltersPremium({
         placeholder="Buscar rifa..."
         value={search}
         onChange={(e) => setSearch(e.target.value)}
-        className="w-[250px] bg-purple-900/30 border-gold/30 text-gold placeholder:text-gold/40 backdrop-blur-md"
+        className="w-[250px] bg-none placeholder:text-gold/40 backdrop-blur-md"
       />
 
       <Select onValueChange={setFilterPrize} value={filterPrize}>
-        <SelectTrigger className="w-[180px] bg-purple-900/30 border-gold/30 text-gold backdrop-blur-xl">
+        <SelectTrigger className="w-[180px] bg-none backdrop-blur-xl">
           <SelectValue placeholder="Tipo de premio" />
         </SelectTrigger>
         <SelectContent>
@@ -53,7 +53,7 @@ export default function RafflesFiltersPremium({
       </Select>
 
       <Select onValueChange={setSortBy} value={sortBy}>
-        <SelectTrigger className="w-[180px] bg-purple-900/30 border-gold/30 text-gold backdrop-blur-xl">
+        <SelectTrigger className="w-[180px] bg-none text-gold backdrop-blur-xl">
           <SelectValue placeholder="Ordenar por" />
         </SelectTrigger>
         <SelectContent>
@@ -72,11 +72,47 @@ export default function RafflesFiltersPremium({
         }}
       >
 
-        <TabsList className="bg-purple-900/40 border border-gold/30 shadow-lg rounded-xl">
-          <TabsTrigger value="active">Activas</TabsTrigger>
-          <TabsTrigger value="ended">Finalizadas</TabsTrigger>
-          <TabsTrigger value="all">Todas</TabsTrigger>
+        <TabsList className="bg-transparent border shadow-lg rounded-xl p-1">
+          <TabsTrigger
+            value="active"
+            className="
+      text-white
+      bg-transparent
+      data-[state=active]:bg-white
+      data-[state=active]:text-black
+      transition-all
+    "
+          >
+            Activas
+          </TabsTrigger>
+
+          <TabsTrigger
+            value="ended"
+            className="
+      text-white
+      bg-transparent
+      data-[state=active]:bg-white
+      data-[state=active]:text-black
+      transition-all
+    "
+          >
+            Finalizadas
+          </TabsTrigger>
+
+          <TabsTrigger
+            value="all"
+            className="
+      text-white
+      bg-transparent
+      data-[state=active]:bg-white
+      data-[state=active]:text-black
+      transition-all
+    "
+          >
+            Todas
+          </TabsTrigger>
         </TabsList>
+
       </Tabs>
     </div>
   );
