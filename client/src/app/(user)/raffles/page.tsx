@@ -3,7 +3,6 @@ import RaffleCard from "@/components/user/raffles/RaffleCard";
 import LoadingScreen from "@/components/user/LoadingScreen";
 import { usePrizes } from "@/hook/usePrizes";
 import RaffleExpiredModal from "@/components/user/raffles/RaffleExpiredModal";
-import { useState } from "react";
 import RaffleFilters from "@/components/user/raffles/RafflesFilters";
 import RafflePagination from "@/components/user/raffles/RafflesPagination";
 import { Raffle } from "@/type/Raffle";
