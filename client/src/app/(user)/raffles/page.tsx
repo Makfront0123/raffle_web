@@ -3,11 +3,12 @@ import RaffleCard from "@/components/user/raffles/RaffleCard";
 import LoadingScreen from "@/components/user/LoadingScreen";
 import { usePrizes } from "@/hook/usePrizes";
 import RaffleExpiredModal from "@/components/user/raffles/RaffleExpiredModal";
-import { useState} from "react";
+import { useState } from "react";
 import RaffleFilters from "@/components/user/raffles/RafflesFilters";
 import RafflePagination from "@/components/user/raffles/RafflesPagination";
 import { Raffle } from "@/type/Raffle";
 import { useFilteredRaffles } from "@/hook/useFilteredRaffles";
+import { usePagination } from "@/hook/usePagination";
 
 
 
@@ -31,15 +32,13 @@ export default function Raffles() {
   const { winners, loading: loadingWinner } = usePrizes();
 
 
+  const {
+    page: currentPage,
+    totalPages,
+    items: paginatedRaffles,
+    setPage: setCurrentPage,
+  } = usePagination(filteredRaffles, 3);
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const rafflesPerPage = 3;
-
-  const totalPages = Math.ceil(filteredRaffles.length / rafflesPerPage);
-  const paginatedRaffles = filteredRaffles.slice(
-    (currentPage - 1) * rafflesPerPage,
-    currentPage * rafflesPerPage
-  );
 
   return (
     <div className="w-full min-h-screen px-6 py-16 bg-gradient-to-t from-yellow-500 text-white z-80">
