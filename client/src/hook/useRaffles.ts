@@ -9,17 +9,16 @@ import { toast } from "sonner";
 
 export function useRaffles() {
   const {
-    raffles: storeRaffles,
+    raffles,
     getRaffles,
     addRaffle,
     deleteRaffle,
     regenerateTickets,
     activateRaffle,
     updateRaffle,
-    deactivateRaffle,
+    deactivateRaffle
   } = useRaffleStore();
 
-  const { token } = AuthStore();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] =
@@ -46,8 +45,7 @@ export function useRaffles() {
     setError(null);
     try {
       await getRaffles();
-    } catch (err) {
-      console.error("Error refrescando rifas:", err);
+    } catch {
       setError("Error cargando rifas");
     } finally {
       setLoading(false);
@@ -72,22 +70,19 @@ export function useRaffles() {
       const min = new Date();
       min.setDate(min.getDate() + 7);
 
-        const minDate = new Date();
-        minDate.setDate(minDate.getDate() + 7);
-        if (endDate < minDate) throw new Error("Debe ser mínimo 7 días después.");
-        const tempRaffle: Raffle = {
-          id: Date.now(),
-          title: form.title,
-          description: form.description ?? "",
-          price: form.price,
-          end_date: endDate.toISOString(),
-          digits: form.digits,
-          status: "pending",
-          tickets: [],
-          prizes: [],
-          created_at: new Date().toISOString(),
-          total_numbers: 0,
-        };
+      const endDate = new Date(form.end_date + "T23:59:59");
+      if (endDate < min) throw new Error("Debe ser mínimo 7 días después.");
+
+      const price = parseFloat(form.price);
+      if (isNaN(price) || price <= 0) throw new Error("Precio inválido");
+
+      const payload: CreateRaffleDTO = {
+        title: form.title,
+        description: form.description,
+        price,
+        endDate: endDate.toISOString(),
+        digits: form.digits,
+      };
 
       const created = await addRaffle(payload);
       if (created) await getRaffles();
@@ -137,19 +132,8 @@ export function useRaffles() {
     [regenerateTickets, refreshRaffles]
   );
 
-  const filteredRaffles = useMemo(() => {
-    return storeRaffles
-      .filter(r => r.status.toLowerCase().trim() === "active")
-      .sort((a, b) => {
-        const aTime = a.end_date ? new Date(a.end_date).getTime() : Infinity;
-        const bTime = b.end_date ? new Date(b.end_date).getTime() : Infinity;
-        return aTime - bTime;
-      });
-  }, [storeRaffles]);
-
   return {
-    raffles: storeRaffles,
-    filteredRaffles,
+    raffles,
     loading,
     error,
     refreshRaffles,

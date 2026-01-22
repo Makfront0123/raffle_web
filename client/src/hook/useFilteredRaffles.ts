@@ -13,7 +13,6 @@ export function useFilteredRaffles() {
   });
 
   const { raffles, loading, error } = useRaffles();
-
   const { winners, setActiveRaffleId, loading: loadingWinner } = usePrizes();
 
   const [search, setSearch] = useState("");
@@ -24,17 +23,11 @@ export function useFilteredRaffles() {
 
   const filteredRaffles = useMemo(() => {
     return raffles?.filter(r => {
-      const status = r.status?.toLowerCase().trim();
-      if (status === "pending") return false;
-
-      const matchesSearch =
-        r.title.toLowerCase().includes(search.toLowerCase()) ||
+      if (r.status === "pending") return false;
+      const matchesSearch = r.title.toLowerCase().includes(search.toLowerCase()) ||
         r.description.toLowerCase().includes(search.toLowerCase());
-
-      const matchesPrize =
-        filterPrize === "all" || r.prizes?.some(p => p.type === filterPrize);
-
-      const isEnded = status === "ended";
+      const matchesPrize = filterPrize === "all" || r.prizes?.some(p => p.type === filterPrize);
+      const isEnded = r.status === "ended";
 
       if (tab === "active" && isEnded) return false;
       if (tab === "ended" && !isEnded) return false;
@@ -42,7 +35,7 @@ export function useFilteredRaffles() {
       return matchesSearch && matchesPrize;
     }).sort((a, b) => {
       if (sortBy === "price") return Number(b.price) - Number(a.price);
-      if (sortBy === "endingSoon") return new Date(a.end_date ?? Infinity).getTime() - new Date(b.end_date ?? Infinity).getTime();
+      if (sortBy === "endingSoon") return new Date(a.end_date).getTime() - new Date(b.end_date).getTime();
       if (sortBy === "recent") return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       return 0;
     });

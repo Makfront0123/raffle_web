@@ -1,6 +1,5 @@
 {
   "extends": "./tsconfig.json",
-  "exclude": ["**/__test__/**/*", "node_modules","src/seeder/**/*"],
   "compilerOptions": {
     "outDir": "dist",
     "noEmit": false
