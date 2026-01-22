@@ -5,7 +5,7 @@ export default function RaffleLegend() {
     <div className="flex gap-8 text-sm text-white/80 items-center justify-center my-10">
 
       <div className="flex items-center gap-2">
-        <div className="w-4 h-4 rounded bg-gold/30 border border-gold" />
+        <div className="w-4 h-4 rounded border border-gold" />
         <span>Disponible</span>
       </div>
 

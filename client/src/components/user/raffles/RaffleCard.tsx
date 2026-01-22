@@ -189,7 +189,7 @@ export default function RaffleCard({
               </div>
             )}
           </CardContent>
-          <CardFooter className="relative z-10">
+          <CardFooter className="relative z-10 mx-auto w-full">
             {isExpired ? (
               <Button
                 variant="destructive"
@@ -200,13 +200,13 @@ export default function RaffleCard({
               </Button>
             ) : user ? (
               <Link href={`/raffles/${raffle.id}`}>
-                <Button className="w-full bg-yellow-600 text-white font-semibold hover:bg-gold-dark rounded-xl">
+                <Button className="px-30 bg-yellow-600 text-white font-semibold rounded-xl">
                   Participar ahora
                 </Button>
               </Link>
             ) : (
               <Button
-                className="w-full bg-yellow-600 text-white font-semibold hover:bg-gold-dark rounded-xl"
+                className="w-full bg-yellow-600 text-white font-semibold rounded-xl"
                 onClick={() => setOpenAuth(true)}
               >
                 Participar ahora

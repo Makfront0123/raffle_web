@@ -42,12 +42,12 @@ export default function Raffles() {
   );
 
   return (
-    <div className="w-full min-h-screen px-6 py-16 bg-gradient-to-b from-black via-yellow-500 to-black text-white">
+    <div className="w-full min-h-screen px-6 py-16 bg-gradient-to-t from-yellow-500 text-white z-80">
 
       {loading && <LoadingScreen />}
       {error && <div className="text-red-500">{error}</div>}
 
-      <h1 className="text-center text-4xl font-extrabold mb-12 text-gold drop-shadow-[0_0_12px_rgba(255,215,0,0.6)]">
+      <h1 className="text-center text-6xl font-extrabold mb-12 text-white">
         🎟️ Rifas Premium
       </h1>
 

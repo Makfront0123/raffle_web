@@ -101,7 +101,7 @@ export function useRaffleDetail({ payWithWompiWidget }: Props) {
   const getTicketColor = (status: string) => {
     switch (status) {
       case "available":
-        return "bg-gold/30 border border-gold";
+        return "bg-none border border-white";
       case "reserved":
         return "bg-white/20 opacity-70";
       case "purchased":

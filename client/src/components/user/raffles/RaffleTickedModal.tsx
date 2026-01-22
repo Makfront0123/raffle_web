@@ -44,7 +44,7 @@ export default function RaffleTicketModal({ open, setOpen, tickets, raffle, hand
         <div className="flex flex-col gap-3 mt-4">
           <Button
             onClick={() => handleAction("pay")}
-            className="bg-gold text-white font-bold hover:bg-gold/80"
+            className="text-white font-bold  "
           >
             Pagar {tickets.length > 1 && `(${tickets.length})`}
           </Button>

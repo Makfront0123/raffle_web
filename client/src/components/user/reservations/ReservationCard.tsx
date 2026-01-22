@@ -85,7 +85,7 @@ export default function ReservationCard({
             {rawTicket.status === TicketStatusEnum.RESERVED
               && (
                 <Button
-                  className="bg-gold text-white hover:bg-gold/80"
+                  className="bg-none text-white "
                   onClick={() => setOpen(true)}
                 >
                   Comprar
