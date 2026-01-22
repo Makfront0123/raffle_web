@@ -2,7 +2,7 @@ import rateLimit from "express-rate-limit";
 
 export const globalLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 3000,
+    max: 300,
     standardHeaders: true,
     legacyHeaders: false,
 });
@@ -10,7 +10,7 @@ export const globalLimiter = rateLimit({
 
 export const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 2000,
+    max: 200,
     message: {
         error: "Demasiados intentos de autenticación",
     },
@@ -18,25 +18,25 @@ export const authLimiter = rateLimit({
 
 export const adminLimiter = rateLimit({
     windowMs: 30 * 60 * 1000,
-    max: 100000,
+    max: 100,
 });
 
 
 export const publicLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 10000,
+    max: 100,
 });
 
 
 export const actionLimiter = rateLimit({
     windowMs: 10 * 60 * 1000,
-    max: 50000,
+    max: 500,
 });
 
 
 export const paymentActionLimiter = rateLimit({
     windowMs: 10 * 60 * 1000,
-    max: 20000,
+    max: 200,
 });
 
 
@@ -48,17 +48,17 @@ export const webhookLimiter = rateLimit({
 
 export const statusLimiter = rateLimit({
     windowMs: 5 * 60 * 1000,
-    max: 60000,
+    max: 600,
 });
 
 
 export const cronLimiter = rateLimit({
     windowMs: 60 * 60 * 1000,
-    max: 50000,
+    max: 500,
 });
 
 
 export const notificationLimiter = rateLimit({
     windowMs: 10 * 60 * 1000,
-    max: 10000,
+    max: 100,
 });
