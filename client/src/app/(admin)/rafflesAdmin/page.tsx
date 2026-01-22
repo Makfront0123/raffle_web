@@ -36,6 +36,8 @@ const RafflesAdmin = () => {
     resetForm();
   };
 
+
+
   return (
     <main className="space-y-8 p-4 sm:p-6 bg-gray-50 min-h-screen">
 
@@ -47,6 +49,7 @@ const RafflesAdmin = () => {
         handleSubmit={handleSubmit}
         minDate={minDate}
       />
+
 
       <RafflesTable
         raffles={paginatedRaffles}

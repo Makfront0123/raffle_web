@@ -126,5 +126,177 @@
         "value": 3000000
       }
     ]
-  }
+  },
+  [
+    {
+      "title": "Rifa Auto Nuevo 2026",
+      "description": "Participa y gana un auto 0km modelo 2026",
+      "price": 50000,
+      "status": "active",
+      "digits": 4,
+      "end_date": "2026-09-30T20:00:00",
+      "total_numbers": 10000,
+      "prizes": [
+        {
+          "type": "product",
+          "name": "Auto 0km",
+          "description": "Sedán modelo 2026, color a elección",
+          "value": 85000000
+        }
+      ]
+    },
+    {
+      "title": "Rifa iPhone 15 Pro",
+      "description": "Gana un iPhone 15 Pro 256GB, color negro",
+      "price": 25000,
+      "status": "active",
+      "digits": 3,
+      "end_date": "2026-10-05T20:00:00",
+      "total_numbers": 1000,
+      "prizes": [
+        {
+          "type": "product",
+          "name": "iPhone 15 Pro",
+          "description": "256GB, color negro",
+          "value": 5500000
+        }
+      ]
+    },
+    {
+      "title": "Rifa Laptop Gamer",
+      "description": "Laptop gamer de última generación con RTX 4070",
+      "price": 35000,
+      "status": "active",
+      "digits": 3,
+      "end_date": "2026-10-10T20:00:00",
+      "total_numbers": 1000,
+      "prizes": [
+        {
+          "type": "product",
+          "name": "Laptop Gamer",
+          "description": "16GB RAM, SSD 1TB, RTX 4070",
+          "value": 12000000
+        }
+      ]
+    },
+    {
+      "title": "Rifa Smart TV 65\" 4K",
+      "description": "Gana un televisor Smart 65 pulgadas 4K",
+      "price": 20000,
+      "status": "active",
+      "digits": 3,
+      "end_date": "2026-10-15T20:00:00",
+      "total_numbers": 1000,
+      "prizes": [
+        {
+          "type": "product",
+          "name": "Smart TV 65\"",
+          "description": "Resolución 4K, HDR",
+          "value": 3500000
+        }
+      ]
+    },
+    {
+      "title": "Rifa Consola PlayStation 5",
+      "description": "Participa y gana una PS5 con control DualSense",
+      "price": 15000,
+      "status": "active",
+      "digits": 3,
+      "end_date": "2026-10-20T20:00:00",
+      "total_numbers": 1000,
+      "prizes": [
+        {
+          "type": "product",
+          "name": "PS5",
+          "description": "Consola PlayStation 5 + control DualSense",
+          "value": 3500000
+        }
+      ]
+    },
+    {
+      "title": "Rifa iPad Air 10th Gen",
+      "description": "Gana un iPad Air 10ª generación, 64GB Wi-Fi",
+      "price": 20000,
+      "status": "active",
+      "digits": 3,
+      "end_date": "2026-10-25T20:00:00",
+      "total_numbers": 1000,
+      "prizes": [
+        {
+          "type": "product",
+          "name": "iPad Air 10th Gen",
+          "description": "64GB Wi-Fi, color plata",
+          "value": 2500000
+        }
+      ]
+    },
+    {
+      "title": "Rifa Gift Card Amazon $500.000",
+      "description": "Gana una gift card de Amazon por $500.000 COP",
+      "price": 10000,
+      "status": "active",
+      "digits": 3,
+      "end_date": "2026-10-30T20:00:00",
+      "total_numbers": 1000,
+      "prizes": [
+        {
+          "type": "product",
+          "name": "Gift Card Amazon",
+          "description": "$500.000 COP para comprar en Amazon",
+          "value": 500000
+        }
+      ]
+    },
+    {
+      "title": "Rifa Bicicleta Eléctrica Urbana",
+      "description": "Bicicleta eléctrica con batería de 500W y autonomía 50km",
+      "price": 30000,
+      "status": "active",
+      "digits": 3,
+      "end_date": "2026-11-05T20:00:00",
+      "total_numbers": 1000,
+      "prizes": [
+        {
+          "type": "product",
+          "name": "Bicicleta Eléctrica",
+          "description": "Batería 500W, autonomía 50km",
+          "value": 4500000
+        }
+      ]
+    },
+    {
+      "title": "Rifa Cámara Canon EOS R10",
+      "description": "Cámara profesional mirrorless Canon EOS R10",
+      "price": 30000,
+      "status": "active",
+      "digits": 3,
+      "end_date": "2026-11-10T20:00:00",
+      "total_numbers": 1000,
+      "prizes": [
+        {
+          "type": "product",
+          "name": "Canon EOS R10",
+          "description": "Cámara profesional mirrorless",
+          "value": 8000000
+        }
+      ]
+    },
+    {
+      "title": "Rifa Experiencia Spa 1 día",
+      "description": "Día completo de relajación en spa: masajes, sauna y almuerzo",
+      "price": 10000,
+      "status": "active",
+      "digits": 3,
+      "end_date": "2026-11-15T20:00:00",
+      "total_numbers": 1000,
+      "prizes": [
+        {
+          "type": "experience",
+          "name": "Día de Spa",
+          "description": "Masajes, sauna y almuerzo incluido",
+          "value": 500000
+        }
+      ]
+    }
+  ]
 ]

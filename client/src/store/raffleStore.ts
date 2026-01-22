@@ -3,7 +3,8 @@
 import { create } from "zustand";
 import { toast } from "sonner";
 import { RaffleService } from "@/services/raffleService";
-import { Raffle, CreateRaffleDTO, UpdateRafflePayload } from "@/type/Raffle";
+import { Raffle, UpdateRafflePayload } from "@/type/Raffle";
+
 
 interface RaffleStore {
   raffles: Raffle[];

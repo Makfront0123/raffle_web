@@ -20,12 +20,5 @@ export function usePagination<T>(items: T[] = [], itemsPerPage = 9) {
   const nextPage = () => setPage((p) => Math.min(p + 1, totalPages));
   const prevPage = () => setPage((p) => Math.max(p - 1, 1));
 
-  return {
-    page,
-    totalPages,
-    items: paginatedItems,
-    setPage,
-    nextPage,
-    prevPage,
-  };
+  return { page, totalPages, items: paginatedItems, setPage, nextPage, prevPage };
 }

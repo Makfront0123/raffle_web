@@ -1,9 +1,21 @@
-"use client";
+ "use client";
 
-import { User } from "@/type/User";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 
-export default function AdminSplashScreen({ name }: { name?: User["name"] }) {
+export default function AdminSplashScreen({ name }: { name?: string }) {
+  const router = useRouter();
+
+  useEffect(() => {
+  const t = setTimeout(() => {
+    router.replace("/dashboard");
+  }, 1800);
+
+  return () => clearTimeout(t);
+}, [router]);
+
+
   return (
     <div
       className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-black text-white"
