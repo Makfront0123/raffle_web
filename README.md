@@ -122,10 +122,3 @@ web_rifa/
 
 ```bash
 docker compose up --build
-
-
-### Pagos (Wompi)
-La integración de pagos está implementada y probada en entorno sandbox.
-El proyecto incluye un endpoint para simular webhooks en desarrollo.
-Para producción, el comprador debe configurar su cuenta de Wompi
-y validar el webhook con una URL pública HTTPS.
