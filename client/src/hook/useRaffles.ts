@@ -9,17 +9,16 @@ import { toast } from "sonner";
 
 export function useRaffles() {
   const {
-    raffles: storeRaffles,
+    raffles,
     getRaffles,
     addRaffle,
     deleteRaffle,
     regenerateTickets,
     activateRaffle,
     updateRaffle,
-    deactivateRaffle,
+    deactivateRaffle
   } = useRaffleStore();
 
-  const { token } = AuthStore();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] =
@@ -46,8 +45,7 @@ export function useRaffles() {
     setError(null);
     try {
       await getRaffles();
-    } catch (err) {
-      console.error("Error refrescando rifas:", err);
+    } catch {
       setError("Error cargando rifas");
     } finally {
       setLoading(false);
@@ -134,19 +132,8 @@ export function useRaffles() {
     [regenerateTickets, refreshRaffles]
   );
 
-  const filteredRaffles = useMemo(() => {
-    return storeRaffles
-      .filter(r => r.status.toLowerCase().trim() === "active")
-      .sort((a, b) => {
-        const aTime = a.end_date ? new Date(a.end_date).getTime() : Infinity;
-        const bTime = b.end_date ? new Date(b.end_date).getTime() : Infinity;
-        return aTime - bTime;
-      });
-  }, [storeRaffles]);
-
   return {
-    raffles: storeRaffles,
-    filteredRaffles,
+    raffles,
     loading,
     error,
     refreshRaffles,

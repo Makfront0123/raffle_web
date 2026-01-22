@@ -1,4 +1,4 @@
- "use client";
+"use client";
 
 import { User } from "@/type/User";
 import { motion } from "framer-motion";
