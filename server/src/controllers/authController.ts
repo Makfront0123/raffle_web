@@ -5,6 +5,7 @@ import { AppDataSource } from "../data-source";
 import { User } from "../entities/user.entity";
 import { UserRepository } from "../repositories/userRepository";
 import { AuthService } from "../services/authService";
+import { roleRepository } from "../repositories/roleRepository";
 
 export class AuthController {
   private authService: AuthService;
@@ -13,10 +14,74 @@ export class AuthController {
   constructor(authService?: AuthService, userRepo?: UserRepository) {
     const typeOrmRepo = AppDataSource.getRepository(User);
 
-    this.userRepo = userRepo ?? new UserRepository(typeOrmRepo);
+    this.userRepo = userRepo ?? new UserRepository(typeOrmRepo, roleRepository);
     this.authService =
-      authService ?? new AuthService(new UserRepository(typeOrmRepo));
+      authService ?? new AuthService(new UserRepository(typeOrmRepo, roleRepository));
   }
+
+  async setupAdmin(req: Request, res: Response) {
+    const { email, password, name, setupKey } = req.body;
+
+
+    if (!setupKey || setupKey !== process.env.ADMIN_SETUP_KEY) {
+      return res.status(403).json({ message: "Clave de instalación inválida" });
+    }
+
+    const adminExists = await this.userRepo.existsAdmin(email);
+    if (adminExists) {
+      return res.status(403).json({ message: "Administrador con este email ya existe" });
+    }
+
+
+    const admin = await this.userRepo.createAdmin({ email, password, name });
+
+    return res.status(201).json({
+      message: "Administrador creado correctamente",
+      admin: { id: admin.id, email: admin.email, name: admin.name },
+    });
+  }
+
+  async loginAdmin(req: Request, res: Response) {
+    const { email, password } = req.body;
+
+    const admin = await this.userRepo.findAdminByEmail(email);
+    if (!admin) {
+      return res.status(401).json({ message: "Credenciales inválidas" });
+    }
+
+    const valid = await this.userRepo.comparePassword(password, admin.password!);
+    if (!valid) {
+      return res.status(401).json({ message: "Credenciales inválidas" });
+    }
+
+    const token = jwt.sign(
+      { id: admin.id, roleId: admin.role.id },
+      process.env.JWT_SECRET!,
+      { expiresIn: "1h" }
+    );
+
+    const isProd = process.env.NODE_ENV === "production";
+
+    res.cookie("access_token", token, {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? "none" : "lax",
+      path: "/",
+    });
+
+
+    return res.json({
+      message: "Administrador autenticado",
+      user: {
+        id: admin.id,
+        email: admin.email,
+        name: admin.name,
+        role: "admin",
+      },
+    });
+  }
+
+
 
   async loginWithGoogle(req: Request, res: Response) {
     try {

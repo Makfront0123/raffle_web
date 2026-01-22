@@ -1,0 +1,78 @@
+<h1>Instalación</h1>
+
+<h2>Requisitos</h2>
+<ul>
+    <li>Node.js 18 o superior</li>
+    <li>Base de datos MySQL</li>
+    <li>Servidor local o VPS</li>
+</ul>
+
+<h2>Contenido del archivo ZIP / RAR</h2>
+
+<pre>
+web_rifa.zip
+├── client/
+├── server/
+├── documentation/
+├── .env.example
+├── README.md
+├── LICENSE
+</pre>
+
+<h2>Instalación Backend</h2>
+
+<ol>
+    <li>Entrar a la carpeta <strong>server</strong></li>
+    <li>Instalar dependencias:</li>
+</ol>
+
+<pre>pnpm install</pre>
+
+<h3>Configurar variables de entorno (.env)</h3>
+
+<pre>
+DB_HOST=
+DB_PORT=
+DB_USER=
+DB_PASSWORD=
+DB_DATABASE=
+JWT_SECRET=
+NODE_ENV=
+PORT=4000
+JWT_SECRET=
+JWT_REFRESH_SECRET=
+WOMPI_PUBLIC_KEY=
+WOMPI_PRIVATE_KEY=
+WOMPI_INTEGRITY_SECRET=
+TWILIO_ACCOUNT_SID=
+TWILIO_AUTH_TOKEN=
+</pre>
+
+<h3>Ejecutar el servidor</h3>
+<pre>pnpm run dev</pre>
+
+<h3>Ejecutar test del backend</h3>
+<pre>pnpm test</pre>
+
+<h2>Instalación Frontend</h2>
+
+<ol>
+    <li>Entrar a la carpeta <strong>client</strong></li>
+    <li>Instalar dependencias:</li>
+</ol>
+
+<pre>pnpm install</pre>
+
+<h3>Configurar variables de entorno (.env.local)</h3>
+
+<pre>
+NEXT_PUBLIC_API_URL=http://localhost:3000
+NEXT_PUBLIC_WOMPI_PUBLIC_KEY=
+NEXT_PUBLIC_GOOGLE_CLIENT_ID
+</pre>
+
+<h3>Ejecutar el frontend</h3>
+<pre>pnpm run dev</pre>
+
+<h3>Ejecutar test del frontend</h3>
+<pre>pnpm test</pre>

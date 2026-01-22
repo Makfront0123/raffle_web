@@ -1,3 +1,4 @@
+/// <reference path="./types/express.d.ts" />
 import "reflect-metadata";
 import express from "express";
 import fs from "fs";
@@ -7,10 +8,18 @@ import helmet from "helmet";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import { AppDataSource } from "./data-source";
- 
+import connectWithRetry from "./config/connectWriteRetry";
+import { seedRoles } from "./seeder/rolesSeed";
+import { globalLimiter } from "./middleware/limitRequest";
+import { automationMiddleware } from "./middleware/automationRunner";
+import pingRoutes from "./routes/pingRoutes";
+
 dotenv.config();
 
 const app = express();
+app.use(globalLimiter)
+app.use(automationMiddleware)
+app.use("/api/ping-automation", pingRoutes);
 app.set("trust proxy", 1);
 
 app.use(cookieParser());
@@ -28,12 +37,24 @@ app.use(
       "https://raffle-web-seven.vercel.app"
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "X-Requested-With",
+      "Accept",
+      "Origin",
+    ],
+
     credentials: true,
   })
 );
+app.use(
+  helmet({
+    crossOriginResourcePolicy: false,
+    crossOriginEmbedderPolicy: false,
+  })
+);
 
-app.use(helmet({ crossOriginResourcePolicy: false }));
 
 const routesPath = path.join(__dirname, "routes");
 fs.readdirSync(routesPath).forEach((file) => {
@@ -49,18 +70,17 @@ const PORT = process.env.PORT || 4000;
 
 async function startServer() {
   try {
-    await AppDataSource.initialize();
-    console.log("Database connected (Aiven)");
+    await connectWithRetry();
     if (process.env.NODE_ENV === "production") {
       await AppDataSource.runMigrations();
     }
-    await import("./cron/cron");
+    await seedRoles();
+
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
   } catch (error) {
-    console.error("ERROR FATAL AL INICIAR EL SERVIDOR:");
-    console.error(error);
+    throw error;
   }
 }
 

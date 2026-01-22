@@ -22,7 +22,7 @@ export default function PaginationControls({
         <PaginationItem>
           <PaginationPrevious
             onClick={() => onChange(Math.max(1, page - 1))}
-            className="cursor-pointer bg-black border border-gold text-gold hover:bg-gold/20"
+            className="cursor-pointer bg-black border border-white"
           />
         </PaginationItem>
 
@@ -44,7 +44,7 @@ export default function PaginationControls({
         <PaginationItem>
           <PaginationNext
             onClick={() => onChange(Math.min(totalPages, page + 1))}
-            className="cursor-pointer bg-black border border-gold text-gold hover:bg-gold/20"
+            className="cursor-pointer bg-black border border-white"
           />
         </PaginationItem>
       </PaginationContent>

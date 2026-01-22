@@ -1,0 +1,40 @@
+<h1>Pagos e Ingresos</h1>
+
+<h2>¿Qué se considera un ingreso?</h2>
+
+<p>
+    En la plataforma, un ingreso corresponde a un pago que ha sido confirmado exitosamente
+    por el proveedor de pagos.
+</p>
+
+<p>
+    Solo los pagos con estado <strong>COMPLETED</strong> son considerados ingresos reales.
+    Los pagos en estado <strong>PENDING</strong> o <strong>CANCELLED</strong> no se contabilizan.
+</p>
+
+<h2>Cálculo de ingresos</h2>
+
+<p>
+    Los ingresos se calculan sumando el monto total de los pagos completados asociados
+    a una rifa específica.
+</p>
+
+<pre>
+SUM(total_amount)
+WHERE status = 'completed'
+AND raffleId = {ID_DE_LA_RIFA}
+</pre>
+
+<h2>Ejemplo SQL</h2>
+
+<pre>
+SELECT SUM(total_amount)
+FROM payments
+WHERE raffleId = 6
+AND status = 'completed';
+</pre>
+
+<h2>Métodos de pago soportados</h2>
+<ul>
+    <li>Wompi</li>
+</ul>

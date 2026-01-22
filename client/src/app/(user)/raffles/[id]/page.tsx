@@ -48,7 +48,7 @@ export default function RaffleDetailPage() {
       {raffleDetail.selectedTickets.length > 0 && (
         <button
           onClick={() => raffleDetail.setOpen(true)}
-          className="mt-4 bg-yellow-500 text-white font-bold px-6 py-2 rounded-md hover:bg-gold/80 transition"
+          className="mt-4 bg-yellow-500 text-white font-bold px-6 py-2 rounded-md transition"
         >
           Continuar con {raffleDetail.selectedTickets.length} ticket(s)
         </button>

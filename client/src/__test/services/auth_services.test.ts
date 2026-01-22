@@ -35,18 +35,21 @@ describe("AuthService", () => {
     expect(res).toEqual({ user: "test" });
   });
 
-  it("devLogin envía email", async () => {
+  it("loginAdmin envía email y password", async () => {
     mockedApi.post.mockResolvedValueOnce(
       {
         data: { token: "xyz" },
       } as unknown as AxiosResponse<{ token: string }>
     );
 
-    const res = await service.devLogin("correo@example.com");
+    const res = await service.loginAdmin({
+      email: "correo@example.com",
+      password: "123456",
+    });
 
     expect(mockedApi.post).toHaveBeenCalledWith(
-      "/api/auth/dev-login",
-      { email: "correo@example.com" }
+      "/api/auth/admin/login",
+      { email: "correo@example.com", password: "123456" }
     );
 
     expect(res.token).toBe("xyz");
@@ -67,5 +70,26 @@ describe("AuthService", () => {
     );
 
     expect(res.access).toBe("newToken");
+  });
+
+  it("persist obtiene datos del endpoint", async () => {
+    mockedApi.get.mockResolvedValueOnce(
+      {
+        data: { user: "persistUser" },
+      } as unknown as AxiosResponse<{ user: string }>
+    );
+
+    const res = await service.persist();
+
+    expect(mockedApi.get).toHaveBeenCalledWith("/api/auth/persist");
+    expect(res).toEqual({ user: "persistUser" });
+  });
+
+  it("logout llama al endpoint de logout", async () => {
+    mockedApi.post.mockResolvedValueOnce({} as AxiosResponse);
+
+    await service.logout();
+
+    expect(mockedApi.post).toHaveBeenCalledWith("/api/auth/logout");
   });
 });

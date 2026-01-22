@@ -1,19 +1,8 @@
 "use client";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { ProvidersEditModalProps } from "@/type/Providers";
 import { ProvidersForm } from "./ProvidersForm";
-import { ProviderFormState } from "@/hook/useProviderLogic";
-import { ChangeEvent, FormEvent } from "react";
-
-interface ProvidersEditModalProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  form: ProviderFormState;
-  onChange: (
-    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => void;
-  onSubmit: (e: FormEvent<HTMLFormElement>) => Promise<void>;
-}
 
 export function ProvidersEditModal({
   open,

@@ -51,7 +51,7 @@ export const useProviderStore = create<ProviderStore>((set) => ({
         } catch (err: unknown) {
             const message = getErrorMessage(err);
             set({ error: message });
-            toast.error("Error al agregar proveedor");
+            toast.error(message || "Error al agregar proveedor");
         }
     },
 
@@ -66,6 +66,7 @@ export const useProviderStore = create<ProviderStore>((set) => ({
         } catch (err: unknown) {
             const message = getErrorMessage(err);
             set({ error: message });
+            toast.error(message || "Error al actualizar proveedor");
         }
     },
 

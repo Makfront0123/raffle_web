@@ -11,7 +11,7 @@ interface Props {
 
 export default function AdminAccessDeniedScreen({
     redirectTo = "/dashboard",
-    delay = 4000,
+    delay = 500,
 }: Props) {
     const router = useRouter();
 

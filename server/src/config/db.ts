@@ -14,7 +14,5 @@ import mysql from "mysql2/promise";
       rejectUnauthorized: false,
     },
   });
-
-  console.log("✅ Conectado a Aiven correctamente");
   await conn.end();
 })();

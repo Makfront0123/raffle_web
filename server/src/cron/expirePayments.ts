@@ -1,9 +1,7 @@
-import cron from "node-cron";
 import { AppDataSource } from "../data-source";
 import { Payment, PaymentStatus } from "../entities/payment.entity";
 import { Ticket, TicketStatus } from "../entities/ticket.entity";
 import { LessThan } from "typeorm";
-
 
 export const cleanupExpiredPayments = async (): Promise<number> => {
     const now = new Date();
@@ -31,19 +29,4 @@ export const cleanupExpiredPayments = async (): Promise<number> => {
     }
 
     return expiredPayments.length;
-};
-
-
-export const schedulePaymentCleanup = () => {
-    cron.schedule("*/2 * * * *", async () => {
-        console.log("Revisando pagos expirados...");
-        try {
-            const count = await cleanupExpiredPayments();
-            if (count > 0) {
-                console.log(`${count} pagos expirados liberados`);
-            }
-        } catch (err) {
-            console.error("Error al limpiar pagos expirados:", err);
-        }
-    });
 };

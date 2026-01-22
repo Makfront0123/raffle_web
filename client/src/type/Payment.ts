@@ -15,9 +15,6 @@ export enum TicketStatusEnum {
   PURCHASED = 'purchased',
 }
 
-
-
-// DTOs para crear pagos
 export interface PaymentCreateDto {
   raffle_id: number;
   ticket_ids: number[];

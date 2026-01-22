@@ -73,7 +73,6 @@ describe("PrizeStore", () => {
           raffleId: 1,
           providerId: 1,
         },
-        "token"
       );
     });
 
@@ -95,7 +94,7 @@ describe("PrizeStore", () => {
       });
 
     await act(async () => {
-      await usePrizeStore.getState().deletePrize(1, "token");
+      await usePrizeStore.getState().deletePrize(1);
     });
 
     expect(usePrizeStore.getState().prizes.length).toBe(0);
@@ -113,10 +112,7 @@ describe("PrizeStore", () => {
           id: 9,
           name: "Armando",
         },
-        winner_ticket: {
-          id_ticket: 1,
-          ticket_number: 50,
-        },
+        winner_ticket: "123",
       },
     ];
 

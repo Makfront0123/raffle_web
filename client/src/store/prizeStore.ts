@@ -20,7 +20,7 @@ interface PrizeStore {
   deletePrize: (id: number) => Promise<void>;
 }
 
-const isAxiosError = (err: unknown): err is { response?: { data?: { message?: string } }; message: string } => {
+export const isAxiosError = (err: unknown): err is { response?: { data?: { message?: string } }; message: string } => {
   return typeof err === "object" && err !== null && "message" in err;
 };
 

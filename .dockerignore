@@ -1,0 +1,25 @@
+# Node
+node_modules
+.pnpm-store
+
+# Env files
+.env
+.env.*
+!.env.example
+.env.docker
+
+# Next.js
+.next
+out
+
+# Logs
+npm-debug.log*
+pnpm-debug.log*
+
+# OS
+.DS_Store
+
+# Docker
+docker/mysql/init.sql
+docker-compose.yml
+mysql_data/

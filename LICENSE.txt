@@ -1,0 +1,25 @@
+Raffles Web Copyright © 2026 Armando Sánchez
+
+Este software es un producto comercial desarrollado por Armando Sánchez.
+
+Al adquirir este código, el comprador obtiene una licencia de uso
+según el tipo de licencia acordada en el momento de la compra.
+
+LICENCIAS DISPONIBLES
+
+1. Licencia Estándar
+- Permite usar el sistema en un único proyecto (propio o para un cliente).
+- No permite revender, redistribuir ni sublicenciar el código fuente.
+
+2. Licencia Comercial / Extendida
+- Permite usar el sistema en múltiples proyectos o como base
+  para un producto comercial, según lo acordado.
+
+RESTRICCIONES
+- Prohibida la redistribución del código fuente.
+- Prohibido revender el sistema tal como se entrega.
+- Prohibido crear productos derivados para reventa sin licencia extendida.
+
+El comprador es responsable de configurar sus propias credenciales
+(API keys, base de datos, servicios externos como Twilio, pasarela de pagos, etc.)
+según el manual proporcionado.

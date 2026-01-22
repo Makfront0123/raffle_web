@@ -145,7 +145,7 @@ export class ReservationService {
   }
 
 
-  async deleteReservation(id: number) {
+  async deleteReservation(id: number, currentUserId: number) {
     const queryRunner = this.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
@@ -153,11 +153,20 @@ export class ReservationService {
     try {
       const reservation = await queryRunner.manager.findOne(Reservation, {
         where: { id },
-        relations: ['reservationTickets', 'reservationTickets.ticket'],
+        relations: [
+          'user',
+          'reservationTickets',
+          'reservationTickets.ticket'
+        ],
       });
+
 
       if (!reservation) {
         throw new Error('Reserva no encontrada');
+      }
+
+      if (reservation.user.id !== currentUserId) {
+        throw new Error('No se puede eliminar la reserva: No es tu propia.');
       }
 
       const hasPurchased = reservation.reservationTickets.some(

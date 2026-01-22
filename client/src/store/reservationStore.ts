@@ -4,7 +4,14 @@ import { create } from "zustand";
 import { toast } from "sonner";
 import { ReservationService, CancelReservationResponse } from "@/services/reservationService";
 import { Reservation } from "@/type/Reservation";
-
+interface AxiosErrorLike {
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
+  message?: string;
+}
 interface ReservationStore {
   reservations: Reservation[];
   setReservations: (
@@ -18,12 +25,15 @@ interface ReservationStore {
   cancelReservation: (id: number) => Promise<void>;
 }
 
+
+
 const getErrorMessage = (err: unknown): string => {
-  if (typeof err === "object" && err !== null && "message" in err) {
-    return (err as { message: string }).message;
-  }
+  const e = err as AxiosErrorLike;
+  if (e.response?.data?.message) return e.response.data.message;
+  if (e.message) return e.message;
   return "Error desconocido";
 };
+
 
 export const useReservationStore = create<ReservationStore>()((set) => ({
   reservations: [],
@@ -92,15 +102,17 @@ export const useReservationStore = create<ReservationStore>()((set) => ({
     try {
       const service = new ReservationService();
       const res: CancelReservationResponse = await service.cancelReservation(id);
-      toast.success(res.message);
+
+      toast.success(res.message || "Reserva cancelada correctamente");
+
       set((state) => ({
         reservations: state.reservations.filter((r) => r.id !== id),
       }));
     } catch (err: unknown) {
       const msg = getErrorMessage(err);
       toast.error(msg || "Error cancelando reserva");
-      console.error(err);
       throw err;
     }
-  },
+  }
+
 }));

@@ -2,6 +2,9 @@ import { create } from "zustand";
 import { PaymentService } from "@/services/paymentService";
 import { Payment, PaymentCreateDto, PaymentStatusEnum, WidgetPaymentDto } from "@/type/Payment";
 import { WompiSignatureDto } from "@/type/WompiSignature";
+import { toast } from "sonner";
+import { getErrorMessage } from "./raffleStore";
+import { isAxiosError } from "axios";
 
 interface PaymentStore {
   // ADMIN
@@ -68,12 +71,19 @@ export const usePaymentStore = create<PaymentStore>((set, get) => ({
   },
 
   completePayment: async (id: number) => {
-    await PaymentService.completePayment(id);
-    set({
-      payments: get().payments.map((p) =>
-        p.id === id ? { ...p, status: PaymentStatusEnum.COMPLETED } : p
-      ),
-    });
+    try {
+
+      await PaymentService.completePayment(id);
+      set({
+        payments: get().payments.map((p) =>
+          p.id === id ? { ...p, status: PaymentStatusEnum.COMPLETED } : p
+        ),
+      });
+    } catch (err: unknown) {
+      const message = isAxiosError(err) ? err.response?.data?.message || err.message : "Error al completar pago";
+      toast.error(message || "Error al completar pago");
+      throw err;
+    }
   },
 
   cancelPayment: async (id: number,) => {

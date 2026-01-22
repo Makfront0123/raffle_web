@@ -4,8 +4,8 @@ import Footer from "@/components/user/Footer";
 import { useAdminSplash } from "@/hook/useAdminSplash";
 import AdminAccessDeniedScreen from "@/components/admin/AdminDeniedScreen";
 import { usePathname } from "next/navigation";
-import AdminSplashScreen from "@/components/admin/AdminSplashScreen"
 import { Header } from "@/components/user/Header";
+import AdminSplashScreen from "@/components/admin/AdminSplashScreen";
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   const { showSplash, user } = useAdminSplash();
@@ -21,9 +21,13 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
     !showSplash &&
     splashShown;
 
-  if (showSplash) return <AdminSplashScreen name={user?.name} />;
+  if (showSplash && user?.role === "admin") {
+    return <AdminSplashScreen name={user.name} />;
+  }
+
 
   if (adminOnPublicPage) return <AdminAccessDeniedScreen />;
+  if (pathname.startsWith("/rw_admin")) return <>{children}</>;
 
   return (
     <div className="min-h-screen w-full bg-[#0B0B0B] text-white relative">

@@ -1,4 +1,4 @@
-// ⛔ debe ser lo PRIMERO del archivo
+
 jest.mock("@/store/prizeStore", () => ({
     usePrizeStore: jest.fn(),
 }));
@@ -7,7 +7,6 @@ jest.mock("@/store/authStore", () => ({
     AuthStore: () => ({ token: "test-token" }),
 }));
 
-// ⬇️ imports DESPUÉS
 import { renderHook, act, waitFor } from "@testing-library/react";
 import { usePrizes } from "../../hook/usePrizes";
 import { usePrizeStore } from "@/store/prizeStore";

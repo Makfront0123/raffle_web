@@ -33,7 +33,11 @@ export const RaffleForm = ({
       </CardHeader>
 
       <CardContent>
-        <form className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        <form
+          onSubmit={handleSubmit}
+          className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
+        >
+
           <div className="sm:col-span-2 lg:col-span-1">
             <Label>Título</Label>
             <Input name="title" value={form.title} onChange={handleChange} />

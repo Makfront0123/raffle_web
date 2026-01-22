@@ -1,8 +1,7 @@
 import cron from "node-cron";
 import { cleanupExpiredReservations, closeExpiredRaffles } from "./raffleCronLogic";
-import { schedulePaymentCleanup } from "./expirePayments";
 
-cron.schedule("*/1 * * * *", async () => {
+cron.schedule("*/60 * * * *", async () => {
   console.log("Ejecutando limpieza de reservas...");
   const removed = await cleanupExpiredReservations();
   console.log(`Reservas eliminadas: ${removed}`);
@@ -11,5 +10,3 @@ cron.schedule("*/1 * * * *", async () => {
   const closed = await closeExpiredRaffles();
   console.log("Rifas cerradas:", closed);
 });
-
-schedulePaymentCleanup();

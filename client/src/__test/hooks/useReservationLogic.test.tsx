@@ -26,8 +26,6 @@ describe("useReservationsLogic", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-
-    // Mock de useReservation
     (useReservation as jest.Mock).mockReturnValue({
       reservations: [
         { id: 1, expires_at: "2099-01-01", reservationTickets: [] },
@@ -38,7 +36,6 @@ describe("useReservationsLogic", () => {
       fetchReservations: mockFetchReservations,
     });
 
-    // Mock de useReservationStore
     ((useReservationStore as unknown) as jest.Mock).mockReturnValue({
       cancelReservation: mockCancelReservation,
       getReservations: jest.fn(),
@@ -50,18 +47,13 @@ describe("useReservationsLogic", () => {
     });
 
 
-    // Mock de useRaffles
     (useRaffles as jest.Mock).mockReturnValue({
       raffles: [],
     });
 
-    // Mock de AuthStore
-    // Mock de AuthStore
     ((AuthStore as unknown) as jest.Mock).mockReturnValue({
       user: { id: 1, name: "Test", role: "user", email: "test@example.com" },
     });
-
-    // Mock de usePayment
     (usePayment as jest.Mock).mockReturnValue({
       payWithWompiWidget: mockPayWithWompiWidget,
     });

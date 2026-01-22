@@ -66,36 +66,29 @@ export function useRaffles() {
       end_date: string;
       digits: number;
     }) => {
-      try {
-        if (!form.end_date) throw new Error("Selecciona una fecha.");
 
-        const min = new Date();
-        min.setDate(min.getDate() + 7);
+      if (!form.end_date) throw new Error("Selecciona una fecha.");
 
-        const minDate = new Date();
-        minDate.setDate(minDate.getDate() + 7);
-        if (endDate < minDate) throw new Error("Debe ser mínimo 7 días después.");
-        const tempRaffle: Raffle = {
-          id: Date.now(),
-          title: form.title,
-          description: form.description ?? "",
-          price: form.price,
-          end_date: endDate.toISOString(),
-          digits: form.digits,
-          status: "pending",
-          tickets: [],
-          prizes: [],
-          created_at: new Date().toISOString(),
-          total_numbers: 0,
-        };
+      const min = new Date();
+      min.setDate(min.getDate() + 7);
 
-        const created = await addRaffle(payload);
-        if (created) await getRaffles();
-      } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : "Error creando la rifa";
-        toast.error(message);
-        throw err;
-      }
+      const endDate = new Date(form.end_date + "T23:59:59");
+      if (endDate < min) throw new Error("Debe ser mínimo 7 días después.");
+
+      const price = parseFloat(form.price);
+      if (isNaN(price) || price <= 0) throw new Error("Precio inválido");
+
+      const payload: CreateRaffleDTO = {
+        title: form.title,
+        description: form.description,
+        price,
+        endDate: endDate.toISOString(),
+        digits: form.digits,
+      };
+
+      const created = await addRaffle(payload);
+      if (created) await getRaffles();
+
     },
     [addRaffle, getRaffles]
   );

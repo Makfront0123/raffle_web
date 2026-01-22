@@ -21,24 +21,7 @@ import {
 } from "@/components/ui/select";
 
 import { useState } from "react";
-import { Prizes } from "@/type/Prizes";
-import { Raffle } from "@/type/Raffle";
-
-interface PrizesTableProps {
-  prizes: Prizes[];
-  raffles: Raffle[];
-
-  selectedRaffle: number | "all";
-  onRaffleChange: (value: number | "all") => void;
-
-  page: number;
-  totalPages: number;
-  onPrevPage: () => void;
-  onNextPage: () => void;
-
-  onUpdate: (id: number, prize: Partial<Prizes>) => void;
-  onDelete: (id: number) => void;
-}
+import { Prizes, PrizesTableProps } from "@/type/Prizes";
 
 export function PrizesTable({
   prizes,

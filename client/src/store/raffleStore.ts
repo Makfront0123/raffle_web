@@ -19,7 +19,7 @@ interface RaffleStore {
   deactivateRaffle: (id: number) => Promise<void>;
 }
 
-const getErrorMessage = (err: unknown): string => {
+export const getErrorMessage = (err: unknown): string => {
   if (typeof err === "object" && err !== null && "message" in err) {
     return (err as { message: string }).message;
   }
@@ -68,7 +68,7 @@ export const useRaffleStore = create<RaffleStore>()((set) => ({
       return created;
     } catch (err: unknown) {
       const msg = getErrorMessage(err);
-      toast.error(msg);
+      toast.error(msg || "Error actualizando la rifa");
       throw err;
     }
   },

@@ -48,7 +48,6 @@ const RaffleDetailPage = () => {
         (acc, p) => acc + Number(p.total_amount || 0),
         0
     );
-    console.log(totalRevenue);
     const revenueMap: Record<string, number> = {};
     rafflePayments.forEach(p => {
         const date = new Date(p.created_at).toLocaleDateString();

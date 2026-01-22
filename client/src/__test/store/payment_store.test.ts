@@ -1,7 +1,7 @@
 import { act } from "@testing-library/react";
 import { PaymentService } from "@/services/paymentService";
 import { usePaymentStore } from "@/store/paymentStore";
-import { Payment, PaymentCreateDto } from "@/type/Payment";
+import { Payment, PaymentCreateDto, PaymentStatusEnum } from "@/type/Payment";
 import { Raffle } from "@/type/Raffle";
 
 jest.mock("@/services/paymentService", () => ({
@@ -40,14 +40,16 @@ const mockPayment = (overrides?: Partial<Payment>): Payment => ({
   id: 1,
   method: "nequi",
   total_amount: 5000,
-  status: "pending",
+  status: PaymentStatusEnum.PENDING,
   reference: "TEST_REF",
   raffle: mockRaffle,
   details: [],
   created_at: now,
+  user: null,
   cancelled_at: null,
   ...overrides,
 });
+
 
 const mockCreateDto = (): PaymentCreateDto => ({
   raffle_id: 1,
@@ -72,7 +74,7 @@ describe("PaymentStore", () => {
     ]);
 
     await act(async () => {
-      await usePaymentStore.getState().getPayments("token");
+      await usePaymentStore.getState().getPayments();
     });
 
     const state = usePaymentStore.getState();
@@ -89,7 +91,7 @@ describe("PaymentStore", () => {
     await act(async () => {
       await usePaymentStore
         .getState()
-        .createPayment(mockCreateDto(), "token");
+        .createPayment(mockCreateDto());
     });
 
     const state = usePaymentStore.getState();

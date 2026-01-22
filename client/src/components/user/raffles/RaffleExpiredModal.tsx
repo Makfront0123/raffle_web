@@ -38,27 +38,36 @@ export default function RaffleExpiredModalPremium({
         <div className="mt-4">
           <h3 className="font-semibold mb-2 text-lg text-white">🏆 Ganadores</h3>
 
-          {
-            loadingWinner ? (
-              <p className="text-gold/60">Cargando ganador...</p>
-            ) : !winners ? (
-              <p className="text-gold/60">Aún no hay ganador.</p>
-            ) : (
-              winners.map((w: Winner) => (
-                <div key={w?.id} className="p-4 mb-2 border border-gold/50 rounded-xl bg-yellow-400/40 shadow-md">
-                  <p className="font-medium text-gold">{w.prize_name}</p>
-                  <p>🎟️ Ticket: {w.winner_ticket?.ticket_number}</p>
-                  <p>👤 {w.winner_user?.name ?? "Usuario desconocido"}</p>
-                  <p>💰 Valor: ${w.value}</p>
-                </div>
-              ))
-
-            )}
+          {loadingWinner ? (
+            <p className="text-yellow-500/60">
+              Calculando ganador...
+            </p>
+          ) : winners.length === 0 ? (
+            <p className="text-yellow-500/60">
+              La rifa ha finalizado.
+              <br />
+              Estamos procesando el ganador.
+              <br />
+              Esto puede tardar unos minutos.
+            </p>
+          ) : (
+            winners.map((w: Winner) => (
+              <div
+                key={w.prize_id}
+                className="p-4 mb-2 border border-gold/50 rounded-xl bg-yellow-400/40 shadow-md"
+              >
+                <p className="font-medium text-yellow-500">{w.prize_name}</p>
+                <p>🎟️ Ticket: {w.winner_ticket}</p>
+                <p>👤 {w.winner_user?.name ?? "Usuario desconocido"}</p>
+                <p>💰 Valor: ${w.value}</p>
+              </div>
+            ))
+          )}
         </div>
 
         <div className="flex justify-end mt-6">
           <Button
-            className="bg-gold text-white hover:bg-yellow-400"
+            className="bg-yellow-500 text-white hover:bg-yellow-400"
             onClick={() => setShowExpiredModal(null)}
           >
             Cerrar

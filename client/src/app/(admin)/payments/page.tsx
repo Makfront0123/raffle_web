@@ -29,14 +29,7 @@ export default function PaymentsPage() {
   const paginatedPayments = filteredPayments.slice(start, start + ITEMS_PER_PAGE);
   const { exportPayments } = useExportPaymentsToExcel();
 
-  const handleComplete = async (id: number) => {
-    try {
-      await completePayment(id);
-      toast.success("Pago completado");
-    } catch {
-      toast.error("Error al completar el pago");
-    }
-  };
+  
 
   return (
     <main className="flex-1 p-6 bg-gray-50 overflow-y-auto">
@@ -68,7 +61,7 @@ export default function PaymentsPage() {
         <CardContent>
           <PaymentsTable
             payments={paginatedPayments}
-            onComplete={handleComplete}
+            onComplete={completePayment}
           />
 
           <PaymentsPagination

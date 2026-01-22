@@ -4,7 +4,24 @@ import { Role } from "../entities/role.entity";
 
 export const roleRepository = {
     async findByName(name: string): Promise<Role | null> {
-        const [rows]: any = await AppDataSource.query('SELECT * FROM roles WHERE name = ?', [name]);
+        const rows: any[] = await AppDataSource.query(
+            'SELECT * FROM roles WHERE name = ?',
+            [name]
+        );
+
+        if (!rows.length) return null;
+
+        const row = rows[0];
+        return {
+            id: row.id,
+            name: row.name,
+            users: [],
+        } as Role;
+    }
+    ,
+
+    async findById(id: number): Promise<Role | null> {
+        const [rows]: any = await AppDataSource.query('SELECT * FROM roles WHERE id = ?', [id]);
         if (!rows.length) return null;
 
         const row = rows[0];
@@ -13,8 +30,7 @@ export const roleRepository = {
             name: row.name,
             users: row.users,
         } as Role;
-    }
-    ,
+    },
 
     async createRole(roleData: {
         name: string;

@@ -13,14 +13,14 @@ export default function RafflesPagination({
   totalPages,
   setCurrentPage,
 }: Props) {
- if (totalPages === 0) return null;
+  if (totalPages === 0) return null;
 
 
   return (
     <div className="flex justify-center items-center gap-8 mt-10">
       <Button
         variant="outline"
-        className="border-gold text-gold hover:bg-gold/20 text-black"
+        className="text-black"
         disabled={currentPage === 1}
         onClick={() => setCurrentPage(currentPage - 1)}
       >
@@ -33,7 +33,7 @@ export default function RafflesPagination({
 
       <Button
         variant="outline"
-        className="border-gold text-gold hover:bg-gold/20 text-black"
+        className=" text-black"
         disabled={currentPage === totalPages}
         onClick={() => setCurrentPage(currentPage + 1)}
       >
