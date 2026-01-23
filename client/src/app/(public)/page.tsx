@@ -10,12 +10,18 @@ import PaginationControls from "@/components/user/reservations/PaginationControl
 import { usePagination } from "@/hook/usePagination";
 import Hero from "@/components/user/Hero";
 import { useHomeWinners } from "@/hook/useHomeWinners";
+import RaffleExpiredModal from "@/components/user/raffles/RaffleExpiredModal";
 
 export default function Home() {
   const loading = useLoadingScreen(300);
 
 
-  const { filteredRaffles, setExpiredModal } = useFilteredRaffles();
+  const {
+    filteredRaffles,
+    showExpiredModal,
+    setShowExpiredModal,
+  } = useFilteredRaffles();
+
   const {
     page: rafflePage,
     totalPages: raffleTotalPages,
@@ -41,9 +47,7 @@ export default function Home() {
 
       <RaffleGrid
         raffles={paginatedRaffles}
-        setShowExpiredModal={(open, raffle) =>
-          setExpiredModal({ open, raffle: raffle ?? null })
-        }
+        setShowExpiredModal={setShowExpiredModal}
       />
 
       {raffleTotalPages > 1 && (
@@ -65,6 +69,14 @@ export default function Home() {
       />
 
       <FAQSection />
+
+      <RaffleExpiredModal
+        showExpiredModal={showExpiredModal}
+        setShowExpiredModal={setShowExpiredModal}
+        winners={winners}
+        loadingWinner={false}
+      />
+
     </>
   );
 }

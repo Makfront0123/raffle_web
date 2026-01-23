@@ -9,7 +9,7 @@ export default function RaffleGrid({
   setShowExpiredModal,
 }: {
   raffles: Raffle[];
-  setShowExpiredModal: (open: boolean, raffle?: Raffle) => void;
+  setShowExpiredModal: (raffle: Raffle) => void;
 }) {
   return (
     <section className="py-16 relative w-full">
@@ -18,7 +18,7 @@ export default function RaffleGrid({
           Rifas Disponibles
         </h2>
 
- 
+
         <motion.div
           className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 xl:grid-cols-3 gap-8 justify-items-center"
           initial={{ opacity: 0 }}
@@ -30,9 +30,10 @@ export default function RaffleGrid({
             <RaffleCard
               key={r.id}
               raffle={r}
-              setShowExpiredModal={() => setShowExpiredModal}
+              setShowExpiredModal={setShowExpiredModal}
             />
           ))}
+
         </motion.div>
 
       </div>
