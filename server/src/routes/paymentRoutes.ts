@@ -21,13 +21,19 @@ router.put("/:id", authMiddleware, adminMiddleware, adminLimiter, paymentControl
 router.put("/:id/complete", authMiddleware, adminMiddleware, adminMiddlewareLimited, adminLimiter, paymentController.completePayment.bind(paymentController));
 router.put("/:id/cancel", authMiddleware, adminMiddleware, adminMiddlewareLimited, adminLimiter, paymentController.cancelPayment.bind(paymentController));
 
+
+router.post(
+  "/cancel/reference/:reference",
+  statusLimiter,
+  paymentController.cancelPaymentByReference.bind(paymentController)
+);
+
 router.post("/wompi", authMiddleware, blockAdminMiddleware, paymentActionLimiter, paymentController.createWompiPayment.bind(paymentController));
 router.post(
   "/wompi/webhook",
-  express.raw({ type: "application/json" }),
+  express.raw({ type: "*/*" }),
   paymentController.wompiWebhook.bind(paymentController)
 );
-
 router.post(
   "/wompi/signature",
   authMiddleware,

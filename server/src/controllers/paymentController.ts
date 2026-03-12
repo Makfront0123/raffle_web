@@ -89,6 +89,20 @@ export class PaymentController {
         }
     }
 
+    async cancelPaymentByReference(req: Request, res: Response) {
+        try {
+            const { reference } = req.params;
+
+            const result = await this.paymentService.cancelPaymentByReference(reference);
+
+            return res.json(result);
+        } catch (error: any) {
+            return res.status(400).json({
+                message: error.message,
+            });
+        }
+    }
+
     async getPaymentById(req: Request, res: Response) {
         try {
             const payment = await this.paymentService.getPaymentById(Number(req.params.id));

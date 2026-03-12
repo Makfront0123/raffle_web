@@ -13,11 +13,13 @@ import { seedRoles } from "./seeder/rolesSeed";
 import { globalLimiter } from "./middleware/limitRequest";
 import { automationMiddleware } from "./middleware/automationRunner";
 import pingRoutes from "./routes/pingRoutes";
+import { PaymentController } from "./controllers/paymentController";
+import { PaymentService } from "./services/paymentService";
 
 dotenv.config();
 
 const app = express();
-app.use(globalLimiter)
+
 app.use(automationMiddleware)
 app.use("/api/ping-automation", pingRoutes);
 app.set("trust proxy", 1);
@@ -53,6 +55,13 @@ app.use(
     crossOriginResourcePolicy: false,
     crossOriginEmbedderPolicy: false,
   })
+);
+const paymentService = new PaymentService(AppDataSource);
+const paymentController = new PaymentController(paymentService);
+app.post(
+  "/payments/wompi/webhook",
+  express.raw({ type: "*/*" }),
+  paymentController.wompiWebhook.bind(paymentController)
 );
 
 

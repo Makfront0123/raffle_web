@@ -22,9 +22,14 @@ export const cleanupExpiredPayments = async (): Promise<number> => {
         await paymentRepo.save(payment);
 
         for (const detail of payment.details) {
-            detail.ticket.status = TicketStatus.AVAILABLE;
-            detail.ticket.held_until = null;
-            await ticketRepo.save(detail.ticket);
+            const ticket = detail.ticket;
+
+            if (ticket.status === TicketStatus.HELD) {
+                ticket.status = TicketStatus.AVAILABLE;
+                ticket.held_until = null;
+
+                await ticketRepo.save(ticket);
+            }
         }
     }
 

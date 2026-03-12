@@ -98,9 +98,13 @@ export const usePaymentStore = create<PaymentStore>((set, get) => ({
   },
 
   getPaymentStatusByReference: async (reference: string) => {
-    const { status } =
-      await PaymentService.getPaymentStatusByReference(reference);
-    return status;
+    const res = await PaymentService.getPaymentStatusByReference(reference);
+
+    if (!res || !res.status) {
+      return PaymentStatusEnum.PENDING;
+    }
+
+    return res.status;
   },
 
 }));

@@ -99,6 +99,569 @@ export class PaymentService {
     }
   }
 
+  async cancelPaymentByReference(reference: string) {
+    const payment = await this.paymentRepo.findOne({
+      where: { reference },
+      relations: ["details", "details.ticket"],
+    });
+
+    if (!payment) {
+      throw new Error("Pago no encontrado");
+    }
+
+    if (payment.status !== PaymentStatus.PENDING) {
+      return { message: "El pago ya fue procesado" };
+    }
+
+    payment.status = PaymentStatus.CANCELLED;
+    payment.cancelled_at = new Date();
+
+    for (const detail of payment.details) {
+      if (detail.ticket.status === TicketStatus.HELD) {
+        detail.ticket.status = TicketStatus.AVAILABLE;
+        detail.ticket.held_until = null;
+        await this.ticketRepository.save(detail.ticket);
+      }
+    }
+
+    await this.paymentRepo.save(payment);
+
+    return {
+      message: "Pago cancelado y tickets liberados",
+    };
+  }
+
+  async cancelPayment(paymentId: number) {
+    const payment = await this.paymentRepo.findOne({
+      where: { id: paymentId },
+      relations: ["details", "details.ticket"],
+    });
+
+    if (!payment) throw new Error("Pago no encontrado");
+
+    payment.status = PaymentStatus.CANCELLED;
+    payment.cancelled_at = new Date();
+    await this.paymentRepo.save(payment);
+
+    for (const detail of payment.details) {
+      detail.ticket.status = TicketStatus.AVAILABLE;
+      detail.ticket.purchased_at = null;
+      await this.ticketRepository.save(detail.ticket);
+    }
+
+    return {
+      message: `Pago #${paymentId} cancelado correctamente. Tickets liberados.`,
+    };
+  }
+
+  async getAllPayments() {
+    return await this.paymentRepo.find({
+      relations: ["user", "raffle"],
+    });
+  }
+
+  async getPaymentUser(userId: number) {
+    return await this.paymentRepo.find({
+      where: { user: { id: userId } },
+      relations: ["user", "raffle", "details", "details.ticket"],
+    });
+  }
+  async createPayment(payment: {
+    raffle_id: number;
+    ticket_ids: number[];
+    reservation_id?: number;
+    user_id: number;
+    reference: string;
+  }) {
+    return await this.dataSource.transaction(async (manager) => {
+      const user = await manager.getRepository(User).findOne({
+        where: { id: payment.user_id },
+      });
+      if (!user) throw new Error("No se encontró el usuario");
+
+      const raffle = await manager.getRepository(Raffle).findOne({
+        where: { id: payment.raffle_id },
+      });
+      if (!raffle) throw new Error("No se encontró la rifa");
+
+      this.validateRaffleIsPurchasable(raffle);
+
+      let tickets: Ticket[] = [];
+      let reservation: Reservation | null = null;
+
+      if (payment.reservation_id) {
+        reservation = await manager.getRepository(Reservation).findOne({
+          where: { id: payment.reservation_id },
+          relations: [
+            "user",
+            "raffle",
+            "reservationTickets",
+            "reservationTickets.ticket",
+          ],
+        });
+
+        if (!reservation) {
+          throw new Error("No se encontró la reserva");
+        }
+
+        if (reservation.user.id !== payment.user_id) {
+          throw new Error("La reserva no pertenece al usuario");
+        }
+
+        tickets = reservation.reservationTickets
+          .map((rt) => rt.ticket)
+          .filter((t) => payment.ticket_ids.includes(t.id_ticket));
+
+        if (!tickets.length) {
+          throw new Error("No hay tickets válidos en la reserva");
+        }
+
+        for (const ticket of tickets) {
+          const belongsToReservation = reservation.reservationTickets.some(
+            (rt) => rt.ticket.id_ticket === ticket.id_ticket
+          );
+
+          if (!belongsToReservation) {
+            throw new Error(
+              `El ticket ${ticket.id_ticket} no pertenece a esta reserva`
+            );
+          }
+
+          if (ticket.status === "available") {
+            throw new Error(`El ticket ${ticket.id_ticket} no pertenece a esta reserva`);
+          }
+
+          if (ticket.status === TicketStatus.PURCHASED) {
+            throw new Error(`El ticket ${ticket.id_ticket} ya fue comprado`);
+          }
+
+          if (
+            ticket.status === "held" &&
+            ticket.held_until &&
+            ticket.held_until < new Date()
+          ) {
+            throw new Error(`El ticket ${ticket.id_ticket} tiene el hold expirado`);
+          }
+
+        }
+      }
+
+      else {
+        tickets = await manager.getRepository(Ticket).find({
+          where: { id_ticket: In(payment.ticket_ids) },
+          relations: ["raffle"],
+        });
+
+        if (!tickets.length) {
+          throw new Error("No hay tickets seleccionados");
+        }
+
+        for (const ticket of tickets) {
+          if (ticket.status !== TicketStatus.AVAILABLE) {
+            throw new Error(
+              `El ticket ${ticket.id_ticket} no está disponible`
+            );
+          }
+        }
+      }
+      const totalAmount = tickets.length * Number(raffle.price);
+
+      const paymentEntity = manager.getRepository(Payment).create({
+        user,
+        raffle,
+        total_amount: totalAmount,
+        status: PaymentStatus.COMPLETED,
+        transaction_id: `TX-${Date.now()}`,
+        reference: payment.reference,
+      });
+
+      await manager.getRepository(Payment).save(paymentEntity);
+      for (const ticket of tickets) {
+        const detail = manager.getRepository(PaymentDetail).create({
+          payment: paymentEntity,
+          ticket,
+          amount: Number(raffle.price),
+        });
+
+        await manager.getRepository(PaymentDetail).save(detail);
+
+        ticket.status = TicketStatus.PURCHASED;
+        ticket.purchased_at = new Date();
+        ticket.held_until = null;
+
+        await manager.getRepository(Ticket).save(ticket);
+      }
+
+      if (reservation) {
+        await manager.getRepository(Reservation).delete(reservation.id);
+      }
+
+      const responseTickets = tickets.map((t) => ({
+        id: t.id_ticket,
+        number: t.ticket_number,
+        status: t.status,
+      }));
+
+      return {
+        message: "Pago registrado correctamente",
+        payment_id: paymentEntity.id,
+        total_amount: totalAmount,
+        tickets: responseTickets,
+      };
+
+    });
+  }
+
+
+  async createWompiPayment({
+    userId,
+    raffle_id,
+    ticket_ids,
+    reservation_id,
+    reference,
+  }: {
+    userId: number;
+    raffle_id: number;
+    ticket_ids: number[];
+    reservation_id?: number;
+    reference: string;
+  }) {
+    const paymentData = await this.dataSource.transaction(async (manager) => {
+      const user = await manager.getRepository(User).findOne({ where: { id: userId } });
+      if (!user) throw new Error("Usuario no encontrado");
+
+      const raffle = await manager.getRepository(Raffle).findOne({ where: { id: raffle_id } });
+      if (!raffle) throw new Error("Rifa no encontrada");
+      this.validateRaffleIsPurchasable(raffle);
+
+      const heldTickets = await manager.getRepository(Ticket).find({
+        where: { id_ticket: In(ticket_ids), status: In(["held", "reserved"]) },
+      });
+
+      if (heldTickets.length && !reservation_id) {
+        throw new Error("Hay tickets reservados. El pago debe realizarse desde una reserva");
+      }
+
+      let tickets: Ticket[] = [];
+      let reservation: Reservation | null = null;
+
+      if (reservation_id) {
+        reservation = await manager.getRepository(Reservation).findOne({
+          where: { id: reservation_id },
+          relations: ["user", "raffle", "reservationTickets", "reservationTickets.ticket"],
+        });
+        if (!reservation) throw new Error("No se encontró la reserva");
+        if (reservation.user.id !== userId) throw new Error("La reserva no pertenece al usuario");
+
+        tickets = reservation.reservationTickets
+          .map((rt) => rt.ticket)
+          .filter((t) => ticket_ids.includes(t.id_ticket));
+
+        if (!tickets.length) throw new Error("No hay tickets válidos en la reserva");
+        for (const ticket of tickets) {
+          if (ticket.status === TicketStatus.AVAILABLE) throw new Error(`El ticket ${ticket.id_ticket} no pertenece a esta reserva`);
+          if (ticket.status === TicketStatus.PURCHASED) throw new Error(`El ticket ${ticket.id_ticket} ya fue comprado`);
+          if (ticket.status === TicketStatus.HELD && ticket.held_until && ticket.held_until < new Date()) {
+            throw new Error(`El ticket ${ticket.id_ticket} tiene el hold expirado`);
+          }
+        }
+      } else {
+        tickets = await manager.getRepository(Ticket).find({
+          where: { id_ticket: In(ticket_ids) },
+          relations: ["raffle"],
+        });
+
+        if (!tickets.length) throw new Error("No hay tickets seleccionados");
+        for (const ticket of tickets) {
+          if (ticket.status !== TicketStatus.AVAILABLE) throw new Error(`El ticket ${ticket.id_ticket} no está disponible`);
+        }
+      }
+
+      const totalAmount = tickets.length * Number(raffle.price);
+
+      const payment = manager.getRepository(Payment).create({
+        user,
+        raffle,
+        total_amount: totalAmount,
+        status: PaymentStatus.PENDING,
+        reference,
+        expires_at: new Date(Date.now() + 15 * 60 * 1000), // 15 min
+      });
+
+      await manager.getRepository(Payment).save(payment);
+
+      for (const ticket of tickets) {
+        const detail = manager.getRepository(PaymentDetail).create({
+          payment,
+          ticket,
+          amount: Number(raffle.price),
+        });
+        await manager.getRepository(PaymentDetail).save(detail);
+
+        ticket.status = TicketStatus.HELD;
+        ticket.held_until = new Date(Date.now() + 15 * 60 * 1000);
+        await manager.getRepository(Ticket).save(ticket);
+      }
+
+      if (reservation) {
+        await manager.getRepository(Reservation).delete(reservation.id);
+      }
+
+      return {
+        payment_id: payment.id,
+        reference,
+        amount_in_cents: totalAmount * 100,
+        currency: "COP",
+      };
+    });
+
+    const simulateWebhookEnabled = process.env.SIMULATE_WOMPI_WEBHOOK === "true";
+    if (simulateWebhookEnabled) {
+      await this.simulateWebhook(paymentData.reference, "APPROVED");
+    }
+
+    return paymentData;
+  }
+
+
+  async handleWompiWebhook(
+    event: any,
+    rawBody: string,
+    headers: any,
+    res: Response
+  ) {
+    try {
+      if (process.env.WOMPI_MODE === "production") {
+        const checksum = headers["x-event-checksum"] as string;
+        const integritySecret = process.env.WOMPI_INTEGRITY_SECRET;
+
+        if (!checksum || !integritySecret) {
+          return res.status(400).json({ message: "Firma no encontrada" });
+        }
+
+        const generatedHash = crypto
+          .createHmac("sha256", integritySecret)
+          .update(rawBody)
+          .digest("hex");
+
+        if (generatedHash !== checksum) {
+          return res.status(401).json({ message: "Firma inválida" });
+        }
+      }
+      const tx = event?.data?.transaction;
+
+      if (!tx?.reference || !tx?.status) {
+        return res.status(400).json({ message: "Evento inválido" });
+      }
+
+
+      const payment = await this.paymentRepo.findOne({
+        where: { reference: tx.reference },
+        relations: ["raffle", "details", "details.ticket"], // 🔴 IMPORTANTE
+      });
+
+      if (!payment) {
+        return res.status(404).json({ message: "Pago no encontrado" });
+      }
+
+      if (payment.status !== PaymentStatus.PENDING) {
+        return res.status(200).json({ message: "Evento ya procesado" });
+      }
+      if (
+        payment.raffle.end_date &&
+        payment.raffle.end_date < new Date()
+      ) {
+        payment.status = PaymentStatus.CANCELLED;
+
+        for (const d of payment.details) {
+          d.ticket.status = TicketStatus.AVAILABLE;
+          d.ticket.held_until = null;
+          await this.ticketRepository.save(d.ticket);
+        }
+
+        await this.paymentRepo.save(payment);
+
+        return res.status(200).json({
+          message: "Pago cancelado: la rifa ya había expirado",
+        });
+      }
+
+      payment.transaction_id = tx.id;
+
+      switch (tx.status) {
+        case "APPROVED":
+          payment.status = PaymentStatus.COMPLETED;
+          for (const d of payment.details) {
+            d.ticket.status = TicketStatus.PURCHASED;
+            d.ticket.purchased_at = new Date();
+            await this.ticketRepository.save(d.ticket);
+          }
+          break;
+
+        case "DECLINED":
+        case "ERROR":
+          payment.status = PaymentStatus.CANCELLED;
+          for (const d of payment.details) {
+            d.ticket.status = TicketStatus.AVAILABLE;
+            d.ticket.held_until = null;
+            await this.ticketRepository.save(d.ticket);
+          }
+          break;
+      }
+
+      await this.paymentRepo.save(payment);
+      return res.status(200).json({ message: "Webhook procesado correctamente" });
+
+    } catch (error) {
+      console.error("Error en webhook Wompi:", error);
+      return res.status(500).json({ message: "Error interno procesando webhook" });
+    }
+  }
+
+  async simulateWebhook(reference: string, status: "APPROVED" | "DECLINED" | "ERROR" = "APPROVED") {
+
+    const fakeEvent = {
+      data: {
+        transaction: {
+          id: `SIMULATED_${Date.now()}`,
+          reference,
+          status,
+        },
+      },
+    };
+
+    const resFake = {
+      status: (code: number) => ({
+        json: (obj: any) => obj,
+      }),
+    } as unknown as Response;
+
+    return this.handleWompiWebhook(fakeEvent, "", {}, resFake);
+  }
+
+
+  async getPaymentByReference(reference: string) {
+    return this.paymentRepo.findOne({
+      where: { reference },
+    });
+  }
+
+
+
+  async getWompiSignature(
+    reference: string,
+    amountInCents: number,
+    currency: string
+  ): Promise<string> {
+
+    const privateKey = process.env.WOMPI_INTEGRITY_SECRET!;
+    if (!privateKey) {
+      throw new Error("Private key de Wompi no configurada");
+    }
+
+    const stringToSign = `${reference}${amountInCents}${currency}${privateKey}`;
+
+    return crypto
+      .createHash("sha256")
+      .update(stringToSign)
+      .digest("hex");
+  }
+
+}
+
+
+
+/*
+
+export class PaymentService {
+  private ticketRepository;
+  private paymentRepo;
+  private whatsappService;
+
+  constructor(private dataSource = AppDataSource) {
+    this.ticketRepository = dataSource.getRepository(Ticket);
+    this.paymentRepo = dataSource.getRepository(Payment);
+    this.whatsappService = new WhatsappService();
+  }
+
+
+  private validateRaffleIsPurchasable(raffle: Raffle) {
+    if (raffle.status !== "active") {
+      throw new Error("La rifa no está activa");
+    }
+
+    if (raffle.end_date && raffle.end_date < new Date()) {
+      throw new Error("La rifa ya ha expirado");
+    }
+  }
+
+
+  async sendWhatsappReceipt({
+    phone,
+    raffle,
+    tickets,
+    amount,
+  }: {
+    phone: string;
+    raffle: Raffle;
+    tickets: string[]; // ✅
+    amount: number;
+  }) {
+    await this.whatsappService.sendReceipt({
+      phone,
+      raffle,
+      tickets,
+      amount,
+    });
+  }
+
+
+  async getPaymentById(id: number) {
+    return await this.paymentRepo.findOne({
+      where: { id },
+      relations: ["details", "user", "raffle"],
+    });
+  }
+
+
+  async getRaffleById(id: number): Promise<Raffle | null> {
+    return this.dataSource.getRepository(Raffle).findOne({
+      where: { id },
+      relations: ["prizes"],
+    });
+  }
+
+
+  async deletePayment(id: number) {
+    await this.paymentRepo.delete({ id });
+  }
+
+  async updatePayment(id: number, payment: any) {
+    const paymentEntity = await this.paymentRepo.findOne({ where: { id } });
+    if (!paymentEntity) throw new Error("No se encontró el pago");
+
+    Object.assign(paymentEntity, payment);
+    await this.paymentRepo.save(paymentEntity);
+    return paymentEntity;
+  }
+
+  async completePayment(paymentId: number) {
+    const payment = await this.paymentRepo.findOne({
+      where: { id: paymentId },
+      relations: ["details", "details.ticket"],
+    });
+
+    if (!payment) throw new Error("Pago no encontrado");
+
+    payment.status = PaymentStatus.COMPLETED;
+    await this.paymentRepo.save(payment);
+
+    for (const d of payment.details) {
+      d.ticket.status = TicketStatus.PURCHASED;
+      await this.ticketRepository.save(d.ticket);
+    }
+  }
+
   async cancelPayment(paymentId: number) {
     const payment = await this.paymentRepo.findOne({
       where: { id: paymentId },
@@ -538,3 +1101,5 @@ export class PaymentService {
   }
 
 }
+
+*/
