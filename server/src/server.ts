@@ -36,6 +36,7 @@ app.use(
       "http://localhost:3000",
       "http://127.0.0.1:4321",
       "https://dewayne-polluted-angel.ngrok-free.dev",
+      "https://raffle-web-git-backup-code-armandos-projects-bf6157fe.vercel.app",
       "https://raffle-web-seven.vercel.app"
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
