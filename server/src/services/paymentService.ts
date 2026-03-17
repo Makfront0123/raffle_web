@@ -430,6 +430,8 @@ export class PaymentService {
     headers: any,
     res: Response
   ) {
+
+
     try {
       if (process.env.WOMPI_MODE === "production") {
         const checksum = headers["x-event-checksum"] as string;
@@ -439,25 +441,36 @@ export class PaymentService {
           return res.status(400).json({ message: "Firma no encontrada" });
         }
 
-        const generatedHash = crypto
-          .createHmac("sha256", integritySecret)
-          .update(rawBody)
+        const signature = event.signature;
+        const timestamp = event.timestamp;
+
+        const values = signature.properties.map((prop: string) => {
+          return prop.split(".").reduce((obj: any, key: string) => obj?.[key], event.data);
+        });
+
+        const concatenated = values.join("") + timestamp + integritySecret;
+
+        const generatedChecksum = crypto
+          .createHash("sha256")
+          .update(concatenated)
           .digest("hex");
 
-        if (generatedHash !== checksum) {
+        if (generatedChecksum !== checksum) {
           return res.status(401).json({ message: "Firma inválida" });
         }
       }
       const tx = event?.data?.transaction;
+      console.log("WOMPI EVENT:", event.event);
+      console.log("STATUS:", tx?.status);
+      console.log("REFERENCE:", tx?.reference);
 
       if (!tx?.reference || !tx?.status) {
         return res.status(400).json({ message: "Evento inválido" });
       }
 
-
       const payment = await this.paymentRepo.findOne({
         where: { reference: tx.reference },
-        relations: ["raffle", "details", "details.ticket"], // 🔴 IMPORTANTE
+        relations: ["raffle", "details", "details.ticket"],
       });
 
       if (!payment) {
