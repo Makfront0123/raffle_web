@@ -124,11 +124,10 @@ export function usePayment({ onPaymentSuccess }: UsePaymentProps = {}) {
       console.log("WidgetCheckout", window.WidgetCheckout);
       console.log("publicKey", process.env.NEXT_PUBLIC_WOMPI_PUBLIC_KEY);
       const checkout = new window.WidgetCheckout({
-
         currency: "COP",
         amountInCents,
         reference,
-        publicKey: "pub_test_Kk2WLiEL1dX7vFC0ea5gIOpK8FGHd2hL",
+        publicKey: process.env.NEXT_PUBLIC_WOMPI_PUBLIC_KEY,
         signature: { integrity: signature },
       });
 

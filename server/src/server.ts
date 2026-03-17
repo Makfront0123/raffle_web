@@ -34,7 +34,15 @@ const paymentController = new PaymentController(paymentService);
 
 app.post(
   "/payments/wompi/webhook",
-  express.raw({ type: "application/json" }),
+  express.raw({
+    type: () => true
+  }),
+  (req, res, next) => {
+    console.log("🔥 WOMPI WEBHOOK RECIBIDO");
+    console.log("HEADERS:", req.headers);
+    console.log("BODY:", req.body.toString());
+    next();
+  },
   paymentController.wompiWebhook.bind(paymentController)
 );
 app.use(express.json());

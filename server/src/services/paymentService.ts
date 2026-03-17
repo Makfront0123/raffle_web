@@ -430,7 +430,7 @@ export class PaymentService {
     headers: any,
     res: Response
   ) {
-
+    console.log("🔔 WEBHOOK RECIBIDO:", JSON.stringify(event));
 
     try {
       if (process.env.WOMPI_MODE === "production") {
