@@ -22,11 +22,21 @@ const app = express();
 
 app.use(automationMiddleware)
 app.use("/api/ping-automation", pingRoutes);
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "ok" });
+});
 app.set("trust proxy", 1);
 
 app.use(cookieParser());
+const paymentService = new PaymentService(AppDataSource);
+const paymentController = new PaymentController(paymentService);
 
 
+app.post(
+  "/payments/wompi/webhook",
+  express.raw({ type: "application/json" }),
+  paymentController.wompiWebhook.bind(paymentController)
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -56,13 +66,6 @@ app.use(
     crossOriginResourcePolicy: false,
     crossOriginEmbedderPolicy: false,
   })
-);
-const paymentService = new PaymentService(AppDataSource);
-const paymentController = new PaymentController(paymentService);
-app.post(
-  "/payments/wompi/webhook",
-  express.raw({ type: "*/*" }),
-  paymentController.wompiWebhook.bind(paymentController)
 );
 
 
