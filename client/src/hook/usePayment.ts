@@ -80,7 +80,6 @@ export function usePayment({ onPaymentSuccess }: UsePaymentProps = {}) {
 
     return PaymentStatusEnum.PENDING;
   };
-
   const payWithWompiWidget = async ({
     tickets,
     raffle,
@@ -96,34 +95,31 @@ export function usePayment({ onPaymentSuccess }: UsePaymentProps = {}) {
     }
 
     try {
+      // ✅ 1. Generar reference AQUÍ
       const reference = `RAFFLE_${raffle.id}_${Date.now()}`;
-      const amountInCents = raffle.price * tickets.length * 100;
 
-      const ticketsForPayment: PaymentTicket[] = tickets.map((t) => ({
-        id_ticket: t.id_ticket,
-        ticket_number: t.ticket_number,
-        status: t.status as TicketStatusEnum,
-      }));
-
-      await widgetPayment({
+      // ✅ 2. Crear pago (UNA SOLA VEZ)
+      const paymentData = await widgetPayment({
         method: "wompi",
         raffle_id: raffle.id,
-        ticket_ids: ticketsForPayment.map((t) => t.id_ticket),
+        ticket_ids: tickets.map((t) => t.id_ticket),
         reservation_id,
         reference,
-        total_amount: raffle.price * tickets.length,
       });
 
+      const amountInCents = paymentData.amount_in_cents;
+      const finalReference = paymentData.reference;
+
+      // ✅ 3. Firma usando datos del backend
       const { signature } = await getWompiSignature({
-        reference,
+        reference: finalReference,
         amount_in_cents: amountInCents,
         currency: "COP",
-      })
+      });
 
       await loadWompiScript();
-      console.log("WidgetCheckout", window.WidgetCheckout);
-      console.log("publicKey", process.env.NEXT_PUBLIC_WOMPI_PUBLIC_KEY);
-      // 🔥 1. Obtener acceptance_token NUEVO
+
+      // ✅ 4. acceptance_token NUEVO
       const merchant = await axios.get(
         `https://sandbox.wompi.co/v1/merchants/${process.env.NEXT_PUBLIC_WOMPI_PUBLIC_KEY}`
       );
@@ -131,14 +127,16 @@ export function usePayment({ onPaymentSuccess }: UsePaymentProps = {}) {
       const acceptanceToken =
         merchant.data.data.presigned_acceptance.acceptance_token;
 
+      // ✅ 5. Widget correcto
       const checkout = new window.WidgetCheckout({
         currency: "COP",
         amountInCents,
-        reference,
+        reference: finalReference,
         publicKey: process.env.NEXT_PUBLIC_WOMPI_PUBLIC_KEY,
         acceptanceToken,
         signature: { integrity: signature },
       } as any);
+
       checkout.open(async (result) => {
         const tx = result?.transaction;
 
@@ -146,6 +144,7 @@ export function usePayment({ onPaymentSuccess }: UsePaymentProps = {}) {
           setFailedModalOpen(true);
           return;
         }
+
         if (tx.status === "DECLINED" || tx.status === "ERROR") {
           setFailedModalOpen(true);
           return;
@@ -154,14 +153,17 @@ export function usePayment({ onPaymentSuccess }: UsePaymentProps = {}) {
         if (tx.status === "APPROVED") {
           setVerifyingPayment(true);
 
-          const status = await waitForPaymentStatus(reference);
+          const status = await waitForPaymentStatus(finalReference);
 
           setVerifyingPayment(false);
 
-          if (status === PaymentStatusEnum.COMPLETED || status === PaymentStatusEnum.PENDING) {
+          if (
+            status === PaymentStatusEnum.COMPLETED ||
+            status === PaymentStatusEnum.PENDING
+          ) {
             setPaymentInfo({
               raffle,
-              tickets: tickets.map(t => t.ticket_number),
+              tickets: tickets.map((t) => t.ticket_number),
               amount: raffle.price * tickets.length,
             });
 
@@ -176,44 +178,8 @@ export function usePayment({ onPaymentSuccess }: UsePaymentProps = {}) {
 
           setFailedModalOpen(true);
         }
-        setVerifyingPayment(true);
-
-        const status = await waitForPaymentStatus(reference);
-
-        setVerifyingPayment(false);
-
-        switch (status) {
-          case PaymentStatusEnum.COMPLETED:
-
-            setPaymentInfo({
-              raffle,
-              tickets: tickets.map(t => t.ticket_number),
-              amount: raffle.price * tickets.length,
-            });
-
-            setSuccessModalOpen(true);
-
-            if (onPaymentSuccess) {
-              await onPaymentSuccess();
-            }
-
-            break;
-
-          case PaymentStatusEnum.CANCELLED:
-            setFailedModalOpen(true);
-            setFailedPaymentInfo({
-              raffleName: raffle.title,
-              tickets: tickets.map((t) => t.ticket_number),
-              reason: "El pago fue rechazado o cancelado",
-            });
-            break;
-
-          default:
-            setFailedModalOpen(true);
-        }
       });
     } catch (error: unknown) {
-
       let message = "No se pudo iniciar el pago";
 
       if (axios.isAxiosError(error)) {
@@ -232,10 +198,7 @@ export function usePayment({ onPaymentSuccess }: UsePaymentProps = {}) {
 
       throw error;
     }
-
-
   };
-
   return {
     loading,
     userPayments,

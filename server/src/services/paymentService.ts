@@ -410,7 +410,7 @@ export class PaymentService {
       return {
         payment_id: payment.id,
         reference,
-        amount_in_cents: totalAmount * 100,
+        amount_in_cents: Math.round(totalAmount * 100),
         currency: "COP",
       };
     });

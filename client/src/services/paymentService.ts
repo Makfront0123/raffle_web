@@ -1,5 +1,5 @@
 import { api } from "@/api/api";
-import { Payment, PaymentCreateDto, PaymentStatusEnum, WidgetPaymentDto } from "@/type/Payment";
+import { Payment, PaymentCreateDto, PaymentStatusEnum, WidgetPaymentDto, WompiPaymentResponse } from "@/type/Payment";
 import { WompiSignatureDto } from "@/type/WompiSignature";
 
 export class PaymentService {
@@ -8,12 +8,10 @@ export class PaymentService {
     return response.data;
   }
 
-  static async widgetPayment(data: WidgetPaymentDto): Promise<Payment> {
-    const response = await api.post("/api/payment/wompi", data);
-    console.log(response.data);
-    return response.data;
-  }
-
+  static async widgetPayment(data: WidgetPaymentDto): Promise<WompiPaymentResponse> {
+  const response = await api.post("/api/payment/wompi", data);
+  return response.data;
+}
   static async cancelPayment(id: number): Promise<void> {
     await api.put(`/api/payment/${id}/cancel`);
   }
