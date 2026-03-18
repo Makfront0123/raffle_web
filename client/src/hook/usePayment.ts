@@ -6,7 +6,7 @@ import { usePaymentStore } from "@/store/paymentStore";
 import { AuthStore } from "@/store/authStore";
 import { Raffle } from "@/type/Raffle";
 import { Ticket } from "@/type/Ticket";
-import { PaymentStatusEnum, PaymentTicket, TicketStatusEnum } from "@/type/Payment";
+import { PaymentStatusEnum } from "@/type/Payment";
 import axios from "axios";
 
 interface UsePaymentProps {
@@ -95,10 +95,8 @@ export function usePayment({ onPaymentSuccess }: UsePaymentProps = {}) {
     }
 
     try {
-      // ✅ 1. Generar reference AQUÍ
       const reference = `RAFFLE_${raffle.id}_${Date.now()}`;
 
-      // ✅ 2. Crear pago (UNA SOLA VEZ)
       const paymentData = await widgetPayment({
         method: "wompi",
         raffle_id: raffle.id,
@@ -110,7 +108,6 @@ export function usePayment({ onPaymentSuccess }: UsePaymentProps = {}) {
       const amountInCents = paymentData.amount_in_cents;
       const finalReference = paymentData.reference;
 
-      // ✅ 3. Firma usando datos del backend
       const { signature } = await getWompiSignature({
         reference: finalReference,
         amount_in_cents: amountInCents,
@@ -119,23 +116,21 @@ export function usePayment({ onPaymentSuccess }: UsePaymentProps = {}) {
 
       await loadWompiScript();
 
-      // ✅ 4. acceptance_token NUEVO
       const merchant = await axios.get(
-        `https://sandbox.wompi.co/v1/merchants/${process.env.NEXT_PUBLIC_WOMPI_PUBLIC_KEY}`
+        `https://api-sandbox.wompi.co/v1/merchants/${process.env.NEXT_PUBLIC_WOMPI_PUBLIC_KEY}`
       );
 
       const acceptanceToken =
         merchant.data.data.presigned_acceptance.acceptance_token;
 
-      // ✅ 5. Widget correcto
       const checkout = new window.WidgetCheckout({
         currency: "COP",
         amountInCents,
         reference: finalReference,
-        publicKey: process.env.NEXT_PUBLIC_WOMPI_PUBLIC_KEY,
+        publicKey: process.env.NEXT_PUBLIC_WOMPI_PUBLIC_KEY!,
         acceptanceToken,
         signature: { integrity: signature },
-      } as any);
+      });
 
       checkout.open(async (result) => {
         const tx = result?.transaction;
