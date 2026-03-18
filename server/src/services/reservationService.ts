@@ -41,10 +41,11 @@ export class ReservationService {
       if (!raffle) throw new Error('Rifa no encontrada.');
       if (raffle.status !== 'active') throw new Error('La rifa no está activa.');
 
-      const tickets = await queryRunner.manager.find(Ticket, {
-        where: { id_ticket: In(ticketIds) },
-        relations: ["raffle"],
-      });
+      const tickets = await queryRunner.manager
+        .createQueryBuilder(Ticket, "ticket")
+        .setLock("pessimistic_write")
+        .where("ticket.id_ticket IN (:...ids)", { ids: ticketIds })
+        .getMany();
 
       const invalidTickets = tickets.filter((t: Ticket) => !t.raffle || t.raffle.id !== raffleId);
       if (invalidTickets.length > 0) {
@@ -75,7 +76,11 @@ export class ReservationService {
 
       for (const resTicket of reservation.reservationTickets) {
         resTicket.ticket.status = 'reserved';
-        await queryRunner.manager.save(resTicket.ticket);
+        await queryRunner.manager.update(
+          Ticket,
+          { id_ticket: In(ticketIds) },
+          { status: TicketStatus.RESERVED }
+        );
       }
 
       await queryRunner.commitTransaction();
@@ -98,10 +103,11 @@ export class ReservationService {
     try {
       const now = new Date();
 
-      const expired = await queryRunner.manager.find(Reservation, {
-        where: { expires_at: LessThan(now) },
-        relations: ["reservationTickets", "reservationTickets.ticket"],
-      });
+      const expired = await queryRunner.manager
+        .createQueryBuilder(Reservation, "reservation")
+        .setLock("pessimistic_write")
+        .where("reservation.expires_at < :now", { now })
+        .getMany();
 
       if (expired.length === 0) {
         await queryRunner.commitTransaction();

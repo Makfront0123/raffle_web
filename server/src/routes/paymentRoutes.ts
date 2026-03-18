@@ -73,4 +73,9 @@ router.post(
   paymentController.createPayment.bind(paymentController)
 );
 
+router.post(
+  "/wompi/test",
+  paymentController.createWompiPayment.bind(paymentController)
+);
+
 export default router;
