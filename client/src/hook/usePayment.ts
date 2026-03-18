@@ -123,14 +123,22 @@ export function usePayment({ onPaymentSuccess }: UsePaymentProps = {}) {
       await loadWompiScript();
       console.log("WidgetCheckout", window.WidgetCheckout);
       console.log("publicKey", process.env.NEXT_PUBLIC_WOMPI_PUBLIC_KEY);
+      // 🔥 1. Obtener acceptance_token NUEVO
+      const merchant = await axios.get(
+        `https://sandbox.wompi.co/v1/merchants/${process.env.NEXT_PUBLIC_WOMPI_PUBLIC_KEY}`
+      );
+
+      const acceptanceToken =
+        merchant.data.data.presigned_acceptance.acceptance_token;
+
       const checkout = new window.WidgetCheckout({
         currency: "COP",
         amountInCents,
         reference,
         publicKey: process.env.NEXT_PUBLIC_WOMPI_PUBLIC_KEY,
+        acceptanceToken,
         signature: { integrity: signature },
-      });
-
+      } as any);
       checkout.open(async (result) => {
         const tx = result?.transaction;
 
