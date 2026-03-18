@@ -504,64 +504,64 @@ export class PaymentService {
         return res.status(400).json({ message: "Evento inválido" });
       }
 
-      const payment = await this.dataSource
-        .getRepository(Payment)
-        .createQueryBuilder("payment")
-        .setLock("pessimistic_write")
-        .where("payment.reference = :reference", { reference: tx.reference })
-        .getOne();
+      await this.dataSource.transaction(async (manager) => {
+        const payment = await manager
+          .getRepository(Payment)
+          .createQueryBuilder("payment")
+          .setLock("pessimistic_write")
+          .leftJoinAndSelect("payment.details", "details")
+          .leftJoinAndSelect("details.ticket", "ticket")
+          .leftJoinAndSelect("payment.raffle", "raffle")
+          .where("payment.reference = :reference", { reference: tx.reference })
+          .getOne();
 
-      if (!payment) {
-        return res.status(404).json({ message: "Pago no encontrado" });
-      }
-
-      if (payment.status !== PaymentStatus.PENDING) {
-        return res.status(200).json({ message: "Evento ya procesado" });
-      }
-      if (
-        payment.raffle.end_date &&
-        payment.raffle.end_date < new Date()
-      ) {
-        payment.status = PaymentStatus.CANCELLED;
-
-        for (const d of payment.details) {
-          d.ticket.status = TicketStatus.AVAILABLE;
-          d.ticket.held_until = null;
-          await this.ticketRepository.save(d.ticket);
+        if (!payment) {
+          throw new Error("Pago no encontrado");
         }
 
-        await this.paymentRepo.save(payment);
-
-        return res.status(200).json({
-          message: "Pago cancelado: la rifa ya había expirado",
-        });
-      }
-
-      payment.transaction_id = tx.id;
-
-      switch (tx.status) {
-        case "APPROVED":
-          payment.status = PaymentStatus.COMPLETED;
-          for (const d of payment.details) {
-            d.ticket.status = TicketStatus.PURCHASED;
-            d.ticket.purchased_at = new Date();
-            await this.ticketRepository.save(d.ticket);
-          }
-          break;
-
-        case "DECLINED":
-        case "ERROR":
+        if (payment.status !== PaymentStatus.PENDING) {
+          return;
+        }
+        if (payment.raffle.end_date && payment.raffle.end_date < new Date()) {
           payment.status = PaymentStatus.CANCELLED;
+
           for (const d of payment.details) {
             d.ticket.status = TicketStatus.AVAILABLE;
             d.ticket.held_until = null;
-            await this.ticketRepository.save(d.ticket);
+            await manager.save(d.ticket);
           }
-          break;
-      }
 
-      await this.paymentRepo.save(payment);
-      return res.status(200).json({ message: "Webhook procesado correctamente" });
+          await manager.save(payment);
+          return;
+        }
+
+        payment.transaction_id = tx.id;
+
+        switch (tx.status) {
+          case "APPROVED":
+            payment.status = PaymentStatus.COMPLETED;
+
+            for (const d of payment.details) {
+              d.ticket.status = TicketStatus.PURCHASED;
+              d.ticket.purchased_at = new Date();
+              await manager.save(d.ticket);
+            }
+            break;
+
+          case "DECLINED":
+          case "ERROR":
+            payment.status = PaymentStatus.CANCELLED;
+
+            for (const d of payment.details) {
+              d.ticket.status = TicketStatus.AVAILABLE;
+              d.ticket.held_until = null;
+              await manager.save(d.ticket);
+            }
+            break;
+        }
+
+        await manager.save(payment);
+      });
 
     } catch (error) {
       console.error("Error en webhook Wompi:", error);
