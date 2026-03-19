@@ -45,10 +45,6 @@ export default function Raffles() {
       {loading && <LoadingScreen />}
       {error && <div className="text-red-500">{error}</div>}
 
-      <h1 className="text-center text-6xl font-extrabold mb-12 text-white">
-        🎟️ Rifas Premium
-      </h1>
-
       <RaffleFilters
         search={search}
         setSearch={setSearch}

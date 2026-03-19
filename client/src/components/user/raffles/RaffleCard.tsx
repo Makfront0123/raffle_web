@@ -17,7 +17,7 @@ import { AuthStore } from "@/store/authStore";
 import { AuthDialog } from "@/components/user/AuthDialog";
 import { formatCOP } from "@/app/utils/formatCOP";
 import { Raffle } from "@/type/Raffle";
- 
+import { Icon } from "@iconify/react";
 import Link from "next/link";
 
 export default function RaffleCard({
@@ -27,7 +27,7 @@ export default function RaffleCard({
   raffle: Raffle;
   setShowExpiredModal: (raffle: Raffle) => void;
 }) {
- 
+
   const timeLeft = useCountdown(raffle.end_date);
   const isExpired = new Date(raffle.end_date) <= new Date();
   const { user } = AuthStore();
@@ -75,7 +75,7 @@ export default function RaffleCard({
 
     return () => clearInterval(counter);
   }, [mainPrize]);
- 
+
   const isEndingSoon =
     new Date(raffle.end_date).getTime() - Date.now() < 48 * 60 * 60 * 1000;
 
@@ -117,10 +117,10 @@ export default function RaffleCard({
 
                 <p className="text-sm text-gray-300 flex items-center justify-center gap-1">
                   {mainPrize.type === "cash"
-                    ? "💵"
+                    ? <Icon icon="feather:dollar-sign" className="h-4 w-4" />
                     : mainPrize.type === "trip"
-                      ? "✈️"
-                      : "🎁"}{" "}
+                      ? <Icon icon="feather:airplane" className="h-4 w-4" />
+                      : <Icon icon="feather:gift" className="h-4 w-4" />}{" "}
                   {mainPrize.name}
                 </p>
               </div>
@@ -128,14 +128,16 @@ export default function RaffleCard({
 
             <div className="flex justify-between items-center">
               <Badge className="bg-black/40 border border-gold/30 text-yellow-500">
-                🎟️ Ticket: {formatCOP(raffle.price)}
+                <Icon icon="feather:credit-card" className="h-4 w-4" />
+                Ticket: {formatCOP(raffle.price)}
               </Badge>
 
               <Badge className="bg-black/40 border border-white/20 text-gray-200">
-                🎁 {raffle.prizes?.length ?? 0} premios
+                <Icon icon="feather:gift" className="h-4 w-4" />
+                {raffle.prizes?.length ?? 0} premios
               </Badge>
               <Badge className="bg-black/40 border border-white/20 text-gray-200">
-                {raffle.total_numbers} números
+                <Icon icon="feather:hash" className="h-4 w-4" />{raffle.total_numbers} números
               </Badge>
             </div>
 
@@ -166,12 +168,12 @@ export default function RaffleCard({
                 <ul className="space-y-1 text-xs text-gray-300">
                   {visibleSecondary.map((prize) => (
                     <li key={prize.id} className="flex justify-between">
-                      <span>
+                      <span className="flex items-center gap-x-2 mt-2">
                         {prize.type === "cash"
-                          ? "💵"
+                          ? <Icon icon="feather:dollar-sign" className="h-4 w-4" />
                           : prize.type === "trip"
-                            ? "✈️"
-                            : "🎁"}{" "}
+                            ? <Icon icon="feather:airplane" className="h-4 w-4" />
+                            : <Icon icon="feather:gift" className="h-4 w-4" />}{" "}
                         {prize.name}
                       </span>
                       <span className="font-semibold">
