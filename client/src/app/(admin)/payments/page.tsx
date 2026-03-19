@@ -29,11 +29,6 @@ export default function PaymentsPage() {
   const paginatedPayments = filteredPayments.slice(start, start + ITEMS_PER_PAGE);
   const { exportPayments } = useExportPaymentsToExcel();
 
-
-  console.log(filteredPayments)
-
-  
-
   return (
     <main className="flex-1 p-6 bg-gray-50 overflow-y-auto">
       <h1 className="text-3xl font-bold mb-6">Pagos</h1>
