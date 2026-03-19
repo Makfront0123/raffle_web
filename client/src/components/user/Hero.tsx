@@ -7,7 +7,7 @@ import { motion } from "framer-motion";
 import { useAuth } from "@/hook/useAuth";
 import { useState } from "react";
 import { AuthDialog } from "./AuthDialog";
-
+import { Icon } from "@iconify/react";
 export default function Hero() {
   const { user } = useAuth();
   const [openAuth, setOpenAuth] = useState(false);
@@ -99,17 +99,17 @@ export default function Hero() {
           className="flex flex-wrap justify-center gap-6 mt-6 text-gray-300 text-sm"
         >
           <div className="flex items-center gap-2">
-            <span className="text-yellow-400 text-lg">⭐</span>
-            +300 ganadores satisfechos
+            <Icon icon="feather:zap" className="text-yellow-400 text-lg" />
+            Participa fácil y rápido
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-yellow-400 text-lg">🔒</span>
+            <Icon icon="feather:lock" className="text-yellow-400 text-lg" />
             Pagos seguros
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-yellow-400 text-lg">🎯</span>
+            <Icon icon="feather:bar-chart-2" className="text-yellow-400 text-lg" />
             Resultados transparentes
           </div>
         </motion.div>

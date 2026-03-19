@@ -90,10 +90,10 @@ export default function WinnersSection({
                     </p>
                   </div>
                 </div>
-                <div className="flex flex-col items-end">
-                  <p className="text-gold font-semibold md:text-lg text-sm">
+                <div className="flex flex-col md:items-end items-start">
+                  <p className="text-white font-semibold md:text-lg text-sm">
                     {w.prize_name}</p>
-                  <span className="text-2xl text-yellow-500 font-bold">{formatCOP(w.value)} COP</span>
+                  <span className="md:text-2xl text-sm text-yellow-500 font-bold">{formatCOP(w.value)} COP</span>
                 </div>
               </motion.div>
             ))}

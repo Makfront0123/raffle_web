@@ -12,6 +12,7 @@
     "migration:run:prod": "node ./node_modules/typeorm/cli.js -d dist/data-source.js migration:run",
     "migration:revert": "typeorm-ts-node-commonjs -d src/data-source.ts migration:revert",
     "seed:all": "ts-node src/seeder/allSeeder.ts",
+    "stress": "ts-node src/seeder/stress_test.ts",
     "test": "jest --runInBand"
   },
   "dependencies": {

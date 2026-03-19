@@ -42,14 +42,9 @@ export function Header() {
     ${isHome ? "premium-led-border" : ""}
   `}
     >
-      <nav className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between text-white">
+      <nav className="max-w-7xl mx-auto  py-4 flex items-center justify-between text-white">
         <Link href="/" className="flex flex-col leading-none">
-          <span className="font-extrabold text-2xl tracking-[0.3em] text-yellow-400">
-            ICON
-          </span>
-          <span className="text-[10px] text-gray-400 tracking-widest">
-            RIFAS PREMIUM
-          </span>
+          <Image src="/images/logo02.png" alt="logo" width={160} height={160} className="object-fill hover:opacity-70 md:ml-0 ml-2" />
         </Link>
 
 

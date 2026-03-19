@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { PaymentService } from "@/services/paymentService";
-import { Payment, PaymentCreateDto, PaymentStatusEnum, WidgetPaymentDto } from "@/type/Payment";
+import { Payment, PaymentCreateDto, PaymentStatusEnum, WidgetPaymentDto, WompiPaymentResponse } from "@/type/Payment";
 import { WompiSignatureDto } from "@/type/WompiSignature";
 import { toast } from "sonner";
 import { getErrorMessage } from "./raffleStore";
@@ -19,7 +19,7 @@ interface PaymentStore {
   getPaymentsUser: () => Promise<Payment[]>;
 
   createPayment: (data: PaymentCreateDto,) => Promise<Payment>;
-  widgetPayment: (data: WidgetPaymentDto,) => Promise<Payment>;
+  widgetPayment: (data: WidgetPaymentDto,) => Promise<WompiPaymentResponse>;
 
 
   completePayment: (id: number,) => Promise<void>;
@@ -98,9 +98,13 @@ export const usePaymentStore = create<PaymentStore>((set, get) => ({
   },
 
   getPaymentStatusByReference: async (reference: string) => {
-    const { status } =
-      await PaymentService.getPaymentStatusByReference(reference);
-    return status;
+    const res = await PaymentService.getPaymentStatusByReference(reference);
+
+    if (!res || !res.status) {
+      return PaymentStatusEnum.PENDING;
+    }
+
+    return res.status;
   },
 
 }));

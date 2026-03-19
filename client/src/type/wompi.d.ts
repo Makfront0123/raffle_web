@@ -1,25 +1,28 @@
-export interface WompiTransaction {
-  status: "APPROVED" | "DECLINED" | "ERROR";
-}
-
-export interface WompiCheckoutResult {
-  transaction?: WompiTransaction;
-}
-
-export interface WompiCheckoutConfig {
+export interface WompiWidgetConfig {
   currency: string;
   amountInCents: number;
   reference: string;
-  publicKey?: string;
+  publicKey: string;
+  acceptanceToken: string;
   signature: {
     integrity: string;
   };
 }
 
-export interface WompiCheckoutInstance {
-  open: (callback: (result: WompiCheckoutResult) => void) => void;
+export interface WompiTransaction {
+  id: string;
+  reference: string;
+  status: "APPROVED" | "DECLINED" | "ERROR" | "PENDING";
 }
 
-export interface WompiCheckoutConstructor {
-  new (config: WompiCheckoutConfig): WompiCheckoutInstance;
+export interface WompiResult {
+  transaction?: WompiTransaction;
 }
+
+export interface WompiCheckoutInstance {
+  open(callback: (result: WompiResult) => void): void;
+}
+
+export type WompiCheckoutConstructor = new (
+  config: WompiWidgetConfig
+) => WompiCheckoutInstance;

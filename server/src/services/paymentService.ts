@@ -99,6 +99,38 @@ export class PaymentService {
     }
   }
 
+  async cancelPaymentByReference(reference: string) {
+    const payment = await this.paymentRepo.findOne({
+      where: { reference },
+      relations: ["details", "details.ticket"],
+    });
+
+    if (!payment) {
+      throw new Error("Pago no encontrado");
+    }
+
+    if (payment.status !== PaymentStatus.PENDING) {
+      return { message: "El pago ya fue procesado" };
+    }
+
+    payment.status = PaymentStatus.CANCELLED;
+    payment.cancelled_at = new Date();
+
+    for (const detail of payment.details) {
+      if (detail.ticket.status === TicketStatus.HELD) {
+        detail.ticket.status = TicketStatus.AVAILABLE;
+        detail.ticket.held_until = null;
+        await this.ticketRepository.save(detail.ticket);
+      }
+    }
+
+    await this.paymentRepo.save(payment);
+
+    return {
+      message: "Pago cancelado y tickets liberados",
+    };
+  }
+
   async cancelPayment(paymentId: number) {
     const payment = await this.paymentRepo.findOne({
       where: { id: paymentId },
@@ -334,10 +366,12 @@ export class PaymentService {
           }
         }
       } else {
-        tickets = await manager.getRepository(Ticket).find({
-          where: { id_ticket: In(ticket_ids) },
-          relations: ["raffle"],
-        });
+        tickets = await manager
+          .getRepository(Ticket)
+          .createQueryBuilder("ticket")
+          .setLock("pessimistic_write")
+          .where("ticket.id_ticket IN (:...ids)", { ids: ticket_ids })
+          .getMany();
 
         if (!tickets.length) throw new Error("No hay tickets seleccionados");
         for (const ticket of tickets) {
@@ -346,6 +380,19 @@ export class PaymentService {
       }
 
       const totalAmount = tickets.length * Number(raffle.price);
+
+      const existingPayment = await manager.getRepository(Payment).findOne({
+        where: { reference },
+      });
+
+      if (existingPayment) {
+        return {
+          payment_id: existingPayment.id,
+          reference: existingPayment.reference,
+          amount_in_cents: Math.round(existingPayment.total_amount * 100),
+          currency: "COP",
+        };
+      }
 
       const payment = manager.getRepository(Payment).create({
         user,
@@ -356,7 +403,28 @@ export class PaymentService {
         expires_at: new Date(Date.now() + 15 * 60 * 1000), // 15 min
       });
 
-      await manager.getRepository(Payment).save(payment);
+      let savedPayment;
+
+      try {
+        savedPayment = await manager.getRepository(Payment).save(payment);
+      } catch (error: any) {
+        if (error.code === "ER_DUP_ENTRY") {
+          const existingPayment = await manager.getRepository(Payment).findOne({
+            where: { reference },
+          });
+
+          if (!existingPayment) throw error;
+
+          return {
+            payment_id: existingPayment.id,
+            reference: existingPayment.reference,
+            amount_in_cents: Math.round(existingPayment.total_amount * 100),
+            currency: "COP",
+          };
+        }
+
+        throw error;
+      }
 
       for (const ticket of tickets) {
         const detail = manager.getRepository(PaymentDetail).create({
@@ -378,18 +446,15 @@ export class PaymentService {
       return {
         payment_id: payment.id,
         reference,
-        amount_in_cents: totalAmount * 100,
+        amount_in_cents: Math.round(totalAmount * 100),
         currency: "COP",
       };
     });
 
-    const simulateWebhookEnabled =
-      process.env.NODE_ENV !== "production" || process.env.SIMULATE_PROD === "true";
-
+    const simulateWebhookEnabled = process.env.SIMULATE_WOMPI_WEBHOOK === "true";
     if (simulateWebhookEnabled) {
       await this.simulateWebhook(paymentData.reference, "APPROVED");
     }
-
 
     return paymentData;
   }
@@ -401,6 +466,8 @@ export class PaymentService {
     headers: any,
     res: Response
   ) {
+    console.log("🔔 WEBHOOK RECIBIDO:", JSON.stringify(event));
+
     try {
       if (process.env.WOMPI_MODE === "production") {
         const checksum = headers["x-event-checksum"] as string;
@@ -410,77 +477,91 @@ export class PaymentService {
           return res.status(400).json({ message: "Firma no encontrada" });
         }
 
-        const generatedHash = crypto
+        const signature = event.signature;
+        const timestamp = event.timestamp;
+
+        const values = signature.properties.map((prop: string) => {
+          return prop.split(".").reduce((obj: any, key: string) => obj?.[key], event.data);
+        });
+
+        const concatenated = values.join("") + timestamp + integritySecret;
+
+        const generatedChecksum = crypto
           .createHash("sha256")
-          .update(rawBody + integritySecret)
+          .update(concatenated)
           .digest("hex");
 
-        if (generatedHash !== checksum) {
+        if (generatedChecksum !== checksum) {
           return res.status(401).json({ message: "Firma inválida" });
         }
       }
-
       const tx = event?.data?.transaction;
+      console.log("WOMPI EVENT:", event.event);
+      console.log("STATUS:", tx?.status);
+      console.log("REFERENCE:", tx?.reference);
+
       if (!tx?.reference || !tx?.status) {
         return res.status(400).json({ message: "Evento inválido" });
       }
 
-      const payment = await this.paymentRepo.findOne({
-        where: { reference: tx.reference },
-        relations: ["raffle", "details", "details.ticket"], // 🔴 IMPORTANTE
-      });
+      await this.dataSource.transaction(async (manager) => {
+        const payment = await manager
+          .getRepository(Payment)
+          .createQueryBuilder("payment")
+          .setLock("pessimistic_write")
+          .leftJoinAndSelect("payment.details", "details")
+          .leftJoinAndSelect("details.ticket", "ticket")
+          .leftJoinAndSelect("payment.raffle", "raffle")
+          .where("payment.reference = :reference", { reference: tx.reference })
+          .getOne();
 
-      if (!payment) {
-        return res.status(404).json({ message: "Pago no encontrado" });
-      }
-
-      if (payment.status !== PaymentStatus.PENDING) {
-        return res.status(200).json({ message: "Evento ya procesado" });
-      }
-      if (
-        payment.raffle.end_date &&
-        payment.raffle.end_date < new Date()
-      ) {
-        payment.status = PaymentStatus.CANCELLED;
-
-        for (const d of payment.details) {
-          d.ticket.status = TicketStatus.AVAILABLE;
-          d.ticket.held_until = null;
-          await this.ticketRepository.save(d.ticket);
+        if (!payment) {
+          throw new Error("Pago no encontrado");
         }
 
-        await this.paymentRepo.save(payment);
-
-        return res.status(200).json({
-          message: "Pago cancelado: la rifa ya había expirado",
-        });
-      }
-
-      payment.transaction_id = tx.id;
-
-      switch (tx.status) {
-        case "APPROVED":
-          payment.status = PaymentStatus.COMPLETED;
-          for (const d of payment.details) {
-            d.ticket.status = TicketStatus.PURCHASED;
-            d.ticket.purchased_at = new Date();
-            await this.ticketRepository.save(d.ticket);
-          }
-          break;
-
-        case "DECLINED":
-        case "ERROR":
+        if (payment.status !== PaymentStatus.PENDING) {
+          return;
+        }
+        if (payment.raffle.end_date && payment.raffle.end_date < new Date()) {
           payment.status = PaymentStatus.CANCELLED;
+
           for (const d of payment.details) {
             d.ticket.status = TicketStatus.AVAILABLE;
             d.ticket.held_until = null;
-            await this.ticketRepository.save(d.ticket);
+            await manager.save(d.ticket);
           }
-          break;
-      }
 
-      await this.paymentRepo.save(payment);
-      return res.status(200).json({ message: "Webhook procesado correctamente" });
+          await manager.save(payment);
+          return;
+        }
+
+        payment.transaction_id = tx.id;
+
+        switch (tx.status) {
+          case "APPROVED":
+            payment.status = PaymentStatus.COMPLETED;
+
+            for (const d of payment.details) {
+              d.ticket.status = TicketStatus.PURCHASED;
+              d.ticket.purchased_at = new Date();
+              await manager.save(d.ticket);
+            }
+            break;
+
+          case "DECLINED":
+          case "ERROR":
+            payment.status = PaymentStatus.CANCELLED;
+
+            for (const d of payment.details) {
+              d.ticket.status = TicketStatus.AVAILABLE;
+              d.ticket.held_until = null;
+              await manager.save(d.ticket);
+            }
+            break;
+        }
+
+        await manager.save(payment);
+      });
 
     } catch (error) {
       console.error("Error en webhook Wompi:", error);

@@ -29,8 +29,14 @@ export interface WidgetPaymentDto {
   ticket_ids: number[];
   card_token?: string;
   reference: string;
-  total_amount: number;
   reservation_id?: number;
+}
+
+export interface WompiPaymentResponse {
+  payment_id: number;
+  reference: string;
+  amount_in_cents: number;
+  currency: string;
 }
 
 export interface Payment {

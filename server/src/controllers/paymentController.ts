@@ -89,6 +89,20 @@ export class PaymentController {
         }
     }
 
+    async cancelPaymentByReference(req: Request, res: Response) {
+        try {
+            const { reference } = req.params;
+
+            const result = await this.paymentService.cancelPaymentByReference(reference);
+
+            return res.json(result);
+        } catch (error: any) {
+            return res.status(400).json({
+                message: error.message,
+            });
+        }
+    }
+
     async getPaymentById(req: Request, res: Response) {
         try {
             const payment = await this.paymentService.getPaymentById(Number(req.params.id));
@@ -142,10 +156,14 @@ export class PaymentController {
 
     async createWompiPayment(req: Request, res: Response) {
         try {
-            const userId = (req as any).user.id;
+            const userId = (req as any).user?.id ?? req.body.userId;
+            if (!userId) {
+                return res.status(400).json({ message: "User ID requerido" });
+            }
+
             const { raffle_id, ticket_ids, method, reference, reservation_id } = req.body;
 
-            if (!raffle_id || !ticket_ids?.length || !method || !reference) {
+            if (!raffle_id || !ticket_ids?.length || !reference) {
                 return res.status(400).json({ message: "Datos incompletos o inválidos" });
             }
 

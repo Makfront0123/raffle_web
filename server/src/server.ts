@@ -13,18 +13,38 @@ import { seedRoles } from "./seeder/rolesSeed";
 import { globalLimiter } from "./middleware/limitRequest";
 import { automationMiddleware } from "./middleware/automationRunner";
 import pingRoutes from "./routes/pingRoutes";
+import { PaymentController } from "./controllers/paymentController";
+import { PaymentService } from "./services/paymentService";
 
 dotenv.config();
 
 const app = express();
-app.use(globalLimiter)
+
 app.use(automationMiddleware)
 app.use("/api/ping-automation", pingRoutes);
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "ok" });
+});
 app.set("trust proxy", 1);
 
 app.use(cookieParser());
+const paymentService = new PaymentService(AppDataSource);
+const paymentController = new PaymentController(paymentService);
 
 
+app.post(
+  "/payments/wompi/webhook",
+  express.raw({
+    type: () => true
+  }),
+  (req, res, next) => {
+    console.log("🔥 WOMPI WEBHOOK RECIBIDO");
+    console.log("HEADERS:", req.headers);
+    console.log("BODY:", req.body.toString());
+    next();
+  },
+  paymentController.wompiWebhook.bind(paymentController)
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -34,6 +54,7 @@ app.use(
       "http://localhost:3000",
       "http://127.0.0.1:4321",
       "https://dewayne-polluted-angel.ngrok-free.dev",
+      "https://raffle-web-git-backup-code-armandos-projects-bf6157fe.vercel.app",
       "https://raffle-web-seven.vercel.app"
     ],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],

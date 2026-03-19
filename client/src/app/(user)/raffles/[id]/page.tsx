@@ -26,8 +26,10 @@ export default function RaffleDetailPage() {
     payWithWompiWidget: payment.payWithWompiWidget,
   });
 
+
   return (
     <div className="max-w-5xl mx-auto p-6 md:p-10 text-white min-h-screen bg-black">
+      {payment.verifyingPayment && <LoadingScreen />}
       {raffleDetail.raffle && (
         <RaffleInfo
           raffle={raffleDetail.raffle}

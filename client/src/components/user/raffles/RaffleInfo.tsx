@@ -1,7 +1,7 @@
 "use client";
 
 import { Raffle } from "@/type/Raffle";
-
+import { Icon } from "@iconify/react";
 interface RaffleInfoProps {
   raffle: Raffle;
   soldPercentage: number;
@@ -28,16 +28,19 @@ const RaffleInfo = ({ raffle, soldPercentage }: RaffleInfoProps) => {
         {raffle.description}
       </p>
       <div className="space-y-1 text-white/90 font-semibold mb-6">
-        <p>🎟️ Total tickets: {raffle.total_numbers}</p>
-        <p>💰 Precio por ticket: ${raffle.price}</p>
+        <p className="flex items-center gap-x-3">
+          <Icon icon="feather:credit-card" className="h-4 w-4" />
+          Total tickets: {raffle.total_numbers}</p>
+        <p className="flex items-center gap-x-3">
+          <Icon icon="si:money-line" className="h-4 w-4" />
+          Precio por ticket: ${raffle.price}</p>
       </div>
       <div className="w-full max-w-xl">
         <div className="flex justify-between items-center mb-2 text-sm font-semibold">
           <span className="text-white/80">Progreso de ventas</span>
           <span
-            className={`${
-              isHot ? "text-red-400 animate-pulse" : "text-gold"
-            }`}
+            className={`${isHot ? "text-red-400 animate-pulse" : "text-gold"
+              }`}
           >
             {soldPercentage.toFixed(0)}%
           </span>
@@ -74,10 +77,9 @@ const RaffleInfo = ({ raffle, soldPercentage }: RaffleInfoProps) => {
               from-[#caa94a]
               via-[#ffe28a]
               to-[#caa94a]
-              ${
-                isHot
-                  ? "shadow-[0_0_30px_rgba(255,215,100,0.95)]"
-                  : "shadow-[0_0_18px_rgba(212,175,55,0.65)]"
+              ${isHot
+                ? "shadow-[0_0_30px_rgba(255,215,100,0.95)]"
+                : "shadow-[0_0_18px_rgba(212,175,55,0.65)]"
               }
             `}
             style={{ width: `${Math.min(soldPercentage, 100)}%` }}
