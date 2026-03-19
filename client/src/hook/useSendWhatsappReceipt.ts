@@ -13,11 +13,13 @@ export function useWhatsappReceipt() {
     raffleId,
     tickets,
     amount,
+    reference,
   }: {
     phone: string;
     raffleId: number;
     tickets: string[];
     amount: number;
+    reference: string;
   }) => {
     if (!user) throw new Error("Debes iniciar sesión");
 
@@ -26,11 +28,12 @@ export function useWhatsappReceipt() {
 
     setLoading(true);
     try {
-      await api.post("/api/payment/whatsapp/receipt", {
+      await api.post("/api/payment/whatsapp/receipt/validate", {
         phone: `+${cleanPhone}`,
         raffleId,
         tickets,
         amount,
+        reference,
       });
       setSent(true);
     } finally {

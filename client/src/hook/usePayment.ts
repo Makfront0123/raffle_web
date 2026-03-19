@@ -30,6 +30,7 @@ export function usePayment({ onPaymentSuccess }: UsePaymentProps = {}) {
     raffle: Raffle
     tickets?: string[];
     amount?: number;
+    reference?: string;
   } | null>(null);
 
 

@@ -2,17 +2,18 @@ import cron from "node-cron";
 import { cleanupExpiredReservations, closeExpiredRaffles } from "./raffleCronLogic";
 import { cleanupExpiredPayments } from "./expirePayments";
 
-cron.schedule("* * * * *", async () => {
-  console.log("Ejecutando limpieza de reservas...");
-  const removed = await cleanupExpiredReservations();
-  console.log(`Reservas eliminadas: ${removed}`);
+export function startCronJobs() {
+  console.log("Cron jobs iniciados");
 
+  cron.schedule("* * * * *", async () => {
+    await cleanupExpiredPayments();
+  });
 
-  const expiredPayments = await cleanupExpiredPayments();
-  console.log(`Pagos expirados liberados: ${expiredPayments}`);
+  cron.schedule("*/5 * * * *", async () => {
+    await cleanupExpiredReservations();
+  });
 
-
-  console.log("Cerrando rifas expiradas...");
-  const closed = await closeExpiredRaffles();
-  console.log("Rifas cerradas:", closed);
-});
+  cron.schedule("*/10 * * * *", async () => {
+    await closeExpiredRaffles();
+  });
+}

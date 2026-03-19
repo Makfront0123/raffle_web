@@ -14,6 +14,23 @@ export class PaymentController {
             res.status(500).json({ message: 'Error obteniendo pagos', error });
         }
     }
+    async sendWhatsappReceiptController(req: Request, res: Response) {
+        try {
+            const { phone, raffleId, tickets, amount, reference } = req.body;
+
+            const result = await this.paymentService.sendReceiptWithValidation({
+                phone,
+                raffleId,
+                tickets,
+                amount,
+                reference,
+            });
+
+            res.json(result);
+        } catch (error: any) {
+            res.status(400).json({ message: error.message });
+        }
+    }
     async getPaymentUser(req: Request, res: Response) {
         try {
             const payments = await this.paymentService.getPaymentUser((req as any).user.id);

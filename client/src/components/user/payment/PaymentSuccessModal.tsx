@@ -12,6 +12,7 @@ interface Props {
   raffleId: number; // 🔹 ID de la rifa
   tickets?: string[];
   amount: number;
+  reference: string;
 }
 
 export function PaymentSuccessModal({
@@ -20,6 +21,7 @@ export function PaymentSuccessModal({
   raffleId,
   tickets,
   amount,
+  reference
 }: Props) {
   const [phone, setPhone] = useState("");
   const { sendReceipt, loading, sent } = useWhatsappReceipt();
@@ -33,6 +35,7 @@ export function PaymentSuccessModal({
         raffleId,
         tickets,
         amount,
+        reference,
       });
     } catch (err) {
       console.error(err);
