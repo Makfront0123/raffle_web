@@ -48,7 +48,9 @@ export class ReservationController {
             });
 
         } catch (error: any) {
-            return res.status(500).json({ message: "Error creando reserva" });
+            return res.status(500).json({
+                message: error.message || "Error creando reserva"
+            });
         }
     }
 

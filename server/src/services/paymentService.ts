@@ -350,21 +350,23 @@ export class PaymentService {
           where: { id: reservation_id },
           relations: ["user", "raffle", "reservationTickets", "reservationTickets.ticket"],
         });
-        if (!reservation) throw new Error("No se encontró la reserva");
-        if (reservation.user.id !== userId) throw new Error("La reserva no pertenece al usuario");
+
+        if (!reservation) {
+          throw new Error("No se encontró la reserva");
+        }
+
+        if (reservation.user.id !== userId) {
+          throw new Error("La reserva no pertenece al usuario");
+        }
+
+
+        if (reservation.expires_at < new Date()) {
+          throw new Error("La reserva ha expirado");
+        }
 
         tickets = reservation.reservationTickets
           .map((rt) => rt.ticket)
           .filter((t) => ticket_ids.includes(t.id_ticket));
-
-        if (!tickets.length) throw new Error("No hay tickets válidos en la reserva");
-        for (const ticket of tickets) {
-          if (ticket.status === TicketStatus.AVAILABLE) throw new Error(`El ticket ${ticket.id_ticket} no pertenece a esta reserva`);
-          if (ticket.status === TicketStatus.PURCHASED) throw new Error(`El ticket ${ticket.id_ticket} ya fue comprado`);
-          if (ticket.status === TicketStatus.HELD && ticket.held_until && ticket.held_until < new Date()) {
-            throw new Error(`El ticket ${ticket.id_ticket} tiene el hold expirado`);
-          }
-        }
       } else {
         tickets = await manager
           .getRepository(Ticket)

@@ -46,6 +46,7 @@ export default function ReservationCard({
     raffle: raffle,
   };
 
+  const isExpired = new Date(reservation.expires_at) < new Date();
   return (
     <>
       <Card className="p-8 bg-black text-white border border-gold rounded-2xl shadow-xl hover:scale-[1.02] transition-all">
@@ -74,23 +75,24 @@ export default function ReservationCard({
           <div className="flex mt-6 gap-4">
             <Button
               className="bg-red-600 hover:bg-red-700 text-white"
-              disabled={canceling === reservation.id}
+              disabled={canceling === reservation.id || isExpired}
               onClick={() => onCancel(reservation.id)}
             >
-              {canceling === reservation.id
-                ? "Cancelando..."
-                : "Cancelar"}
+              {isExpired
+                ? "Expirada"
+                : canceling === reservation.id
+                  ? "Cancelando..."
+                  : "Cancelar"}
             </Button>
 
-            {rawTicket.status === TicketStatusEnum.RESERVED
-              && (
-                <Button
-                  className="bg-none text-white "
-                  onClick={() => setOpen(true)}
-                >
-                  Comprar
-                </Button>
-              )}
+            {rawTicket.status === TicketStatusEnum.RESERVED && !isExpired && (
+              <Button
+                className="bg-none text-white"
+                onClick={() => setOpen(true)}
+              >
+                Comprar
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
