@@ -66,21 +66,22 @@ export function usePayment({ onPaymentSuccess }: UsePaymentProps = {}) {
 
       document.body.appendChild(script);
     });
-  const waitForPaymentStatus = async (reference: string) => {
-    const maxAttempts = 10;
+  async function waitForPayment(reference: string): Promise<PaymentStatusEnum> {
+    let attempts = 0;
 
-    for (let i = 0; i < maxAttempts; i++) {
+    while (attempts < 10) {
       const status = await getPaymentStatusByReference(reference);
 
-      if (status !== PaymentStatusEnum.PENDING) {
+      if (status === PaymentStatusEnum.COMPLETED) {
         return status;
       }
 
-      await new Promise((r) => setTimeout(r, 1500));
+      await new Promise((res) => setTimeout(res, 2000));
+      attempts++;
     }
 
     return PaymentStatusEnum.PENDING;
-  };
+  }
   const payWithWompiWidget = async ({
     tickets,
     raffle,
@@ -148,19 +149,16 @@ export function usePayment({ onPaymentSuccess }: UsePaymentProps = {}) {
 
         if (tx.status === "APPROVED") {
           setVerifyingPayment(true);
-
-          const status = await waitForPaymentStatus(finalReference);
+          const status = await waitForPayment(finalReference);
 
           setVerifyingPayment(false);
 
-          if (
-            status === PaymentStatusEnum.COMPLETED ||
-            status === PaymentStatusEnum.PENDING
-          ) {
+          if (status === PaymentStatusEnum.COMPLETED) {
             setPaymentInfo({
               raffle,
               tickets: tickets.map((t) => t.ticket_number),
               amount: raffle.price * tickets.length,
+              reference: finalReference,
             });
 
             setSuccessModalOpen(true);
@@ -171,6 +169,11 @@ export function usePayment({ onPaymentSuccess }: UsePaymentProps = {}) {
 
             return;
           }
+          setFailedPaymentInfo({
+            raffleName: raffle.title,
+            tickets: tickets.map((t) => t.ticket_number),
+            reason: "El pago no fue confirmado a tiempo",
+          });
 
           setFailedModalOpen(true);
         }
