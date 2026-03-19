@@ -14,30 +14,40 @@ export async function cleanupExpiredReservations() {
     const reservationRepo = AppDataSource.getRepository(Reservation);
     const ticketRepo = AppDataSource.getRepository(Ticket);
 
-    const expired = await reservationRepo.find({
-        where: { expires_at: LessThanOrEqual(new Date()) },
-        relations: ["reservationTickets", "reservationTickets.ticket"],
-    });
+    const now = new Date();
+    await ticketRepo
+        .createQueryBuilder()
+        .update(Ticket)
+        .set({ status: TicketStatus.AVAILABLE, purchased_at: null })
+        .where(`
+            id_ticket IN (
+                SELECT rt.ticketIdTicket
+                FROM reservation_tickets rt
+                INNER JOIN reservations r ON r.id = rt.reservationId
+                WHERE r.expires_at <= :now
+            )
+        `, { now })
+        .execute();
 
-    for (const reservation of expired) {
-        const ids = reservation.reservationTickets.map(rt => rt.ticket.id_ticket);
+    await AppDataSource
+        .createQueryBuilder()
+        .delete()
+        .from("reservation_tickets")
+        .where(`
+            reservationId IN (
+                SELECT id FROM reservations WHERE expires_at <= :now
+            )
+        `, { now })
+        .execute();
 
-        if (ids.length > 0) {
-            await ticketRepo
-                .createQueryBuilder()
-                .update(Ticket)
-                .set({ status: TicketStatus.AVAILABLE, purchased_at: null })
-                .whereInIds(ids)
-                .execute();
-        }
+    const result = await reservationRepo
+        .createQueryBuilder()
+        .delete()
+        .where("expires_at <= :now", { now })
+        .execute();
 
-        await reservationRepo.remove(reservation);
-    }
-
-    return expired.length;
+    return result.affected || 0;
 }
-
-
 export async function closeExpiredRaffles(prizeServiceInjected = prizeService) {
     const raffleRepo = AppDataSource.getRepository(Raffle);
 
@@ -54,8 +64,20 @@ export async function closeExpiredRaffles(prizeServiceInjected = prizeService) {
         await queryRunner.startTransaction();
 
         try {
-            raffle.status = "ended";
-            await queryRunner.manager.save(raffle);
+            const updateResult = await queryRunner.manager
+                .createQueryBuilder()
+                .update(Raffle)
+                .set({ status: "ended" })
+                .where("id = :id AND status = :status", {
+                    id: raffle.id,
+                    status: "active",
+                })
+                .execute();
+
+            if (updateResult.affected === 0) {
+                await queryRunner.rollbackTransaction();
+                continue;
+            }
 
             const prizes = await queryRunner.manager.find(Prize, {
                 where: { raffle: { id: raffle.id } },

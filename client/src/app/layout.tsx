@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import Script from "next/script";
 import { ToastProvider } from "@/components/providers/ToastProvider";
+import { PageTransitionProvider } from "./providers/page_transition_provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -15,7 +16,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es" suppressHydrationWarning>
-      <body className={inter.className} suppressHydrationWarning>
+      <body className={`${inter.className} bg-black`} suppressHydrationWarning>
 
         <Script
           src="https://accounts.google.com/gsi/client"
@@ -26,7 +27,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           src="https://checkout.wompi.co/widget.js"
           strategy="afterInteractive"
         />
-        {children}
+        <PageTransitionProvider>
+          {children}
+        </PageTransitionProvider>
+
         <ToastProvider />
       </body>
     </html>

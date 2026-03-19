@@ -11,16 +11,13 @@ import { AppDataSource } from "./data-source";
 import connectWithRetry from "./config/connectWriteRetry";
 import { seedRoles } from "./seeder/rolesSeed";
 import { globalLimiter } from "./middleware/limitRequest";
-import { automationMiddleware } from "./middleware/automationRunner";
 import pingRoutes from "./routes/pingRoutes";
 import { PaymentController } from "./controllers/paymentController";
 import { PaymentService } from "./services/paymentService";
-
+import { startCronJobs } from "./cron/cron";
 dotenv.config();
 
 const app = express();
-
-app.use(automationMiddleware)
 app.use("/api/ping-automation", pingRoutes);
 app.get("/health", (req, res) => {
   res.status(200).json({ status: "ok" });
@@ -38,7 +35,6 @@ app.post(
     type: () => true
   }),
   (req, res, next) => {
-    console.log("🔥 WOMPI WEBHOOK RECIBIDO");
     console.log("HEADERS:", req.headers);
     console.log("BODY:", req.body.toString());
     next();
@@ -96,6 +92,7 @@ async function startServer() {
       await AppDataSource.runMigrations();
     }
     await seedRoles();
+    startCronJobs();
 
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);

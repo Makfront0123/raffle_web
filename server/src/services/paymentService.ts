@@ -156,7 +156,7 @@ export class PaymentService {
 
   async getAllPayments() {
     return await this.paymentRepo.find({
-      relations: ["user", "raffle"],
+      relations: ["user", "raffle", "details", "details.ticket"],
     });
   }
 
@@ -547,7 +547,8 @@ export class PaymentService {
               await manager.save(d.ticket);
             }
             break;
-
+          case "PENDING":
+            return;
           case "DECLINED":
           case "ERROR":
             payment.status = PaymentStatus.CANCELLED;
@@ -567,6 +568,56 @@ export class PaymentService {
       console.error("Error en webhook Wompi:", error);
       return res.status(500).json({ message: "Error interno procesando webhook" });
     }
+  }
+
+  async sendReceiptWithValidation({
+    phone,
+    raffleId,
+    tickets,
+    amount,
+    reference,
+  }: {
+    phone: string;
+    raffleId: number;
+    tickets: string[];
+    amount: number;
+    reference: string;
+  }) {
+    const payment = await this.paymentRepo.findOne({
+      where: { reference },
+      relations: ["details", "details.ticket", "raffle"],
+    });
+
+    if (!payment) {
+      throw new Error("Pago no encontrado");
+    }
+
+    if (payment.status !== PaymentStatus.COMPLETED) {
+      throw new Error("El pago aún no ha sido confirmado");
+    }
+    if (payment.total_amount !== amount) {
+      throw new Error("Monto inconsistente");
+    }
+
+    const paymentTickets = payment.details.map(
+      (d) => d.ticket.ticket_number
+    );
+
+    const isValidTickets =
+      tickets.length === paymentTickets.length &&
+      tickets.every((t) => paymentTickets.includes(t));
+
+    if (!isValidTickets) {
+      throw new Error("Tickets inválidos");
+    }
+    await this.sendWhatsappReceipt({
+      phone,
+      raffle: payment.raffle,
+      tickets: paymentTickets,
+      amount: payment.total_amount,
+    });
+
+    return { message: "Recibo enviado correctamente" };
   }
 
   async simulateWebhook(reference: string, status: "APPROVED" | "DECLINED" | "ERROR" = "APPROVED") {

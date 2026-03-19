@@ -84,6 +84,7 @@ export default function RaffleDetailPage() {
         raffleId={payment.paymentInfo?.raffle.id ?? 0}
         tickets={payment.paymentInfo?.tickets}
         amount={payment.paymentInfo?.amount ?? 0}
+        reference={payment.paymentInfo?.reference ?? ''}
       />
 
       <PaymentFailedModal

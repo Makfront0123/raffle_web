@@ -53,7 +53,13 @@ router.post(
   authMiddleware,
   paymentActionLimiter,
   paymentController.sendWhatsappReceipt.bind(paymentController)
+);
 
+router.post(
+  "/whatsapp/receipt/validate",
+  authMiddleware,
+  paymentActionLimiter,
+  paymentController.sendWhatsappReceiptController.bind(paymentController)
 );
 
 
