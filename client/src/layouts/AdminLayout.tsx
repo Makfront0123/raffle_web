@@ -25,7 +25,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       <Sheet open={openSidebar} onOpenChange={setOpenSidebar}>
         <SheetContent side="left" className="p-0 w-64">
-          <SheetHeader className="p-4 border-b">
+          <SheetHeader className="p-4">
             <SheetTitle className="text-lg font-bold">Menú</SheetTitle>
             <SheetDescription>Accede a las secciones del panel de administración</SheetDescription>
           </SheetHeader>

@@ -29,6 +29,9 @@ export default function PaymentsPage() {
   const paginatedPayments = filteredPayments.slice(start, start + ITEMS_PER_PAGE);
   const { exportPayments } = useExportPaymentsToExcel();
 
+
+  console.log(filteredPayments)
+
   
 
   return (

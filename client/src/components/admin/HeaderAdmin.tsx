@@ -16,7 +16,7 @@ export default function HeaderAdmin({
   onLogout,
 }: HeaderAdminProps) {
   return (
-    <header className="w-full flex items-center justify-between bg-white border-b px-4 sm:px-6 py-4 shadow-sm sticky top-0 z-50">
+    <header className="w-full flex items-center justify-between bg-white px-4 sm:px-6 py-4 shadow-sm sticky top-0 z-50">
       <div className="flex items-center gap-3">
         <Button
           variant="ghost"

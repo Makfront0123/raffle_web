@@ -49,6 +49,7 @@ export interface Payment {
   details: TicketDetail[];
   raffle: Raffle;
   reference: string;
+  transaction_id: string | null;
   user: User | null;
 }
 

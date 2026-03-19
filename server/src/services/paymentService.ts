@@ -156,7 +156,7 @@ export class PaymentService {
 
   async getAllPayments() {
     return await this.paymentRepo.find({
-      relations: ["user", "raffle"],
+      relations: ["user", "raffle","details", "details.ticket"],
     });
   }
 

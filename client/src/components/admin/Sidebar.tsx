@@ -17,7 +17,7 @@ export function Sidebar() {
 
 
     return (
-        <aside className="w-64 bg-white border-r px-4 py-6">
+        <aside className="w-64 bg-white shadow-lg px-4 py-6">
             <h2 className="text-xl font-bold text-indigo-600 mb-8">
                 Admin Panel
             </h2>
