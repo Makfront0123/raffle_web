@@ -1,23 +1,28 @@
 "use client";
 
-import { useState,useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useReservation } from "@/hook/useReservation";
 import { useReservationStore } from "@/store/reservationStore";
 import { AuthStore } from "@/store/authStore";
-import { usePayment } from "@/hook/usePayment";
-import { toast } from "sonner";
 import { useRaffles } from "./useRaffles";
 import { Reservation } from "@/type/Reservation";
 import { Raffle } from "@/type/Raffle";
 import { Ticket } from "@/type/Ticket";
 import { TicketStatusEnum } from "@/type/Payment";
 
-export function useReservationsLogic() {
+type Props = {
+  payWithWompiWidget: (data: {
+    raffle: Raffle;
+    tickets: Ticket[];
+    reservation_id?: number;
+  }) => Promise<void>;
+};
+
+export function useReservationsLogic({ payWithWompiWidget }: Props) {
   const { reservations, loading, error, fetchReservations } = useReservation();
   const { cancelReservation } = useReservationStore();
   const { raffles } = useRaffles();
   const { user } = AuthStore();
-  const { payWithWompiWidget } = usePayment();
 
   const [canceling, setCanceling] = useState<number | null>(null);
   const [page, setPage] = useState(1);
@@ -53,12 +58,11 @@ export function useReservationsLogic() {
     if (!user) return;
 
     try {
-      const tickets: Ticket[] = reservation.reservationTickets.map(t => ({
+      const tickets: Ticket[] = reservation.reservationTickets.map((t) => ({
         ...t.ticket,
         status: t.ticket.status as TicketStatusEnum,
         raffle,
       }));
-
 
       await payWithWompiWidget({
         raffle,
@@ -66,14 +70,11 @@ export function useReservationsLogic() {
         reservation_id: reservation.id,
       });
 
-
-      toast.success("Pago de reserva registrado ✅");
-
       await fetchReservations();
     } catch (err) {
+      console.error(err);
     }
   };
-
 
   return {
     reservations,

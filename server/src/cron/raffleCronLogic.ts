@@ -5,8 +5,9 @@ import { Ticket, TicketStatus } from "../entities/ticket.entity";
 import { Raffle } from "../entities/raffle.entity";
 import { Prize } from "../entities/prize.entity";
 import { ReservationTicket } from "../entities/reservation_ticket.entity";
-import { ReservationService } from "../services/reservationService";
+
 import { PrizesService } from "../services/prizesService";
+import { sendEmail } from "../utils/sendEmail";
 
 const prizeService = new PrizesService();
 
@@ -86,9 +87,47 @@ export async function closeExpiredRaffles(prizeServiceInjected = prizeService) {
             let winnersAssigned = 0;
 
             for (const prize of prizes) {
+
                 const winner = await prizeServiceInjected.selectWinner(prize.id);
+                if (!winner?.winnerTicket?.user?.email) continue;
+
                 if (winner) {
                     winnersAssigned++;
+                    try {
+                        await sendEmail({
+                            to: winner.winnerTicket.user.email,
+                            subject: "🎉 ¡Ganaste una rifa!",
+                            text: "",
+                            html: `
+    <div style="font-family: Arial, sans-serif; padding: 20px; background: #f9f9f9;">
+      <div style="max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 10px;">
+        
+        <h2 style="color: #16a34a;">🎉 ¡Felicidades ${winner.winnerTicket.user.name}!</h2>
+
+        <p>Has ganado en la rifa:</p>
+        <h3 style="color: #000;">${raffle.title || "Rifa sin título"}</h3>
+
+        <p><strong>🏆 Premio:</strong> ${winner.prizeName || "Sin premio"}</p>
+        <p><strong>🎫 Ticket ganador:</strong> #${winner.winnerTicket.ticket_number || "Sin número"}</p>
+
+        <hr style="margin: 20px 0;" />
+
+        <p style="font-size: 14px; color: #555;">
+          Nos pondremos en contacto contigo pronto para la entrega del premio.
+        </p>
+
+        <p style="margin-top: 20px;">🍀 Gracias por participar</p>
+
+      </div>
+    </div>
+  `,
+                        });
+                    } catch (emailError) {
+                        console.error(
+                            `Error enviando email al ganador (ticket ${winner.winnerTicket.ticket_number}):`,
+                            emailError
+                        );
+                    }
                 }
             }
 
