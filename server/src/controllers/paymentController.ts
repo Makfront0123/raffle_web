@@ -171,6 +171,16 @@ export class PaymentController {
         }
     }
 
+    async getPaymentLogs(req: Request, res: Response) {
+        try {
+            const paymentId = Number(req.params.id);
+            const result = await this.paymentService.getPaymentLogs(paymentId);
+            res.status(200).json(result);
+        } catch (error) {
+            res.status(500).json({ message: 'Error obteniendo logs', error });
+        }
+    }
+
     async createWompiPayment(req: Request, res: Response) {
         try {
             const userId = (req as any).user?.id ?? req.body.userId;

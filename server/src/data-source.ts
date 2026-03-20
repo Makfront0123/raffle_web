@@ -12,6 +12,7 @@ import { Provider } from "./entities/provider.entity";
 import { PaymentDetail } from "./entities/payment_details.entity";
 import { Reservation } from "./entities/reservation.entity";
 import { ReservationTicket } from "./entities/reservation_ticket.entity";
+import { PaymentLog } from "./entities/PaymentLog";
 
 
 export const AppDataSource = new DataSource({
@@ -36,6 +37,7 @@ export const AppDataSource = new DataSource({
         PaymentDetail,
         Reservation,
         ReservationTicket,
+        PaymentLog
     ],
     migrations: ["dist/migrations/*.js"],
     synchronize: false,
