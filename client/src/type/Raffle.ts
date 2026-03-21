@@ -1,3 +1,4 @@
+import { RaffleFormValues } from "@/lib/schemas/raffle.schema";
 import { Prizes } from "./Prizes";
 import { Ticket } from "./Ticket";
 
@@ -41,3 +42,16 @@ export interface CreateRaffleDTO {
   endDate?: string;
   digits?: number;
 }
+
+
+
+export const initialForm: RaffleFormValues = {
+  title: "",
+  description: "",
+  price: "8",
+  end_date: "",
+  digits: 3,
+  status: "active",
+  tickets: [],
+  prizes: [],
+};

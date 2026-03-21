@@ -4,19 +4,8 @@ import { useRaffles } from "@/hook/useRaffles";
 import { RaffleForm } from "@/components/admin/raffle/RaffleForm";
 import { RafflesTable } from "@/components/admin/raffle/RaffleTable";
 import { useZodForm } from "@/hook/useZodForm";
-import { RaffleFormValues, raffleSchema } from "@/lib/schemas/raffle.schema";
-
-
-export const initialForm: RaffleFormValues = {
-  title: "",
-  description: "",
-  price: "8",
-  end_date: "",
-  digits: 3,
-  status: "active",
-  tickets: [],
-  prizes: [],
-};
+import { raffleSchema } from "@/lib/schemas/raffle.schema";
+import { initialForm } from "@/type/Raffle";
 
 
 const RafflesAdmin = () => {
