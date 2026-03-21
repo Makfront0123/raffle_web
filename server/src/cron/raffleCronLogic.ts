@@ -8,6 +8,7 @@ import { ReservationTicket } from "../entities/reservation_ticket.entity";
 
 import { PrizesService } from "../services/prizesService";
 import { sendEmail } from "../utils/sendEmail";
+import { winnerEmailTemplate } from "../templates/winnerEmail";
 
 const prizeService = new PrizesService();
 
@@ -94,33 +95,17 @@ export async function closeExpiredRaffles(prizeServiceInjected = prizeService) {
                 if (winner) {
                     winnersAssigned++;
                     try {
+
                         await sendEmail({
                             to: winner.winnerTicket.user.email,
                             subject: "🎉 ¡Ganaste una rifa!",
                             text: "",
-                            html: `
-    <div style="font-family: Arial, sans-serif; padding: 20px; background: #f9f9f9;">
-      <div style="max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 10px;">
-        
-        <h2 style="color: #16a34a;">🎉 ¡Felicidades ${winner.winnerTicket.user.name}!</h2>
-
-        <p>Has ganado en la rifa:</p>
-        <h3 style="color: #000;">${raffle.title || "Rifa sin título"}</h3>
-
-        <p><strong>🏆 Premio:</strong> ${winner.prizeName || "Sin premio"}</p>
-        <p><strong>🎫 Ticket ganador:</strong> #${winner.winnerTicket.ticket_number || "Sin número"}</p>
-
-        <hr style="margin: 20px 0;" />
-
-        <p style="font-size: 14px; color: #555;">
-          Nos pondremos en contacto contigo pronto para la entrega del premio.
-        </p>
-
-        <p style="margin-top: 20px;">🍀 Gracias por participar</p>
-
-      </div>
-    </div>
-  `,
+                            html: winnerEmailTemplate({
+                                name: winner.winnerTicket.user.name,
+                                raffleTitle: raffle.title || "Rifa sin título",
+                                prizeName: winner.prizeName || "Sin premio",
+                                ticketNumber: String(winner.winnerTicket.ticket_number || "N/A"),
+                            }),
                         });
                     } catch (emailError) {
                         console.error(

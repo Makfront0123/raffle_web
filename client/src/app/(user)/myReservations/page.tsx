@@ -1,7 +1,7 @@
 "use client";
 
 import LoadingScreen from "@/components/user/LoadingScreen";
-import { PaymentSuccessModal } from "@/components/user/payment/PaymentSuccessModal";
+import { PaymentSuccessModalTwilio } from "@/components/user/payment/PaymentSuccessModalTwilio";
 import { PaymentFailedModal } from "@/components/user/payment/PaymentFailedModal";
 import PaginationControls from "@/components/user/reservations/PaginationControls";
 import ReservationsList from "@/components/user/reservations/ReservationList";
@@ -51,7 +51,7 @@ export default function ReservationsPage() {
       )}
 
       {payment.loading && <LoadingScreen />}
-      <PaymentSuccessModal
+      <PaymentSuccessModalTwilio
         open={payment.successModalOpen}
         onClose={() => payment.setSuccessModalOpen(false)}
         raffleId={payment.paymentInfo?.raffle.id ?? 0}

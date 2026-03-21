@@ -10,6 +10,8 @@ import crypto from "crypto";
 import { WhatsappService } from "../services/whatpsappService";
 import { Reservation } from "../entities/reservation.entity";
 import { PaymentLog } from "../entities/PaymentLog";
+import { sendEmail } from "../utils/sendEmail";
+import { purchaseEmailTemplate } from "../templates/purchaseEmail";
 export class PaymentService {
   private ticketRepository;
   private paymentRepo;
@@ -135,6 +137,7 @@ export class PaymentService {
           .leftJoinAndSelect("payment.details", "details")
           .leftJoinAndSelect("details.ticket", "ticket")
           .leftJoinAndSelect("payment.raffle", "raffle")
+          .leftJoinAndSelect("payment.user", "user")
           .where("payment.reference = :reference", {
             reference: tx.reference,
           })
@@ -186,6 +189,22 @@ export class PaymentService {
               d.ticket.purchased_at = new Date();
               await manager.save(d.ticket);
             }
+
+            const user = payment.user;
+            const tickets = payment.details.map(d => d.ticket.ticket_number);
+
+            await sendEmail({
+              to: user.email,
+              subject: `Compra confirmada - ${payment.raffle.title}`,
+              text: `Tu compra fue exitosa`,
+              html: purchaseEmailTemplate({
+                name: user.name,
+                raffleTitle: payment.raffle.title,
+                tickets,
+                total: payment.total_amount,
+                reference: payment.reference,
+              }),
+            });
             break;
 
           case "DECLINED":

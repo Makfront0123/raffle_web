@@ -15,7 +15,7 @@ interface Props {
   reference: string;
 }
 
-export function PaymentSuccessModal({
+export function PaymentSuccessModalTwilio({
   open,
   onClose,
   raffleId,
