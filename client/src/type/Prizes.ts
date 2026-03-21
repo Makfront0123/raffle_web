@@ -43,20 +43,7 @@ export interface CreatePrizeDTO {
   providerId: number;
 }
 
-/*
-
 export type PrizeType = "product" | "cash" | "trip";
-export interface PrizeFormValues {
-  name: string;
-  description: string;
-  value: number;
-  raffle: string;
-  provider: string;
-  type: PrizeType;
-}
-
- 
-*/
 
 export interface PrizeFormProps {
   raffles: Raffle[];

@@ -17,7 +17,7 @@ import {
 import { FormEvent } from "react";
 import { useZodForm } from "@/hook/useZodForm";
 import { PrizeFormValues, prizeSchema } from "@/lib/schemas/prize.schema.";
-import { PrizeFormProps } from "@/type/Prizes";
+import { PrizeFormProps, PrizeType } from "@/type/Prizes";
 import { motion } from "framer-motion";
 
 export const initialPrizeForm: PrizeFormValues = {
@@ -164,8 +164,8 @@ export function PrizeForm({
                             <Label>Tipo</Label>
                             <Select
                                 value={form.type}
-                                onValueChange={(v) =>
-                                    setForm((prev) => ({ ...prev, type: v as any }))
+                                onValueChange={(v: PrizeType) =>
+                                    setForm((prev) => ({ ...prev, type: v }))
                                 }
                             >
                                 <SelectTrigger>
