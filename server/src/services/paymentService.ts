@@ -137,6 +137,7 @@ export class PaymentService {
           .leftJoinAndSelect("payment.details", "details")
           .leftJoinAndSelect("details.ticket", "ticket")
           .leftJoinAndSelect("payment.raffle", "raffle")
+          .leftJoinAndSelect("raffle.prizes", "prizes")
           .leftJoinAndSelect("payment.user", "user")
           .where("payment.reference = :reference", {
             reference: tx.reference,
@@ -203,6 +204,11 @@ export class PaymentService {
                 tickets,
                 total: payment.total_amount,
                 reference: payment.reference,
+                prizes: payment.raffle.prizes?.map(p => ({
+                  name: p.name,
+                  value: Number(p.value),
+                })),
+                endDate: payment.raffle.end_date ?? '',
               }),
             });
             break;
