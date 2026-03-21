@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { RaffleFormLocal } from "@/hook/useRaffleForm";
 import { ChangeEvent, FormEvent } from "react";
 
+import { motion } from "framer-motion";
+
 interface Props {
   form: RaffleFormLocal;
   handleChange: (
@@ -15,14 +17,15 @@ interface Props {
   ) => void;
   handleSubmit: (e: FormEvent<HTMLFormElement>) => void;
   minDate: string;
+  errors: Record<string, string[] | undefined>;
 }
-
 
 export const RaffleForm = ({
   form,
   handleChange,
   handleSubmit,
   minDate,
+  errors,
 }: Props) => {
   return (
     <Card className="border-0 shadow-sm">
@@ -37,10 +40,19 @@ export const RaffleForm = ({
           onSubmit={handleSubmit}
           className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
         >
-
           <div className="sm:col-span-2 lg:col-span-1">
             <Label>Título</Label>
             <Input name="title" value={form.title} onChange={handleChange} />
+            <div className="min-h-[20px] mt-1">
+              <motion.p
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: errors?.title ? 1 : 0, y: errors?.title ? 0 : -4 }}
+                transition={{ duration: 0.2 }}
+                className="text-red-500 text-sm"
+              >
+                {errors?.title?.[0] || ""}
+              </motion.p>
+            </div>
           </div>
 
           <div className="sm:col-span-2 lg:col-span-2">
@@ -50,8 +62,17 @@ export const RaffleForm = ({
               value={form.description}
               onChange={handleChange}
             />
+            <div className="min-h-[20px] mt-1">
+              <motion.p
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: errors?.description ? 1 : 0, y: errors?.description ? 0 : -4 }}
+                transition={{ duration: 0.2 }}
+                className="text-red-500 text-sm"
+              >
+                {errors?.description?.[0] || ""}
+              </motion.p>
+            </div>
           </div>
-
           <div>
             <Label>Precio</Label>
             <div className="relative">
@@ -67,9 +88,17 @@ export const RaffleForm = ({
                 className="pl-7"
               />
             </div>
+            <div className="min-h-[20px] mt-1">
+              <motion.p
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: errors?.price ? 1 : 0, y: errors?.price ? 0 : -4 }}
+                transition={{ duration: 0.2 }}
+                className="text-red-500 text-sm"
+              >
+                {errors?.price?.[0] || ""}
+              </motion.p>
+            </div>
           </div>
-
-
           <div>
             <Label>Dígitos</Label>
             <Input
@@ -84,9 +113,17 @@ export const RaffleForm = ({
             <p className="text-xs text-gray-400 mt-1">
               Número de dígitos para generar los tickets aleatorios
             </p>
+            <div className="min-h-[20px] mt-1">
+              <motion.p
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: errors?.digits ? 1 : 0, y: errors?.digits ? 0 : -4 }}
+                transition={{ duration: 0.2 }}
+                className="text-red-500 text-sm"
+              >
+                {errors?.digits?.[0] || ""}
+              </motion.p>
+            </div>
           </div>
-
-
           <div>
             <Label>Fecha de Finalización</Label>
             <Input
@@ -96,8 +133,17 @@ export const RaffleForm = ({
               onChange={handleChange}
               min={minDate}
             />
+            <div className="min-h-[20px] mt-1">
+              <motion.p
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: errors?.end_date ? 1 : 0, y: errors?.end_date ? 0 : -4 }}
+                transition={{ duration: 0.2 }}
+                className="text-red-500 text-sm"
+              >
+                {errors?.end_date?.[0] || ""}
+              </motion.p>
+            </div>
           </div>
-
           <div className="sm:col-span-2 lg:col-span-3">
             <Button type="submit" className="w-full sm:w-auto">
               Crear Rifa

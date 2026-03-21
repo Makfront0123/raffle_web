@@ -4,6 +4,8 @@ import { useState } from "react";
 import { AuthStore } from "@/store/authStore";
 import { Providers } from "@/type/Providers";
 import { useProviders } from "./useProviders";
+import { useZodForm } from "./useZodForm";
+import { ProviderFormValues, providerSchema } from "@/lib/schemas/provider.schema";
 export interface ProviderFormState {
   id?: number;
   name: string;
@@ -25,12 +27,21 @@ export const useProvidersLogic = () => {
   } = useProviders();
 
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState<Providers>({
-    name: "",
-    contact_name: "",
-    contact_email: "",
-    contact_phone: "",
-  });
+  const {
+    form,
+    setForm,
+    handleChange,
+    validate,
+    errors,
+  } = useZodForm<ProviderFormValues>(
+    {
+      name: "",
+      contact_name: "",
+      contact_email: "",
+      contact_phone: "",
+    },
+    providerSchema
+  );
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [providerToDelete, setProviderToDelete] = useState<Providers | null>(null);
@@ -43,22 +54,17 @@ export const useProvidersLogic = () => {
       contact_phone: "",
     });
   };
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-  };
 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
 
+    if (!validate()) return; // 🔥 aquí entra Zod
+
     try {
       if (form.id) {
-        const { id, name, contact_name, contact_email, contact_phone } = form;
-        const data = { name, contact_name, contact_email, contact_phone };
+        const { id, ...data } = form;
         await updateProvider(id, data);
       } else {
         await addProvider(form);
@@ -114,5 +120,6 @@ export const useProvidersLogic = () => {
     providerToDelete,
     requestDeleteProvider,
     confirmDeleteProvider,
+    errors,
   };
 };

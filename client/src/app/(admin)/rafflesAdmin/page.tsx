@@ -1,9 +1,23 @@
 "use client";
 
 import { useRaffles } from "@/hook/useRaffles";
-import { useRaffleForm } from "@/hook/useRaffleForm";
 import { RaffleForm } from "@/components/admin/raffle/RaffleForm";
 import { RafflesTable } from "@/components/admin/raffle/RaffleTable";
+import { useZodForm } from "@/hook/useZodForm";
+import { RaffleFormValues, raffleSchema } from "@/lib/schemas/raffle.schema";
+
+
+export const initialForm: RaffleFormValues = {
+  title: "",
+  description: "",
+  price: "8",
+  end_date: "",
+  digits: 3,
+  status: "active",
+  tickets: [],
+  prizes: [],
+};
+
 
 const RafflesAdmin = () => {
   const {
@@ -21,8 +35,12 @@ const RafflesAdmin = () => {
     deactivateRaffle,
     updateRaffle,
   } = useRaffles();
-
-  const { form, handleChange, resetForm } = useRaffleForm();
+  const {
+    form,
+    handleChange,
+    validate,
+    errors
+  } = useZodForm(initialForm, raffleSchema);
 
   const minDate = (() => {
     const d = new Date();
@@ -32,20 +50,21 @@ const RafflesAdmin = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await createRaffle(form);
-    resetForm();
-  };
 
+    if (!validate()) return;
+
+    await createRaffle(form);
+  };
   return (
     <main className="space-y-8 p-4 sm:p-6 bg-gray-50 min-h-screen">
 
       <h1 className="text-3xl font-bold mb-6">Administrar Rifas</h1>
-
       <RaffleForm
         form={form}
         handleChange={handleChange}
         handleSubmit={handleSubmit}
         minDate={minDate}
+        errors={errors}
       />
 
       <RafflesTable
