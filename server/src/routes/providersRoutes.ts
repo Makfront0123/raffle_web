@@ -11,7 +11,7 @@ const router = express.Router();
 const providersService = new ProviderService();
 const providersController = new ProviderController(providersService);
 
-router.get('/', authMiddleware, adminLimiter, adminMiddleware, providersController.getAll);
+router.get('/', authMiddleware, adminMiddleware, providersController.getAll);
 router.post('/', authMiddleware, adminLimiter, adminMiddleware, adminMiddlewareLimited, providersController.create);
 router.get('/:id', authMiddleware, adminLimiter, adminMiddleware, providersController.getById);
 router.put('/:id', authMiddleware, adminLimiter, adminMiddleware, adminMiddlewareLimited, providersController.update);

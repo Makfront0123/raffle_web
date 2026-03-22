@@ -275,6 +275,22 @@ export class PaymentService {
       });
       if (!user) throw new Error("Usuario no encontrado");
 
+      const pendingPayments = await manager.getRepository(Payment).find({
+        where: {
+          user: { id: userId },
+          status: PaymentStatus.PENDING,
+        },
+        relations: ["details"],
+      });
+
+      const totalHeldTickets = pendingPayments.reduce(
+        (acc, p) => acc + p.details.length,
+        0
+      );
+
+      if (totalHeldTickets > 20) {
+        throw new Error("Demasiados tickets en proceso");
+      }
       const raffle = await manager.getRepository(Raffle).findOne({
         where: { id: raffle_id },
       });
@@ -324,8 +340,6 @@ export class PaymentService {
       });
 
       const savedPayment = await manager.save(payment);
-
-      // ✅ log UNA sola vez
       await this.logPaymentEventTx(
         manager,
         savedPayment.id,

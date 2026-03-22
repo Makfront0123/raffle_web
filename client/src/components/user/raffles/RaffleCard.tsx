@@ -91,9 +91,10 @@ export default function RaffleCard({
       >
         <Card
           className={`relative w-full md:min-w-[24rem] min-w-[22rem] mx-auto overflow-hidden
-          rounded-2xl border border-gold/40 bg-black/60 backdrop-blur-xl
-          shadow-xl transition-all duration-300
-          ${isExpired
+  rounded-2xl border border-gold/40 bg-black/60 backdrop-blur-xl
+  shadow-xl transition-all duration-300
+  flex flex-col h-full   // 👈 CLAVE
+  ${isExpired
               ? "opacity-60 grayscale"
               : "hover:shadow-gold/30 hover:scale-[1.03]"
             }`}
@@ -154,7 +155,7 @@ export default function RaffleCard({
             </p>
           </CardHeader>
 
-          <CardContent className="relative z-10">
+          <CardContent className="relative z-10 flex-1">
             <p className="text-sm text-gray-300 line-clamp-3">
               {raffle.description}
             </p>
@@ -191,7 +192,7 @@ export default function RaffleCard({
               </div>
             )}
           </CardContent>
-          <CardFooter className="relative z-10 mx-auto w-full">
+          <CardFooter className="relative z-10 mt-auto w-full">
             {isExpired ? (
               <Button
                 variant="destructive"

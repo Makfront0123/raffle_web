@@ -2,9 +2,7 @@ import { create } from "zustand";
 import { PaymentService } from "@/services/paymentService";
 import { Payment, PaymentCreateDto, PaymentStatusEnum, WidgetPaymentDto, WompiPaymentResponse } from "@/type/Payment";
 import { WompiSignatureDto } from "@/type/WompiSignature";
-import { toast } from "sonner";
-import { getErrorMessage } from "./raffleStore";
-import { isAxiosError } from "axios";
+ 
 
 interface PaymentStore {
   // ADMIN
@@ -80,8 +78,6 @@ export const usePaymentStore = create<PaymentStore>((set, get) => ({
         ),
       });
     } catch (err: unknown) {
-      const message = isAxiosError(err) ? err.response?.data?.message || err.message : "Error al completar pago";
-      toast.error(message || "Error al completar pago");
       throw err;
     }
   },

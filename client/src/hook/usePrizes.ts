@@ -3,6 +3,8 @@
 import { usePrizeStore } from "@/store/prizeStore";
 import { useEffect, useState } from "react";
 import { PrizeForm, Prizes } from "@/type/Prizes";
+import { handleApiError } from "@/helper/handleApiError";
+import { toast } from "sonner";
 
 export function usePrizes() {
   const {
@@ -23,9 +25,12 @@ export function usePrizes() {
   useEffect(() => {
     const fetchPrizes = async () => {
       setLoading(true);
+      setError(null);
+
       try {
         await getPrizes();
-      } catch {
+      } catch (err) {
+        handleApiError(err, "Error cargando premios");
         setError("Error cargando premios");
       } finally {
         setLoading(false);
@@ -38,13 +43,16 @@ export function usePrizes() {
   useEffect(() => {
     const fetchWinners = async () => {
       setLoading(true);
+      setError(null);
+
       try {
         if (activeRaffleId === null) {
           await getWinners();
         } else {
           await getWinnersByRaffle(activeRaffleId);
         }
-      } catch {
+      } catch (err) {
+        handleApiError(err, "Error cargando ganadores");
         setError("Error cargando ganadores");
       } finally {
         setLoading(false);
@@ -56,36 +64,48 @@ export function usePrizes() {
 
   const createPrize = async (newPrize: PrizeForm) => {
     try {
-      await addPrize(
-        {
-          name: newPrize.name,
-          description: newPrize.description,
-          value: newPrize.value,
-          type: newPrize.type ?? "product",
-          raffleId: Number(newPrize.raffle),
-          providerId: Number(newPrize.provider),
-        },
-      );
+      const res = await addPrize({
+        name: newPrize.name,
+        description: newPrize.description,
+        value: newPrize.value,
+        type: newPrize.type ?? "product",
+        raffleId: Number(newPrize.raffle),
+        providerId: Number(newPrize.provider),
+      });
+
       await getPrizes();
-    } catch {
+
+      toast.success(res.message || "Premio creado correctamente");
+
+    } catch (err: unknown) {
+      handleApiError(err, "Error creando premio");
       setError("Error creando premio");
     }
   };
 
   const editPrize = async (id: number, updatedPrize: Partial<Prizes>) => {
     try {
-      await updatePrize(id, updatedPrize as Prizes);
+      const res = await updatePrize(id, updatedPrize as Prizes);
+
       await getPrizes();
-    } catch {
+
+      toast.success(res.message || "Premio actualizado");
+
+    } catch (err: unknown) {
+      handleApiError(err, "Error actualizando premio");
       setError("Error actualizando premio");
     }
   };
-
   const removePrize = async (id: number) => {
     try {
-      await deletePrize(id);
+      const res = await deletePrize(id);
+
       await getPrizes();
-    } catch {
+
+      toast.success(res.message || "Premio eliminado");
+
+    } catch (err: unknown) {
+      handleApiError(err, "Error eliminando premio");
       setError("Error eliminando premio");
     }
   };

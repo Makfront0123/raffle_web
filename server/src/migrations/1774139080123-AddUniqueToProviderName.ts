@@ -1,0 +1,26 @@
+import { MigrationInterface, QueryRunner } from "typeorm";
+
+export class AddUniqueConstraints1680000000001 implements MigrationInterface {
+    public async up(queryRunner: QueryRunner): Promise<void> {
+        await queryRunner.query(`
+      ALTER TABLE providers
+      ADD CONSTRAINT uq_provider_name UNIQUE (name);
+    `);
+
+        await queryRunner.query(`
+      ALTER TABLE raffle
+      ADD CONSTRAINT uq_raffle_title UNIQUE (title);
+    `);
+
+        await queryRunner.query(`
+      ALTER TABLE prizes
+      ADD CONSTRAINT uq_prize_name_raffle UNIQUE (name, raffle_id);
+    `);
+    }
+
+    public async down(queryRunner: QueryRunner): Promise<void> {
+        await queryRunner.query(`ALTER TABLE providers DROP CONSTRAINT uq_provider_name;`);
+        await queryRunner.query(`ALTER TABLE raffle DROP CONSTRAINT uq_raffle_title;`);
+        await queryRunner.query(`ALTER TABLE prizes DROP CONSTRAINT uq_prize_name_raffle;`);
+    }
+}

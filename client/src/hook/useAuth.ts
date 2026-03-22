@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { AuthStore } from "@/store/authStore";
 import { toast } from "sonner";
 import { GoogleTokenClient, GoogleTokenResponse } from "@/type/GoogleUserData";
+import axios, { AxiosError } from "axios";
 
 interface UseAuthOptions {
   skipPersist?: boolean;
@@ -42,8 +43,20 @@ export function useAuth({ skipPersist = false }: UseAuthOptions = {}) {
         }
 
         toast.success(`¡Bienvenido ${currentUser?.name || "usuario"}!`);
-      } catch (err: unknown) {
-        throw err;
+      } catch (err) {
+        const error = err as AxiosError<ApiError>;
+
+        if (error.response?.status === 429) {
+          toast.error("Demasiados intentos. Intenta más tarde ⏳");
+          return;
+        }
+
+        const message =
+          error.response?.data?.error ||
+          error.response?.data?.message ||
+          "Error al iniciar sesión con Google";
+
+        toast.error(message);
       }
     },
     [storeLoginAdmin]
@@ -54,9 +67,22 @@ export function useAuth({ skipPersist = false }: UseAuthOptions = {}) {
       try {
         await storeLoginWithGoogle(googleToken);
         const currentUser = AuthStore.getState().user;
+
         toast.success(`¡Bienvenido ${currentUser?.name || "usuario"}!`);
-      } catch {
-        toast.error("Error al iniciar sesión con Google");
+      } catch (err) {
+        const error = err as AxiosError<ApiError>;
+
+        if (error.response?.status === 429) {
+          toast.error("Demasiados intentos. Intenta más tarde ⏳");
+          return;
+        }
+
+        const message =
+          error.response?.data?.error ||
+          error.response?.data?.message ||
+          "Error al iniciar sesión con Google";
+
+        toast.error(message);
       }
     },
     [storeLoginWithGoogle]
@@ -112,7 +138,7 @@ export function useAuth({ skipPersist = false }: UseAuthOptions = {}) {
     (async () => {
       try {
         await storePersist();
-      } catch{
+      } catch {
         await storeLogout();
       } finally {
         setInitialized(true);
@@ -128,3 +154,9 @@ export function useAuth({ skipPersist = false }: UseAuthOptions = {}) {
     loginAdmin
   };
 }
+
+
+type ApiError = {
+  error?: string;
+  message?: string;
+};

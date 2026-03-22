@@ -9,7 +9,7 @@ export const raffleSchema = z.object({
     description: z.string().min(5, "Descripción muy corta"),
     price: priceSchema,
     end_date: futureDateSchema,
-    digits: z.number().min(1).max(6),
+    digits: z.coerce.number().min(1).max(6),
     status: z.enum(["active", "inactive"]),
     tickets: z.array(z.custom<Ticket>()),
     prizes: z.array(z.custom<Prizes>()),

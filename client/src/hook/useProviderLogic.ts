@@ -6,6 +6,8 @@ import { Providers } from "@/type/Providers";
 import { useProviders } from "./useProviders";
 import { useZodForm } from "./useZodForm";
 import { ProviderFormValues, providerSchema } from "@/lib/schemas/provider.schema";
+import { handleApiError } from "@/helper/handleApiError";
+import { toast } from "sonner";
 export interface ProviderFormState {
   id?: number;
   name: string;
@@ -13,7 +15,6 @@ export interface ProviderFormState {
   contact_email: string;
   contact_phone: string;
 }
-
 export const useProvidersLogic = () => {
   const { user } = AuthStore();
   const {
@@ -27,6 +28,7 @@ export const useProvidersLogic = () => {
   } = useProviders();
 
   const [open, setOpen] = useState(false);
+
   const {
     form,
     setForm,
@@ -55,37 +57,36 @@ export const useProvidersLogic = () => {
     });
   };
 
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
 
-    if (!validate()) return; // 🔥 aquí entra Zod
+    if (!validate()) return;
 
     try {
       if (form.id) {
         const { id, ...data } = form;
         await updateProvider(id, data);
+        toast.success("Proveedor actualizado correctamente");
       } else {
         await addProvider(form);
+        toast.success("Proveedor agregado correctamente");
       }
 
       await fetchProviders();
       resetForm();
       setOpen(false);
+
     } catch (err) {
-      console.error("Error guardando proveedor:", err);
+      handleApiError(err, "Error guardando proveedor");
     }
   };
-
   const handleEdit = (id: number) => {
     const provider = providers.find((p) => p.id === id);
     if (!provider) return;
     setForm(provider);
     setOpen(true);
   };
-
-
   const requestDeleteProvider = (id: number) => {
     const provider = providers.find((p) => p.id === id) || null;
     setProviderToDelete(provider);
@@ -94,11 +95,15 @@ export const useProvidersLogic = () => {
 
   const confirmDeleteProvider = async () => {
     if (!user || !providerToDelete?.id) return;
+
     try {
       await deleteProvider(providerToDelete.id);
       await fetchProviders();
+      toast.success("Proveedor eliminado correctamente");
+
     } catch (err) {
-      console.error("Error eliminando proveedor:", err);
+      handleApiError(err, "Error eliminando proveedor");
+
     } finally {
       setDeleteDialogOpen(false);
       setProviderToDelete(null);

@@ -148,7 +148,7 @@ export class AuthController {
     } catch (error: any) {
       console.error("Error en login:", error);
       return res.status(500).json({
-        message: "Error al autenticar con Google",
+        message: error.response?.data || error.message,
         error: error.response?.data || error.message,
       });
     }

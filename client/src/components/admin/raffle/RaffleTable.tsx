@@ -16,6 +16,7 @@ import { Raffle } from "@/type/Raffle";
 import { EditRaffleDialog } from "@/components/user/raffles/EditRaffleDialog";
 import { RafflesTableProps } from "@/type/RaffleTableProps";
 import { cn } from "@/lib/utils";
+import { AnimatePresence, motion } from "framer-motion";
 
 export const RafflesTable = ({
     raffles,
@@ -31,6 +32,12 @@ export const RafflesTable = ({
     deactivateRaffle,
     updateRaffle,
 }: RafflesTableProps) => {
+
+    const rowVariants = {
+        hidden: { opacity: 0, y: 10 },
+        visible: { opacity: 1, y: 0 },
+        exit: { opacity: 0, y: -10 },
+    };
 
     return (
         <Card className="border-none shadow-lg">
@@ -83,67 +90,78 @@ export const RafflesTable = ({
                                     </tr>
                                 </thead>
 
-                                <tbody>
-                                    {raffles.map((r: Raffle) => {
-                                        const isEnded = r.status === "ended";
-                                        const expired = new Date(r.end_date) < new Date();
+                                <motion.tbody layout>
+                                    <AnimatePresence mode="wait">
+                                        {raffles.map((r: Raffle) => {
+                                            const isEnded = r.status === "ended";
+                                            const expired = new Date(r.end_date) < new Date();
 
-                                        return (
-                                            <tr key={r.id} className="border-t">
-                                                <td className="px-4 py-2">{r.title}</td>
-                                                <td className="px-4 py-2">{r.total_numbers}</td>
-                                                <td className="px-4 py-2">{r.price}</td>
-                                                <td className="px-4 py-2">{r.digits}</td>
-                                                <td className="px-4 py-2">{r.status}</td>
-                                                <td className="px-4 py-2">
-                                                    {new Date(r.end_date).toLocaleDateString()}
-                                                </td>
+                                            return (
+                                                <motion.tr
+                                                    key={r.id}
+                                                    variants={rowVariants}
+                                                    initial="hidden"
+                                                    animate="visible"
+                                                    exit="exit"
+                                                    transition={{ duration: 0.25 }}
+                                                    layout
+                                                    className="border-t"
+                                                >
+                                                    <td className="px-4 py-2">{r.title}</td>
+                                                    <td className="px-4 py-2">{r.total_numbers}</td>
+                                                    <td className="px-4 py-2">{r.price}</td>
+                                                    <td className="px-4 py-2">{r.digits}</td>
+                                                    <td className="px-4 py-2">{r.status}</td>
+                                                    <td className="px-4 py-2">
+                                                        {new Date(r.end_date).toLocaleDateString()}
+                                                    </td>
 
-                                                <td className="px-4 py-2 flex gap-2 flex-wrap">
-                                                    <ConfirmDialog
-                                                        title="Eliminar rifa"
-                                                        triggerLabel="Eliminar"
-                                                        variant="destructive"
-                                                        onConfirm={() => deleteRaffle(r.id)} description={undefined} />
+                                                    <td className="px-4 py-2 flex gap-2 flex-wrap">
+                                                        <ConfirmDialog
+                                                            title="Eliminar rifa"
+                                                            triggerLabel="Eliminar"
+                                                            variant="destructive"
+                                                            onConfirm={() => deleteRaffle(r.id)} description={undefined} />
 
-                                                    {!isEnded && (
-                                                        <>
-                                                            <RegenerateTicketsButton raffleId={r.id} />
+                                                        {!isEnded && (
+                                                            <>
+                                                                <RegenerateTicketsButton raffleId={r.id} />
 
-                                                            <EditRaffleDialog
-                                                                raffle={r}
-                                                                onSave={(updated) =>
-                                                                    updateRaffle(r.id, updated)
-                                                                }
-                                                            />
+                                                                <EditRaffleDialog
+                                                                    raffle={r}
+                                                                    onSave={(updated) =>
+                                                                        updateRaffle(r.id, updated)
+                                                                    }
+                                                                />
 
-                                                            {r.status === "pending" && !expired && (
-                                                                <ConfirmDialog
-                                                                    title="Activar rifa"
-                                                                    triggerLabel="Activar"
-                                                                    onConfirm={() => activateRaffle(r.id)} description={undefined} />
-                                                            )}
+                                                                {r.status === "pending" && !expired && (
+                                                                    <ConfirmDialog
+                                                                        title="Activar rifa"
+                                                                        triggerLabel="Activar"
+                                                                        onConfirm={() => activateRaffle(r.id)} description={undefined} />
+                                                                )}
 
-                                                            {r.status === "pending" && expired && (
-                                                                <span className="text-xs text-red-500">
-                                                                    Fecha vencida. Actualiza antes de activar.
-                                                                </span>
-                                                            )}
+                                                                {r.status === "pending" && expired && (
+                                                                    <span className="text-xs text-red-500">
+                                                                        Fecha vencida. Actualiza antes de activar.
+                                                                    </span>
+                                                                )}
 
-                                                            {r.status === "active" && (
-                                                                <ConfirmDialog
-                                                                    title="Desactivar rifa"
-                                                                    triggerLabel="Desactivar"
-                                                                    variant="outline"
-                                                                    onConfirm={() => deactivateRaffle(r.id)} description={undefined} />
-                                                            )}
-                                                        </>
-                                                    )}
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
+                                                                {r.status === "active" && (
+                                                                    <ConfirmDialog
+                                                                        title="Desactivar rifa"
+                                                                        triggerLabel="Desactivar"
+                                                                        variant="outline"
+                                                                        onConfirm={() => deactivateRaffle(r.id)} description={undefined} />
+                                                                )}
+                                                            </>
+                                                        )}
+                                                    </td>
+                                                </motion.tr>
+                                            );
+                                        })}
+                                    </AnimatePresence>
+                                </motion.tbody>
                             </table>
                         </div>
 
