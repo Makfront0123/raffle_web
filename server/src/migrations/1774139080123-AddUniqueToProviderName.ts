@@ -47,7 +47,7 @@ export class AddUniqueConstraints1680000000001 implements MigrationInterface {
     if (prizeConstraint.length === 0) {
       await queryRunner.query(`
         ALTER TABLE prizes
-        ADD CONSTRAINT uq_prize_name_raffle UNIQUE (name, raffle_id);
+        ADD CONSTRAINT uq_prize_name_raffle UNIQUE (name, raffleId);
       `);
     }
   }
