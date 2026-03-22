@@ -6,7 +6,7 @@ type ApiError = {
     message?: string;
 };
 
-interface RateLimitAxiosError<T = any> extends AxiosError<T> {
+interface RateLimitAxiosError<T = unknown> extends AxiosError<T> {
     isRateLimit?: boolean;
 }
 export const handleApiError = (
