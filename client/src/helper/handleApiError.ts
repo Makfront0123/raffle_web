@@ -9,12 +9,19 @@ type ApiError = {
 interface RateLimitAxiosError<T = unknown> extends AxiosError<T> {
     isRateLimit?: boolean;
 }
+let lastToastTime = 0;
+
 export const handleApiError = (
     err: unknown,
     defaultMessage: string
 ) => {
+    const now = Date.now();
+    if (now - lastToastTime < 2000) return;
+
+    lastToastTime = now;
+
     if (err instanceof Error && !axios.isAxiosError(err)) {
-        toast.error(err.message);
+        toast.error(err.message, { id: "api-error" });
         return;
     }
 
@@ -24,7 +31,8 @@ export const handleApiError = (
         if (error.isRateLimit) {
             toast.error(
                 error.response?.data?.error ||
-                "Demasiadas solicitudes"
+                "Demasiadas solicitudes",
+                { id: "rate-limit" }
             );
             return;
         }
@@ -32,10 +40,11 @@ export const handleApiError = (
         toast.error(
             error.response?.data?.error ||
             error.response?.data?.message ||
-            defaultMessage
+            defaultMessage,
+            { id: "api-error" }
         );
         return;
     }
 
-    toast.error(defaultMessage);
+    toast.error(defaultMessage, { id: "api-error" });
 };

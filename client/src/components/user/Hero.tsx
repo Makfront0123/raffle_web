@@ -30,9 +30,6 @@ export default function Hero() {
         }}
       />
 
-      <div className="absolute inset-0 pointer-events-none bg-[url('/images/gold-grid.svg')] opacity-[0.05]" />
-
-
       <div className="relative z-20 max-w-4xl md:mt-2 mt-20 md:mb-2 mb-20  mx-auto px-6 text-center flex flex-col items-center gap-8">
 
 

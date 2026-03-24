@@ -43,7 +43,7 @@ export default function Raffles() {
     <div className="w-full min-h-screen px-6 py-16 bg-gradient-to-t from-yellow-500 text-white z-80">
 
       {loading && <LoadingScreen />}
-      {error && <div className="text-red-500">{error}</div>}
+
 
       <RaffleFilters
         search={search}

@@ -135,16 +135,22 @@ export function useAuth({ skipPersist = false }: UseAuthOptions = {}) {
       return;
     }
 
+    let mounted = true;
+
     (async () => {
       try {
         await storePersist();
       } catch {
         await storeLogout();
       } finally {
-        setInitialized(true);
+        if (mounted) setInitialized(true);
       }
     })();
-  }, [storePersist, skipPersist, storeLogout]);
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   return {
     user,

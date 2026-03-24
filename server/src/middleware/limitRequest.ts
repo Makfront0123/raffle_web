@@ -16,7 +16,7 @@ export const globalLimiter = rateLimit({
 
 export const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 10,
+    max: 20,
     handler: (req, res) => {
         res.status(429).json({
             error: "Demasiados intentos de autenticación",
@@ -26,7 +26,7 @@ export const authLimiter = rateLimit({
 
 export const adminLimiter = rateLimit({
     windowMs: 30 * 60 * 1000,
-    max: 200,
+    max: 500,
     handler: (req, res) => {
         res.status(429).json({
             error: "Demasiadas peticiones intenta más tarde",

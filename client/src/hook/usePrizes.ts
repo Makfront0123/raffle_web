@@ -7,17 +7,16 @@ import { handleApiError } from "@/helper/handleApiError";
 import { toast } from "sonner";
 
 export function usePrizes() {
-  const {
-    prizes = [],
-    winners = [],
-    getPrizes,
-    getWinners,
-    getWinnersByRaffle,
-    addPrize,
-    updatePrize,
-    deletePrize,
-  } = usePrizeStore();
+  const prizes = usePrizeStore((state) => state.prizes);
+  const winners = usePrizeStore((state) => state.winners);
 
+  const getPrizes = usePrizeStore((state) => state.getPrizes);
+  const getWinners = usePrizeStore((state) => state.getWinners);
+  const getWinnersByRaffle = usePrizeStore((state) => state.getWinnersByRaffle);
+
+  const addPrize = usePrizeStore((state) => state.addPrize);
+  const updatePrize = usePrizeStore((state) => state.updatePrize);
+  const deletePrize = usePrizeStore((state) => state.deletePrize);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeRaffleId, setActiveRaffleId] = useState<number | null>(null);
