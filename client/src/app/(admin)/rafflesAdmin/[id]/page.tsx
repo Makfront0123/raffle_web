@@ -37,7 +37,7 @@ const RaffleDetailPage = () => {
     }
 
     const rafflePayments = payments.filter(p => p?.raffle.id === raffleId);
-    const rafflePrizes = prizes.filter(p => p.raffle.id === raffleId);
+    const rafflePrizes = prizes.filter(p => p?.raffle?.id === raffleId);
     const raffleWinners = winners.filter(w => w?.raffle_id === raffleId);
 
     const prizesWithWinner = rafflePrizes.filter(prize =>

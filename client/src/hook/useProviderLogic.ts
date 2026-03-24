@@ -4,6 +4,10 @@ import { useState } from "react";
 import { AuthStore } from "@/store/authStore";
 import { Providers } from "@/type/Providers";
 import { useProviders } from "./useProviders";
+import { useZodForm } from "./useZodForm";
+import { ProviderFormValues, providerSchema } from "@/lib/schemas/provider.schema";
+import { handleApiError } from "@/helper/handleApiError";
+import { toast } from "sonner";
 export interface ProviderFormState {
   id?: number;
   name: string;
@@ -11,7 +15,6 @@ export interface ProviderFormState {
   contact_email: string;
   contact_phone: string;
 }
-
 export const useProvidersLogic = () => {
   const { user } = AuthStore();
   const {
@@ -25,12 +28,22 @@ export const useProvidersLogic = () => {
   } = useProviders();
 
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState<Providers>({
-    name: "",
-    contact_name: "",
-    contact_email: "",
-    contact_phone: "",
-  });
+
+  const {
+    form,
+    setForm,
+    handleChange,
+    validate,
+    errors,
+  } = useZodForm<ProviderFormValues>(
+    {
+      name: "",
+      contact_name: "",
+      contact_email: "",
+      contact_phone: "",
+    },
+    providerSchema
+  );
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [providerToDelete, setProviderToDelete] = useState<Providers | null>(null);
@@ -43,43 +56,37 @@ export const useProvidersLogic = () => {
       contact_phone: "",
     });
   };
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-  };
-
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
 
+    if (!validate()) return;
+
     try {
       if (form.id) {
-        const { id, name, contact_name, contact_email, contact_phone } = form;
-        const data = { name, contact_name, contact_email, contact_phone };
+        const { id, ...data } = form;
         await updateProvider(id, data);
+        toast.success("Proveedor actualizado correctamente");
       } else {
         await addProvider(form);
+        toast.success("Proveedor agregado correctamente");
       }
 
       await fetchProviders();
       resetForm();
       setOpen(false);
+
     } catch (err) {
-      console.error("Error guardando proveedor:", err);
+      handleApiError(err, "Error guardando proveedor");
     }
   };
-
   const handleEdit = (id: number) => {
     const provider = providers.find((p) => p.id === id);
     if (!provider) return;
     setForm(provider);
     setOpen(true);
   };
-
-
   const requestDeleteProvider = (id: number) => {
     const provider = providers.find((p) => p.id === id) || null;
     setProviderToDelete(provider);
@@ -88,11 +95,15 @@ export const useProvidersLogic = () => {
 
   const confirmDeleteProvider = async () => {
     if (!user || !providerToDelete?.id) return;
+
     try {
       await deleteProvider(providerToDelete.id);
       await fetchProviders();
+      toast.success("Proveedor eliminado correctamente");
+
     } catch (err) {
-      console.error("Error eliminando proveedor:", err);
+      handleApiError(err, "Error eliminando proveedor");
+
     } finally {
       setDeleteDialogOpen(false);
       setProviderToDelete(null);
@@ -114,5 +125,6 @@ export const useProvidersLogic = () => {
     providerToDelete,
     requestDeleteProvider,
     confirmDeleteProvider,
+    errors,
   };
 };

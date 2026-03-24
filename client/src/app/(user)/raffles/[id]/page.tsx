@@ -8,8 +8,9 @@ import RafflePagination from "@/components/user/raffles/RafflesPagination";
 import { useRaffleDetail } from "@/hook/useRaffleDetail";
 import { usePayment } from "@/hook/usePayment";
 import LoadingScreen from "@/components/user/LoadingScreen";
-import { PaymentSuccessModal } from "@/components/user/payment/PaymentSuccessModal";
+import { PaymentSuccessModalTwilio } from "@/components/user/payment/PaymentSuccessModalTwilio";
 import { PaymentFailedModal } from "@/components/user/payment/PaymentFailedModal";
+import { PaymentSuccessModalResend } from "@/components/user/payment/PaymentSuccesModalResend";
 
 
 export default function RaffleDetailPage() {
@@ -78,12 +79,10 @@ export default function RaffleDetailPage() {
 
 
       {payment.loading && <LoadingScreen />}
-      <PaymentSuccessModal
+      <PaymentSuccessModalResend
         open={payment.successModalOpen}
         onClose={() => payment.setSuccessModalOpen(false)}
-        raffleId={payment.paymentInfo?.raffle.id ?? 0}
         tickets={payment.paymentInfo?.tickets}
-        amount={payment.paymentInfo?.amount ?? 0}
         reference={payment.paymentInfo?.reference ?? ''}
       />
 

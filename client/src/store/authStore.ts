@@ -21,15 +21,23 @@ export const AuthStore = create<AuthState>((set, get) => ({
   setUser: (user) => set({ user }),
 
   persist: async () => {
-    if (get().persistChecked) return;
+    if (get().persistChecked || get().initialized) return;
+
     set({ persistChecked: true });
 
     try {
       const authService = new AuthService();
       const res = await authService.persist();
-      set({ user: res.user, initialized: true });
+
+      set({
+        user: res.user,
+        initialized: true,
+      });
     } catch {
-      set({ user: null, initialized: true });
+      set({
+        user: null,
+        initialized: true,
+      });
     }
   },
 

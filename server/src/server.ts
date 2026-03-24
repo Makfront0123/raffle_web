@@ -18,6 +18,7 @@ import { startCronJobs } from "./cron/cron";
 dotenv.config();
 
 const app = express();
+
 app.use("/api/ping-automation", pingRoutes);
 app.get("/health", (req, res) => {
   res.status(200).json({ status: "ok" });
@@ -71,7 +72,7 @@ app.use(
     crossOriginEmbedderPolicy: false,
   })
 );
-
+app.use(globalLimiter);
 
 const routesPath = path.join(__dirname, "routes");
 fs.readdirSync(routesPath).forEach((file) => {

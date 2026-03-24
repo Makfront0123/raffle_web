@@ -5,8 +5,10 @@ import { Ticket, TicketStatus } from "../entities/ticket.entity";
 import { Raffle } from "../entities/raffle.entity";
 import { Prize } from "../entities/prize.entity";
 import { ReservationTicket } from "../entities/reservation_ticket.entity";
-import { ReservationService } from "../services/reservationService";
+
 import { PrizesService } from "../services/prizesService";
+import { sendEmail } from "../utils/sendEmail";
+import { winnerEmailTemplate } from "../templates/winnerEmail";
 
 const prizeService = new PrizesService();
 
@@ -86,9 +88,31 @@ export async function closeExpiredRaffles(prizeServiceInjected = prizeService) {
             let winnersAssigned = 0;
 
             for (const prize of prizes) {
+
                 const winner = await prizeServiceInjected.selectWinner(prize.id);
+                if (!winner?.winnerTicket?.user?.email) continue;
+
                 if (winner) {
                     winnersAssigned++;
+                    try {
+
+                        await sendEmail({
+                            to: winner.winnerTicket.user.email,
+                            subject: "🎉 ¡Ganaste una rifa!",
+                            text: "",
+                            html: winnerEmailTemplate({
+                                name: winner.winnerTicket.user.name,
+                                raffleTitle: raffle.title || "Rifa sin título",
+                                prizeName: winner.prizeName || "Sin premio",
+                                ticketNumber: String(winner.winnerTicket.ticket_number || "N/A"),
+                            }),
+                        });
+                    } catch (emailError) {
+                        console.error(
+                            `Error enviando email al ganador (ticket ${winner.winnerTicket.ticket_number}):`,
+                            emailError
+                        );
+                    }
                 }
             }
 

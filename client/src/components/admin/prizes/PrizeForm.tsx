@@ -1,6 +1,5 @@
 "use client";
-import { ChangeEvent } from "react";
-import { useState } from "react";
+
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,10 +12,22 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Providers } from "@/type/Providers";
-import { Raffle } from "@/type/Raffle";
-import { PrizeFormProps, PrizeFormValues, PrizeType } from "@/type/Prizes";
 
+
+import { FormEvent } from "react";
+import { useZodForm } from "@/hook/useZodForm";
+import { PrizeFormValues, prizeSchema } from "@/lib/schemas/prize.schema.";
+import { PrizeFormProps, PrizeType } from "@/type/Prizes";
+import { motion } from "framer-motion";
+
+export const initialPrizeForm: PrizeFormValues = {
+    name: "",
+    description: "",
+    value: 0,
+    raffle: "",
+    provider: "",
+    type: "product",
+};
 export function PrizeForm({
     raffles,
     providers,
@@ -24,37 +35,23 @@ export function PrizeForm({
     loadingProviders,
     onSubmit,
 }: PrizeFormProps) {
-    const [form, setForm] = useState<PrizeFormValues>({
-        name: "",
-        description: "",
-        value: 0,
-        raffle: "",
-        provider: "",
-        type: "product",
-    });
 
-    const handleChange = (
-        e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-    ) => {
-        const { name, value } = e.target;
+    const {
+        form,
+        setForm,
+        handleChange,
+        validate,
+        errors,
+    } = useZodForm(initialPrizeForm, prizeSchema);
 
-        setForm((prev) => ({
-            ...prev,
-            [name]: name === "value" ? Number(value) : value,
-        }));
-    };
-
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+
+        if (!validate()) return;
+
         await onSubmit(form);
-        setForm({
-            name: "",
-            description: "",
-            value: 0,
-            raffle: "",
-            provider: "",
-            type: "product",
-        });
+
+        setForm(initialPrizeForm);
     };
 
     return (
@@ -65,9 +62,27 @@ export function PrizeForm({
 
             <CardContent>
                 <form onSubmit={handleSubmit} className="grid gap-4">
+
                     <div>
                         <Label>Nombre</Label>
-                        <Input name="name" value={form.name} onChange={handleChange} />
+                        <Input
+                            name="name"
+                            value={form.name}
+                            onChange={handleChange}
+                            className={errors.name ? "border-red-500" : ""}
+                        />
+                        {errors.name && (
+                            <div className="min-h-[20px] mt-1">
+                                <motion.p
+                                    initial={{ opacity: 0, y: -4 }}
+                                    animate={{ opacity: errors?.name ? 1 : 0, y: errors?.name ? 0 : -4 }}
+                                    transition={{ duration: 0.2 }}
+                                    className="text-red-500 text-sm"
+                                >
+                                    {errors?.name?.[0] || ""}
+                                </motion.p>
+                            </div>
+                        )}
                     </div>
 
                     <div>
@@ -76,13 +91,27 @@ export function PrizeForm({
                             name="description"
                             value={form.description}
                             onChange={handleChange}
+                            className={errors.description ? "border-red-500" : ""}
                         />
+
+                        {errors.description && ( // 🔥 aquí entra Zod
+                            <div className="min-h-[20px] mt-1">
+                                <motion.p
+                                    initial={{ opacity: 0, y: -4 }}
+                                    animate={{ opacity: errors?.description ? 1 : 0, y: errors?.description ? 0 : -4 }}
+                                    transition={{ duration: 0.2 }}
+                                    className="text-red-500 text-sm"
+                                >
+                                    {errors?.description?.[0] || ""}
+                                </motion.p>
+                            </div>
+                        )}
                     </div>
 
                     <div>
                         <Label>Valor del Premio</Label>
                         <div className="relative">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">$</span>
+                            <span className="absolute left-3 top-4 -translate-y-1/2 text-gray-500">$</span>
                             <Input
                                 type="number"
                                 step="0.01"
@@ -91,18 +120,25 @@ export function PrizeForm({
                                 value={form.value}
                                 onChange={handleChange}
                                 placeholder="Ej: 10.00"
-                                className="pl-7"
+                                className={`pl-7 ${errors.value ? "border-red-500" : ""}`}
                             />
+
+                            {errors.value && (
+                                <p className="text-red-500 text-sm mt-1">
+                                    {errors.value[0]}
+                                </p>
+                            )}
                         </div>
                     </div>
-
 
                     <div className="flex gap-10">
                         <div>
                             <Label>Rifa</Label>
                             <Select
                                 value={form.raffle}
-                                onValueChange={(v) => setForm({ ...form, raffle: v })}
+                                onValueChange={(v) =>
+                                    setForm({ ...form, raffle: v })
+                                }
                             >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Selecciona" />
@@ -132,7 +168,6 @@ export function PrizeForm({
                                     setForm((prev) => ({ ...prev, type: v }))
                                 }
                             >
-
                                 <SelectTrigger>
                                     <SelectValue placeholder="Selecciona" />
                                 </SelectTrigger>
@@ -150,11 +185,14 @@ export function PrizeForm({
                         <Label>Proveedor</Label>
                         <Select
                             value={form.provider}
-                            onValueChange={(v) => setForm({ ...form, provider: v })}
+                            onValueChange={(v) =>
+                                setForm({ ...form, provider: v })
+                            }
                         >
                             <SelectTrigger>
                                 <SelectValue placeholder="Selecciona" />
                             </SelectTrigger>
+
                             <SelectContent>
                                 {providers.length > 0 ? (
                                     providers.map((p) => (

@@ -44,7 +44,7 @@ export function Header() {
     >
       <nav className="max-w-7xl mx-auto  py-4 flex items-center justify-between text-white">
         <Link href="/" className="flex flex-col leading-none">
-          <Image src="/images/logo02.png" alt="logo" width={160} height={160} className="object-fill hover:opacity-70 md:ml-0 ml-2" />
+          <Image src="/images/logo02.png" alt="logo" width={160} height={160} className="object-fill hover:opacity-70 md:ml-0 ml-2 h-auto w-auto" />
         </Link>
 
 

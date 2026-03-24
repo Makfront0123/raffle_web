@@ -1,9 +1,9 @@
 import { api } from "@/api/api";
 import { Prizes, CreatePrizeDTO } from "@/type/Prizes";
 import { Winner } from "@/type/Winner";
- 
 
-interface BackendResponse<T> {
+
+export interface BackendResponse<T> {
   message: string;
   data: T;
 }

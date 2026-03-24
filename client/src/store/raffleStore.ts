@@ -18,12 +18,6 @@ interface RaffleStore {
   deactivateRaffle: (id: number) => Promise<void>;
 }
 
-export const getErrorMessage = (err: unknown): string => {
-  if (typeof err === "object" && err !== null && "message" in err) {
-    return (err as { message: string }).message;
-  }
-  return "Error desconocido";
-};
 
 export const useRaffleStore = create<RaffleStore>()((set) => ({
   raffles: [],
@@ -36,8 +30,7 @@ export const useRaffleStore = create<RaffleStore>()((set) => ({
       const raffles = await raffleService.getAllRaffles();
       set({ raffles });
     } catch (err: unknown) {
-      const msg = getErrorMessage(err);
-      toast.error(msg);
+      throw err;
     }
   },
   getRaffleById: async (id) => {
@@ -53,8 +46,6 @@ export const useRaffleStore = create<RaffleStore>()((set) => ({
 
       return raffle;
     } catch (err: unknown) {
-      const msg = getErrorMessage(err);
-      toast.error(msg);
       throw err;
     }
   },
@@ -63,11 +54,8 @@ export const useRaffleStore = create<RaffleStore>()((set) => ({
       const raffleService = new RaffleService();
       const created: Raffle = await raffleService.createRaffle(raffle);
       set((state) => ({ raffles: [...state.raffles, created] }));
-      toast.success("Rifa creada correctamente");
       return created;
     } catch (err: unknown) {
-      const msg = getErrorMessage(err);
-      toast.error(msg || "Error actualizando la rifa");
       throw err;
     }
   },
@@ -80,11 +68,8 @@ export const useRaffleStore = create<RaffleStore>()((set) => ({
       set((state) => ({
         raffles: state.raffles.map(r => (r.id === id ? updated : r)),
       }));
-      toast.success("Rifa actualizada correctamente");
       return updated;
     } catch (err: unknown) {
-      const msg = getErrorMessage(err);
-      toast.error(msg || "Error actualizando la rifa");
       throw err;
     }
   },
@@ -96,34 +81,26 @@ export const useRaffleStore = create<RaffleStore>()((set) => ({
       set((state) => ({
         raffles: state.raffles.filter(r => r.id !== id),
       }));
-      toast.success("Rifa eliminada correctamente");
       return true;
     } catch (err: unknown) {
-      const msg = getErrorMessage(err);
-      toast.error(msg || "Error eliminando la rifa");
-      return false;
+      throw err;
     }
   },
   regenerateTickets: async (id, newDigits) => {
     try {
       const raffleService = new RaffleService();
       await raffleService.regenerateTickets(id, newDigits);
-      toast.success("Tickets regenerados correctamente");
       return true;
     } catch (err: unknown) {
-      const msg = getErrorMessage(err);
-      toast.error(msg || "Error regenerando tickets");
-      return false;
+      throw err;
     }
   },
   activateRaffle: async (id) => {
     try {
       const raffleService = new RaffleService();
       await raffleService.activateRaffle(id);
-      toast.success("La rifa se ha activado correctamente");
     } catch (err: unknown) {
-      const msg = getErrorMessage(err);
-      toast.error(msg || "Error activando la rifa");
+      throw err;
     }
   },
 
@@ -131,10 +108,8 @@ export const useRaffleStore = create<RaffleStore>()((set) => ({
     try {
       const raffleService = new RaffleService();
       await raffleService.deactivateRaffle(id);
-      toast.success("La rifa se ha desactivado correctamente");
     } catch (err: unknown) {
-      const msg = getErrorMessage(err);
-      toast.error(msg || "Error desactivando la rifa");
+      throw err;
     }
   },
 }));

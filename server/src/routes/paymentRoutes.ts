@@ -20,8 +20,7 @@ router.delete("/:id", authMiddleware, adminMiddleware, adminLimiter, paymentCont
 router.put("/:id", authMiddleware, adminMiddleware, adminLimiter, paymentController.updatePayment.bind(paymentController));
 router.put("/:id/complete", authMiddleware, adminMiddleware, adminMiddlewareLimited, adminLimiter, paymentController.completePayment.bind(paymentController));
 router.put("/:id/cancel", authMiddleware, adminMiddleware, adminMiddlewareLimited, adminLimiter, paymentController.cancelPayment.bind(paymentController));
-
-
+router.get("/:id/logs", authMiddleware, adminMiddleware, adminLimiter, paymentController.getPaymentLogs.bind(paymentController));
 router.post(
   "/cancel/reference/:reference",
   statusLimiter,

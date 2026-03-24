@@ -28,6 +28,7 @@ export function ProvidersEditModal({
           form={form}
           onChange={onChange}
           onSubmit={onSubmit}
+          errors={{}}
           submitLabel={form.id ? "Actualizar" : "Guardar"}
         />
 

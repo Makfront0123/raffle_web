@@ -91,32 +91,46 @@ export default function Dashboard() {
       </section>
 
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="border-0 shadow-sm">
-          <CardHeader>
-            <CardTitle>Ingresos recientes</CardTitle>
-          </CardHeader>
-          <CardContent className="h-72">
-            {revenueData.length ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={revenueData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <Tooltip />
-                  <Line
-                    type="monotone"
-                    dataKey="revenue"
-                    stroke="#6366F1"
-                    strokeWidth={3}
-                    dot={{ r: 4 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            ) : (
-              <EmptyState text="Sin ingresos registrados" />
-            )}
-          </CardContent>
-        </Card>
+
+        <div className="min-w-0">
+          <Card className="border-0 shadow-sm">
+            <CardHeader>
+              <CardTitle>Ingresos recientes</CardTitle>
+            </CardHeader>
+
+            <CardContent className="h-72 w-full">
+              {revenueData.length ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart
+                    data={revenueData}
+                    margin={{ left: 10, right: 10 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+
+                    <XAxis
+                      dataKey="date"
+                      tick={{ fontSize: 12 }}
+                    />
+
+                    <YAxis />
+
+                    <Tooltip />
+
+                    <Line
+                      type="monotone"
+                      dataKey="revenue"
+                      stroke="#6366F1"
+                      strokeWidth={3}
+                      dot={{ r: 4 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : (
+                <EmptyState text="Sin ingresos registrados" />
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
         <Card className="border-0 shadow-sm">
           <CardHeader>

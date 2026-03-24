@@ -14,6 +14,7 @@ export default function ProvidersPage() {
     providers,
     loading,
     error,
+    errors,
     form,
     handleChange,
     handleSubmit,
@@ -35,7 +36,7 @@ export default function ProvidersPage() {
           <CardTitle>Agregar Nuevo Proveedor</CardTitle>
         </CardHeader>
         <CardContent>
-          <ProvidersForm form={form} onChange={handleChange} onSubmit={handleSubmit} />
+          <ProvidersForm form={form} onChange={handleChange} onSubmit={handleSubmit} errors={errors} />
         </CardContent>
       </Card>
       <Card className="border-none shadow-lg">

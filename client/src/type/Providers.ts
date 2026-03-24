@@ -15,6 +15,7 @@ export interface ProvidersFormProps {
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onSubmit: (e: React.ChangeEvent<HTMLFormElement>) => Promise<void>;
     submitLabel?: string;
+    errors: Record<string, string[] | undefined>;
 }
 
 export interface ProvidersEditModalProps {
@@ -36,7 +37,7 @@ export interface ProvidersFormProps {
 
 
 export interface ProvidersTableProps {
-  providers: Providers[];
-  onEdit: (id: number) => void;
-  onDelete: (id: number) => void;
+    providers: Providers[];
+    onEdit: (id: number) => void;
+    onDelete: (id: number) => void;
 }

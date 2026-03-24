@@ -5,6 +5,7 @@ import { Ticket, TicketStatus } from "../entities/ticket.entity";
 import { In, LessThan } from "typeorm";
 import { Raffle } from "../entities/raffle.entity";
 
+
 export class ReservationService {
   private dataSource: any;
 
@@ -43,15 +44,27 @@ export class ReservationService {
 
       const tickets = await queryRunner.manager
         .createQueryBuilder(Ticket, "ticket")
+        .leftJoinAndSelect("ticket.raffle", "raffle")
         .setLock("pessimistic_write")
         .where("ticket.id_ticket IN (:...ids)", { ids: ticketIds })
         .getMany();
 
-      const invalidTickets = tickets.filter((t: Ticket) => !t.raffle || t.raffle.id !== raffleId);
+      if (tickets.length !== ticketIds.length) {
+        throw new Error('Algunos tickets no existen.');
+      }
+
+      const invalidTickets = tickets.filter(
+        (t: Ticket) => !t.raffle || t.raffle.id !== raffleId
+      );
+
       if (invalidTickets.length > 0) {
         throw new Error('Uno o más tickets no pertenecen a esta rifa.');
       }
-      const unavailable = tickets.filter((t: Ticket) => t.status !== TicketStatus.AVAILABLE);
+
+      const unavailable = tickets.filter(
+        (t: Ticket) => t.status !== TicketStatus.AVAILABLE
+      );
+
       if (unavailable.length > 0) {
         throw new Error('Uno o más tickets ya no están disponibles.');
       }
@@ -62,7 +75,6 @@ export class ReservationService {
       }
 
       const expiresAt = new Date(Date.now() + 30 * 60000);
-
       const reservation = queryRunner.manager.create(Reservation, {
         user: { id: userId } as any,
         raffle: { id: raffleId } as any,
@@ -73,28 +85,28 @@ export class ReservationService {
       });
 
       await queryRunner.manager.save(reservation);
-
-      for (const resTicket of reservation.reservationTickets) {
-        resTicket.ticket.status = 'reserved';
-        await queryRunner.manager.update(
-          Ticket,
-          { id_ticket: In(ticketIds) },
-          { status: TicketStatus.RESERVED }
-        );
-      }
+      await queryRunner.manager.update(
+        Ticket,
+        { id_ticket: In(ticketIds) },
+        { status: TicketStatus.RESERVED }
+      );
 
       await queryRunner.commitTransaction();
-      return { message: 'Tickets reservados exitosamente', reservation };
+
+      return {
+        message: 'Tickets reservados exitosamente',
+        reservation
+      };
 
     } catch (error) {
       await queryRunner.rollbackTransaction();
+      console.error(error);
       throw error;
 
     } finally {
       await queryRunner.release();
     }
   }
-
   async releaseExpiredReservations() {
     const queryRunner = this.createQueryRunner();
     await queryRunner.connect();
@@ -105,6 +117,8 @@ export class ReservationService {
 
       const expired = await queryRunner.manager
         .createQueryBuilder(Reservation, "reservation")
+        .leftJoinAndSelect("reservation.reservationTickets", "rt")
+        .leftJoinAndSelect("rt.ticket", "ticket")
         .setLock("pessimistic_write")
         .where("reservation.expires_at < :now", { now })
         .getMany();
@@ -175,6 +189,9 @@ export class ReservationService {
         throw new Error('No se puede eliminar la reserva: No es tu propia.');
       }
 
+      if (reservation.expires_at < new Date()) {
+        throw new Error('No puedes cancelar una reserva expirada.');
+      }
       const hasPurchased = reservation.reservationTickets.some(
         (rt: ReservationTicket) => rt.ticket.status === 'purchased'
       );

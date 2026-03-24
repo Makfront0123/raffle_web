@@ -5,6 +5,7 @@ import AdminLayout from "@/layouts/AdminLayout";
 import { useAuth } from "@/hook/useAuth";
 import AdminOnlyScreen from "@/components/user/AdminOnlyScreen";
 import AdminMobileBlocked from "@/components/admin/AdminMobileBlocked";
+import { AdminWelcomeModal } from "@/components/admin/AdminWelcomeModal";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { user, } = useAuth();
@@ -14,7 +15,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     <>
       <AdminMobileBlocked />
       <div className="hidden sm:block">
-        <AdminLayout>{children}</AdminLayout>;
+        <AdminLayout>
+          <AdminWelcomeModal />
+          {children}
+        </AdminLayout>;
       </div>
     </>
   )
