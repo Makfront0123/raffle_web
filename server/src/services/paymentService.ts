@@ -791,19 +791,23 @@ export class PaymentService {
     }
 
     if (force) {
-      payment.status = PaymentStatus.COMPLETED;
-      payment.transaction_id ||= `MANUAL-${Date.now()}`;
-      await this.paymentRepo.save(payment);
-
-      for (const detail of payment.details) {
-        detail.ticket.status = TicketStatus.PURCHASED;
-        detail.ticket.purchased_at = new Date();
-        detail.ticket.held_until = null;
-        await this.ticketRepository.save(detail.ticket);
+      if (payment.status !== PaymentStatus.PENDING) {
+        throw new Error(
+          `No se puede aprobar este pago: estado actual ${payment.status}`
+        );
       }
 
+      payment.status = PaymentStatus.COMPLETED;
+      for (const d of payment.details) {
+        d.ticket.status = TicketStatus.PURCHASED;
+        d.ticket.purchased_at = new Date();
+        d.ticket.held_until = null;
+        await this.ticketRepository.save(d.ticket);
+      }
+      await this.paymentRepo.save(payment);
       return payment;
     }
+
     const wompiResponse = await fetch(
       `https://sandbox.wompi.co/v1/transactions/${payment.transaction_id}`,
       { headers: { Authorization: `Bearer ${process.env.WOMPI_PRIVATE_KEY}` } }
