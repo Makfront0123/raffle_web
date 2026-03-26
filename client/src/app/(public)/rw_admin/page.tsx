@@ -56,7 +56,16 @@ const AdminAuthPage = () => {
                         "radial-gradient(circle at 20% 20%, rgba(255,215,0,0.15), transparent 60%), radial-gradient(circle at 80% 80%, rgba(255,215,0,0.1), transparent 70%)",
                 }}
             />
-            <div className="bg-[#1A1A1A]/80 border border-yellow-500 rounded-xl shadow-lg w-full max-w-md p-8 backdrop-blur-sm">
+            <div className="bg-[#1A1A1A]/80 border border-yellow-500 rounded-2xl shadow-lg w-full max-w-md p-10 backdrop-blur-sm relative z-10">
+                <div className="text-center mb-6">
+                    <h1 className="text-3xl sm:text-4xl font-bold text-yellow-400">
+                        Panel de Administración
+                    </h1>
+                    <p className="text-yellow-200 text-sm mt-1">
+                        Inicia sesión para gestionar rifas, premios y pagos
+                    </p>
+                </div>
+
                 {error && <p className="text-red-500 mb-4 text-center">{error}</p>}
 
                 <motion.form

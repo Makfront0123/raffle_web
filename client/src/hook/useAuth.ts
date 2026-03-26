@@ -32,6 +32,7 @@ export function useAuth({ skipPersist = false }: UseAuthOptions = {}) {
       toast.success("Sesión cerrada correctamente");
 
       sessionStorage.removeItem("adminSplashShown");
+      sessionStorage.removeItem("admin_onboarding_seen");
       router.push("/");
     } catch (err) {
       handleApiError(err, "Error al cerrar sesión");
@@ -43,10 +44,9 @@ export function useAuth({ skipPersist = false }: UseAuthOptions = {}) {
     async (email: string, password: string, onSplash?: () => void) => {
       try {
         await storeLoginAdmin(email, password);
-
         const currentUser = AuthStore.getState().user;
+
         if (currentUser?.role === "admin") {
-          sessionStorage.setItem("justLoggedIn", "true");
           if (onSplash) onSplash();
         }
 

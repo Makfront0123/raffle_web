@@ -774,23 +774,19 @@ export class PaymentService {
       throw new Error("Transacción no encontrada");
     }
 
-    if (!force && payment.status !== PaymentStatus.PENDING) {
-      return payment;
-    }
-
     if (!payment.transaction_id) {
       throw new Error("No hay transaction_id asociado al pago");
     }
 
+    if (force) {
+      payment.status = PaymentStatus.COMPLETED;
+      await this.paymentRepo.save(payment);
+      return payment;
+    }
     const wompiResponse = await fetch(
       `https://sandbox.wompi.co/v1/transactions/${payment.transaction_id}`,
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.WOMPI_PRIVATE_KEY}`,
-        },
-      }
+      { headers: { Authorization: `Bearer ${process.env.WOMPI_PRIVATE_KEY}` } }
     );
-
     const data = await wompiResponse.json();
 
     if (!data.data) {
@@ -804,6 +800,7 @@ export class PaymentService {
     } else if (["DECLINED", "ERROR"].includes(status)) {
       await this.simulateWebhook(reference, "DECLINED");
     }
+
     return await this.paymentRepo.findOne({ where: { reference } });
   }
 }
