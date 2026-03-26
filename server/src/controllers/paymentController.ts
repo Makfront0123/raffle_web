@@ -278,7 +278,6 @@ export class PaymentController {
             return res.status(500).json({ message: "Error obteniendo estado" });
         }
     }
-
     async verifyPaymentManually(req: Request, res: Response) {
         const { reference } = req.params;
 
@@ -290,8 +289,15 @@ export class PaymentController {
                 result
             });
         } catch (error) {
+            if (error instanceof Error && error.message.includes("Transacción no encontrada")) {
+                return res.status(404).json({
+                    message: error.message
+                });
+            }
+
+            console.error("Error verifyPaymentManually:", error);
             return res.status(500).json({
-                message: error instanceof Error ? error.message : "Error verificando pago"
+                message: "Error verificando pago"
             });
         }
     }

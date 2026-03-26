@@ -3,6 +3,7 @@ import { usePaymentStore } from "@/store/paymentStore";
 import { AuthStore } from "@/store/authStore";
 import { applyFilters } from "@/app/utils/paymentFilters";
 import { toast } from "sonner";
+import { handleApiError } from "@/helper/handleApiError";
 
 export function usePaymentsPageLogic() {
   const [statusFilter, setStatusFilter] =
@@ -30,6 +31,7 @@ export function usePaymentsPageLogic() {
   const handleVerifyPayment = async (reference: string) => {
     try {
       const updatedPayment = await verifyPaymentManually(reference);
+
       if (updatedPayment.status === "completed") {
         toast.success("Pago verificado correctamente");
       } else if (updatedPayment.status === "expired") {
@@ -38,7 +40,7 @@ export function usePaymentsPageLogic() {
         toast("Pago actualizado");
       }
     } catch (err) {
-      toast.error("Error verificando el pago");
+      handleApiError(err, "Error verificando el pago");
     }
   };
 
