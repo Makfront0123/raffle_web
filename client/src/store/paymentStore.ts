@@ -21,7 +21,7 @@ interface PaymentStore {
 
 
   completePayment: (id: number,) => Promise<void>;
-  verifyPaymentManually: (reference: string,) => Promise<void>;
+  verifyPaymentManually: (reference: string,) => Promise<Payment>;
   cancelPayment: (id: number,) => Promise<void>;
 
   getWompiSignature: (data: WompiSignatureDto,) => Promise<{ signature: string }>;
@@ -84,9 +84,16 @@ export const usePaymentStore = create<PaymentStore>((set, get) => ({
   },
 
   verifyPaymentManually: async (reference: string) => {
-    await PaymentService.verifyPaymentManually(reference);
-  },
+    const updatedPayment = await PaymentService.verifyPaymentManually(reference);
 
+    set({
+      payments: get().payments.map((p) =>
+        p.reference === reference ? { ...p, status: updatedPayment.status } : p
+      ),
+    });
+
+    return updatedPayment;
+  },
   cancelPayment: async (id: number,) => {
     await PaymentService.cancelPayment(id);
     set({

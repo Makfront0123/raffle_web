@@ -46,16 +46,26 @@ export default function PaymentsTable({ payments, onVerify }: PaymentsTableProps
                 <td className="px-6 py-4">{p.raffle.title}</td>
                 <td className="px-6 py-4">${p.total_amount}</td>
                 <td className="px-6 py-4">
-                  <Badge variant={p.status === PaymentStatusEnum.COMPLETED ? "default" : "secondary"}>
-                    {p.status === PaymentStatusEnum.COMPLETED ? "Completado" : "Pendiente"}
+                  <Badge
+                    variant={
+                      p.status === PaymentStatusEnum.COMPLETED
+                        ? "default"
+                        : p.status === PaymentStatusEnum.EXPIRED
+                          ? "destructive"
+                          : "secondary"
+                    }
+                  >
+                    {p.status === PaymentStatusEnum.COMPLETED
+                      ? "Completado"
+                      : p.status === PaymentStatusEnum.EXPIRED
+                        ? "Expirado"
+                        : "Pendiente"}
                   </Badge>
                 </td>
                 <td className="px-6 py-4">{formattedDate}</td>
                 <td className="px-6 py-4">
-                  {p.status !== PaymentStatusEnum.COMPLETED ? (
-                    <Button onClick={() => onVerify(p.reference)}>
-                      Verificar Pago
-                    </Button>
+                  {p.status === PaymentStatusEnum.PENDING ? (
+                    <Button onClick={() => onVerify(p.reference)}>Verificar Pago</Button>
                   ) : (
                     <span className="text-gray-400 text-sm">—</span>
                   )}

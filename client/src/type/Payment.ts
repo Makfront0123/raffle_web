@@ -6,6 +6,7 @@ export enum PaymentStatusEnum {
   COMPLETED = 'completed',
   CANCELLED = 'cancelled',
   FAILED = 'failed',
+  EXPIRED = 'expired',
 }
 
 export enum TicketStatusEnum {

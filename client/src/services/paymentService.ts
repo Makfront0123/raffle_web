@@ -39,9 +39,9 @@ export class PaymentService {
     return res.data;
   }
 
-  static async verifyPaymentManually(reference: string): Promise<void> {
-    await api.post(`/api/payment/manual/verify/${reference}`);
-    return;
+  static async verifyPaymentManually(reference: string): Promise<Payment> {
+    const response = await api.post(`/api/payment/manual/verify/${reference}`);
+    return response.data;
   }
 
 }
