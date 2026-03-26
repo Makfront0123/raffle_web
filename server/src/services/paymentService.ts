@@ -178,19 +178,14 @@ export class PaymentService {
         switch (tx.status) {
           case "APPROVED":
             payment.status = PaymentStatus.COMPLETED;
-
-            await this.logPaymentEventTx(
-              manager,
-              payment.id,
-              "PAYMENT_APPROVED"
-            );
+            await this.logPaymentEventTx(manager, payment.id, "PAYMENT_APPROVED");
 
             for (const d of payment.details) {
               d.ticket.status = TicketStatus.PURCHASED;
               d.ticket.purchased_at = new Date();
+              d.ticket.held_until = null;
               await manager.save(d.ticket);
             }
-
             const user = payment.user;
             const tickets = payment.details.map(d => d.ticket.ticket_number);
 
@@ -216,18 +211,14 @@ export class PaymentService {
           case "DECLINED":
           case "ERROR":
             payment.status = PaymentStatus.CANCELLED;
-
-            await this.logPaymentEventTx(
-              manager,
-              payment.id,
-              "PAYMENT_DECLINED",
-              tx.status
-            );
+            await this.logPaymentEventTx(manager, payment.id, "PAYMENT_DECLINED", tx.status);
 
             for (const d of payment.details) {
-              d.ticket.status = TicketStatus.AVAILABLE;
-              d.ticket.held_until = null;
-              await manager.save(d.ticket);
+              if (d.ticket.status === TicketStatus.HELD) {
+                d.ticket.status = TicketStatus.AVAILABLE;
+                d.ticket.held_until = null;
+                await manager.save(d.ticket);
+              }
             }
             break;
 
