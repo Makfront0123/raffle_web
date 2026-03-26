@@ -767,11 +767,15 @@ export class PaymentService {
       .digest("hex");
   }
 
-  async verifyPaymentManually(reference: string) {
+  async verifyPaymentManually(reference: string, force = true) {
     const payment = await this.paymentRepo.findOne({ where: { reference } });
 
-    if (!payment || payment.status !== PaymentStatus.PENDING) {
-      return;
+    if (!payment) {
+      throw new Error("Transacción no encontrada");
+    }
+
+    if (!force && payment.status !== PaymentStatus.PENDING) {
+      return payment;
     }
 
     if (!payment.transaction_id) {
@@ -782,7 +786,7 @@ export class PaymentService {
       `https://sandbox.wompi.co/v1/transactions/${payment.transaction_id}`,
       {
         headers: {
-          Authorization: `Bearer ${process.env.WOMPI_PRIVATE_KEY}`
+          Authorization: `Bearer ${process.env.WOMPI_PRIVATE_KEY}`,
         },
       }
     );
@@ -800,6 +804,6 @@ export class PaymentService {
     } else if (["DECLINED", "ERROR"].includes(status)) {
       await this.simulateWebhook(reference, "DECLINED");
     }
+    return await this.paymentRepo.findOne({ where: { reference } });
   }
-
 }

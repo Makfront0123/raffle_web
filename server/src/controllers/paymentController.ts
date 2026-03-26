@@ -282,7 +282,7 @@ export class PaymentController {
         const { reference } = req.params;
 
         try {
-            const result = await this.paymentService.verifyPaymentManually(reference);
+            const result = await this.paymentService.verifyPaymentManually(reference, true);
 
             return res.status(200).json({
                 message: "Pago verificado",
@@ -290,16 +290,15 @@ export class PaymentController {
             });
         } catch (error) {
             if (error instanceof Error && error.message.includes("Transacción no encontrada")) {
-                return res.status(404).json({
-                    message: error.message
-                });
+                return res.status(404).json({ message: error.message });
+            }
+
+            if (error instanceof Error && error.message.includes("No hay transaction_id")) {
+                return res.status(400).json({ message: error.message });
             }
 
             console.error("Error verifyPaymentManually:", error);
-            return res.status(500).json({
-                message: "Error verificando pago"
-            });
+            return res.status(500).json({ message: "Error verificando pago" });
         }
     }
-
 }
