@@ -11,7 +11,7 @@ import { toast } from "sonner";
 
 export default function PaymentsPage() {
   const {
-    completePayment,
+    verifyPaymentManually,
     currentPage,
     setCurrentPage,
     filteredPayments,
@@ -59,7 +59,7 @@ export default function PaymentsPage() {
         <CardContent>
           <PaymentsTable
             payments={paginatedPayments}
-            onComplete={completePayment}
+            onVerify={verifyPaymentManually}
           />
 
           <PaymentsPagination

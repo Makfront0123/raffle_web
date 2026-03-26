@@ -279,4 +279,21 @@ export class PaymentController {
         }
     }
 
+    async verifyPaymentManually(req: Request, res: Response) {
+        const { reference } = req.params;
+
+        try {
+            const result = await this.paymentService.verifyPaymentManually(reference);
+
+            return res.status(200).json({
+                message: "Pago verificado",
+                result
+            });
+        } catch (error) {
+            return res.status(500).json({
+                message: error instanceof Error ? error.message : "Error verificando pago"
+            });
+        }
+    }
+
 }

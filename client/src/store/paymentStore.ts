@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { PaymentService } from "@/services/paymentService";
 import { Payment, PaymentCreateDto, PaymentStatusEnum, WidgetPaymentDto, WompiPaymentResponse } from "@/type/Payment";
 import { WompiSignatureDto } from "@/type/WompiSignature";
- 
+
 
 interface PaymentStore {
   // ADMIN
@@ -21,6 +21,7 @@ interface PaymentStore {
 
 
   completePayment: (id: number,) => Promise<void>;
+  verifyPaymentManually: (reference: string,) => Promise<void>;
   cancelPayment: (id: number,) => Promise<void>;
 
   getWompiSignature: (data: WompiSignatureDto,) => Promise<{ signature: string }>;
@@ -80,6 +81,10 @@ export const usePaymentStore = create<PaymentStore>((set, get) => ({
     } catch (err: unknown) {
       throw err;
     }
+  },
+
+  verifyPaymentManually: async (reference: string) => {
+    await PaymentService.verifyPaymentManually(reference);
   },
 
   cancelPayment: async (id: number,) => {

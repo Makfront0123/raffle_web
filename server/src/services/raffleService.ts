@@ -93,7 +93,7 @@ export class RaffleService {
 
         if (!endDate) throw new Error("Debes proporcionar una fecha de finalización");
 
-        const totalNumbers = Math.pow(10, data.digits); // <-- totalTickets
+        const totalNumbers = Math.pow(10, data.digits);
 
         const raffle = raffleRepo.create({
             title: data.title,
@@ -107,10 +107,13 @@ export class RaffleService {
 
         await raffleRepo.save(raffle);
 
-        setImmediate(() => {
-            this.generateTicketsAsync(raffle.id, data.digits);
+        setImmediate(async () => {
+            try {
+                await this.generateTicketsAsync(raffle.id, data.digits);
+            } catch (err) {
+                console.error("Error generando tickets:", err);
+            }
         });
-
         return {
             message: "Rifa creada correctamente",
             raffle,
@@ -159,10 +162,13 @@ export class RaffleService {
         await this.raffleRepo.save(raffle);
 
 
-        setImmediate(() => {
-            this.deleteRaffleAsync(id);
+        setImmediate(async () => {
+            try {
+                await this.deleteRaffleAsync(id);
+            } catch (err) {
+                console.error("Error eliminando rifa:", err);
+            }
         });
-
         return {
             message: "Rifa en proceso de eliminación",
         };
@@ -303,7 +309,7 @@ export class RaffleService {
                 raffle: { id: raffleId },
             });
 
-            
+
 
             await queryRunner.manager.delete(Prize, {
                 raffle: { id: raffleId },

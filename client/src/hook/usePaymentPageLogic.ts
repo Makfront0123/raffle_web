@@ -10,7 +10,7 @@ export function usePaymentsPageLogic() {
   const [dateTo, setDateTo] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
-  const { payments, loading, completePayment, getPayments } =
+  const { payments, loading, completePayment, getPayments, verifyPaymentManually } =
     usePaymentStore();
 
   const { user } = AuthStore();
@@ -29,6 +29,7 @@ export function usePaymentsPageLogic() {
   return {
     loading,
     completePayment,
+    verifyPaymentManually,
     filteredPayments,
     currentPage,
     setCurrentPage,

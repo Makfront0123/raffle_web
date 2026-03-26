@@ -776,5 +776,39 @@ export class PaymentService {
       .digest("hex");
   }
 
+  async verifyPaymentManually(reference: string) {
+    const payment = await this.paymentRepo.findOne({ where: { reference } });
+
+    if (!payment || payment.status !== PaymentStatus.PENDING) {
+      return;
+    }
+
+    if (!payment.transaction_id) {
+      throw new Error("No hay transaction_id asociado al pago");
+    }
+
+    const wompiResponse = await fetch(
+      `https://sandbox.wompi.co/v1/transactions/${payment.transaction_id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.WOMPI_PRIVATE_KEY}`
+        },
+      }
+    );
+
+    const data = await wompiResponse.json();
+
+    if (!data.data) {
+      throw new Error("Transacción no encontrada en Wompi");
+    }
+
+    const status = data.data.status;
+
+    if (status === "APPROVED") {
+      await this.simulateWebhook(reference, "APPROVED");
+    } else if (["DECLINED", "ERROR"].includes(status)) {
+      await this.simulateWebhook(reference, "DECLINED");
+    }
+  }
 
 }

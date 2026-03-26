@@ -27,6 +27,8 @@ router.post(
   paymentController.cancelPaymentByReference.bind(paymentController)
 );
 
+router.post("/manual/verify/:reference", paymentController.verifyPaymentManually.bind(paymentController));
+
 router.post("/wompi", authMiddleware, blockAdminMiddleware, paymentActionLimiter, paymentController.createWompiPayment.bind(paymentController));
 router.post(
   "/wompi/webhook",

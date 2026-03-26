@@ -217,7 +217,7 @@ export class ReservationService {
       }
 
       for (const resTicket of reservation.reservationTickets) {
-        resTicket.ticket.status = 'available';
+        TicketStatus.AVAILABLE;
         await queryRunner.manager.save(resTicket.ticket);
       }
 

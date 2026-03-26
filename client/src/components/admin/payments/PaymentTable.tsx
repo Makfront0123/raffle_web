@@ -6,10 +6,10 @@ import { Button } from "@/components/ui/button";
 
 type PaymentsTableProps = {
   payments: Payment[];
-  onComplete: (id: number) => void;
+  onVerify: (reference: string) => void;
 };
 
-export default function PaymentsTable({ payments, onComplete }: PaymentsTableProps) {
+export default function PaymentsTable({ payments, onVerify }: PaymentsTableProps) {
   return (
     <div className="rounded-lg border bg-white shadow">
       <table className="min-w-full table-auto">
@@ -53,7 +53,9 @@ export default function PaymentsTable({ payments, onComplete }: PaymentsTablePro
                 <td className="px-6 py-4">{formattedDate}</td>
                 <td className="px-6 py-4">
                   {p.status !== PaymentStatusEnum.COMPLETED ? (
-                    <Button onClick={() => onComplete(p.id)}>Completar</Button>
+                    <Button onClick={() => onVerify(p.reference)}>
+                      Verificar Pago
+                    </Button>
                   ) : (
                     <span className="text-gray-400 text-sm">—</span>
                   )}
