@@ -53,16 +53,12 @@ export const useReservationStore = create<ReservationStore>()((set) => ({
   },
   createReservation: async (ticketId, raffleId) => {
     const service = new ReservationService();
-    const newReservation = await service.createReservation(
-      ticketId,
-      raffleId
-    );
+    const newReservation = await service.createReservation(ticketId, raffleId);
 
     set((state) => ({
       reservations: [...state.reservations, newReservation],
     }));
 
-    toast.success("Reserva creada correctamente");
     return newReservation;
   },
 
@@ -74,9 +70,5 @@ export const useReservationStore = create<ReservationStore>()((set) => ({
     set((state) => ({
       reservations: state.reservations.filter((r) => r.id !== id),
     }));
-
-    toast.success(
-      res.message || "Reserva cancelada correctamente"
-    );
   },
 }));

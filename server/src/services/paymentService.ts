@@ -323,9 +323,50 @@ export class PaymentService {
 
         for (const t of tickets) {
           if (t.status !== TicketStatus.AVAILABLE) {
-            throw new Error(`Ticket ${t.id_ticket} no disponible`);
+            const unavailableTickets = tickets.filter(
+              t => t.status !== TicketStatus.AVAILABLE
+            );
+
+            if (unavailableTickets.length > 0) {
+              const numbers = unavailableTickets.map(t => t.ticket_number);
+              throw new Error(
+                `Tickets no disponibles: ${numbers.join(", ")}`
+              );
+            }
           }
         }
+      }
+      const purchasedCount = await manager
+        .getRepository(PaymentDetail)
+        .createQueryBuilder("detail")
+        .leftJoin("detail.payment", "payment")
+        .leftJoin("payment.raffle", "raffle")
+        .where("payment.userId = :userId", { userId })
+        .andWhere("payment.raffleId = :raffleId", { raffleId: raffle_id })
+        .andWhere("payment.status = :status", {
+          status: PaymentStatus.COMPLETED,
+        })
+        .getCount();
+      const activeReservations = await manager
+        .getRepository(Reservation)
+        .createQueryBuilder("reservation")
+        .leftJoinAndSelect("reservation.reservationTickets", "rt")
+        .where("reservation.userId = :userId", { userId })
+        .andWhere("reservation.raffleId = :raffleId", { raffleId: raffle_id })
+        .andWhere("reservation.expires_at > :now", { now: new Date() })
+        .getMany();
+
+      const reservedCount = activeReservations.reduce(
+        (acc, r) => acc + (r.reservationTickets?.length || 0),
+        0
+      );
+
+      const MAX_TOTAL = 10;
+
+      if (purchasedCount + reservedCount + tickets.length > MAX_TOTAL) {
+        throw new Error(
+          `Máximo ${MAX_TOTAL} tickets por usuario en esta rifa`
+        );
       }
 
       const totalAmount = tickets.length * Number(raffle.price);

@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { AuthStore } from "@/store/authStore";
 import { toast } from "sonner";
 import { GoogleTokenClient, GoogleTokenResponse } from "@/type/GoogleUserData";
-import axios, { AxiosError } from "axios";
+import { AxiosError } from "axios";
+import { handleApiError } from "@/helper/handleApiError";
 
 interface UseAuthOptions {
   skipPersist?: boolean;
@@ -25,9 +26,16 @@ export function useAuth({ skipPersist = false }: UseAuthOptions = {}) {
   const [googleClient, setGoogleClient] = useState<GoogleTokenClient | null>(null);
 
   const logout = useCallback(async () => {
-    await storeLogout();
-    sessionStorage.removeItem("adminSplashShown");
-    router.push("/");
+    try {
+      await storeLogout();
+
+      toast.success("Sesión cerrada correctamente");
+
+      sessionStorage.removeItem("adminSplashShown");
+      router.push("/");
+    } catch (err) {
+      handleApiError(err, "Error al cerrar sesión");
+    }
   }, [storeLogout, router]);
 
 
