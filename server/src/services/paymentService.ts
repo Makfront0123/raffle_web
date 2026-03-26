@@ -768,19 +768,40 @@ export class PaymentService {
   }
 
   async verifyPaymentManually(reference: string, force = true) {
-    const payment = await this.paymentRepo.findOne({ where: { reference } });
+    const payment = await this.paymentRepo.findOne({
+      where: { reference },
+      relations: ["details", "details.ticket", "raffle", "user"]
+    });
 
-    if (!payment) {
-      throw new Error("Transacción no encontrada");
-    }
+    if (!payment) throw new Error("Transacción no encontrada");
+    if (!payment.transaction_id) throw new Error("No hay transaction_id asociado al pago");
+    const unavailableTickets = payment.details
+      .filter(d => d.ticket.status !== TicketStatus.HELD && d.ticket.status !== TicketStatus.AVAILABLE)
+      .map(d => d.ticket.ticket_number);
 
-    if (!payment.transaction_id) {
-      throw new Error("No hay transaction_id asociado al pago");
+    const expiredTickets = payment.details
+      .filter(d => d.ticket.held_until && d.ticket.held_until < new Date())
+      .map(d => d.ticket.ticket_number);
+
+    if (unavailableTickets.length || expiredTickets.length) {
+      const messages = [];
+      if (unavailableTickets.length) messages.push(`Tickets ya comprados: ${unavailableTickets.join(", ")}`);
+      if (expiredTickets.length) messages.push(`Tickets expirados: ${expiredTickets.join(", ")}`);
+      throw new Error(messages.join(". "));
     }
 
     if (force) {
       payment.status = PaymentStatus.COMPLETED;
+      payment.transaction_id ||= `MANUAL-${Date.now()}`;
       await this.paymentRepo.save(payment);
+
+      for (const detail of payment.details) {
+        detail.ticket.status = TicketStatus.PURCHASED;
+        detail.ticket.purchased_at = new Date();
+        detail.ticket.held_until = null;
+        await this.ticketRepository.save(detail.ticket);
+      }
+
       return payment;
     }
     const wompiResponse = await fetch(
@@ -789,9 +810,7 @@ export class PaymentService {
     );
     const data = await wompiResponse.json();
 
-    if (!data.data) {
-      throw new Error("Transacción no encontrada en Wompi");
-    }
+    if (!data.data) throw new Error("Transacción no encontrada en Wompi");
 
     const status = data.data.status;
 
