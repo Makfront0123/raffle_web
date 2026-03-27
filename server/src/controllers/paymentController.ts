@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { PaymentService } from '../services/paymentService';
 import { Raffle } from '../entities/raffle.entity';
+import { PaymentStatus } from '../entities/payment.entity';
 
 
 export class PaymentController {
@@ -282,12 +283,24 @@ export class PaymentController {
         const { reference } = req.params;
 
         try {
-            const result = await this.paymentService.verifyPaymentManually(reference, false);
+            const payment = await this.paymentService.verifyPaymentManually(reference, false);
+
+            let message = "Pago en verificación";
+
+            if (payment?.status === PaymentStatus.COMPLETED) {
+                message = "Pago aprobado correctamente";
+            } else if (payment?.status === PaymentStatus.CANCELLED) {
+                message = "Pago rechazado o fallido";
+            } else if (payment?.status === PaymentStatus.PENDING) {
+                message = "El pago aún está pendiente";
+            }
 
             return res.status(200).json({
-                message: "Pago verificado",
-                result
+                message,
+                status: payment?.status,
+                payment,
             });
+
         } catch (error) {
             if (error instanceof Error && error.message.includes("Transacción no encontrada")) {
                 return res.status(404).json({ message: error.message });

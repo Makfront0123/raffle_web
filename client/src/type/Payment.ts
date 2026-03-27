@@ -24,6 +24,12 @@ export interface PaymentCreateDto {
   reservation_id?: number;
 }
 
+export interface VerifyPaymentResponse {
+  message: string;
+  status: PaymentStatusEnum;
+  payment: Payment;
+}
+
 export interface WidgetPaymentDto {
   method: string;
   raffle_id: number;

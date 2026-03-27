@@ -4,6 +4,7 @@ import { AuthStore } from "@/store/authStore";
 import { applyFilters } from "@/app/utils/paymentFilters";
 import { toast } from "sonner";
 import { handleApiError } from "@/helper/handleApiError";
+import { PaymentStatusEnum } from "@/type/Payment";
 
 export function usePaymentsPageLogic() {
   const [statusFilter, setStatusFilter] =
@@ -30,14 +31,14 @@ export function usePaymentsPageLogic() {
 
   const handleVerifyPayment = async (reference: string) => {
     try {
-      const updatedPayment = await verifyPaymentManually(reference);
+      const res = await verifyPaymentManually(reference);
 
-      if (updatedPayment.status === "completed") {
-        toast.success("Pago verificado correctamente");
-      } else if (updatedPayment.status === "expired") {
-        toast.error("El pago ha expirado");
+      if (res.status === PaymentStatusEnum.COMPLETED) {
+        toast.success(res.message);
+      } else if (res.status === PaymentStatusEnum.CANCELLED) {
+        toast.error(res.message);
       } else {
-        toast("Pago actualizado");
+        toast(res.message);
       }
     } catch (err) {
       handleApiError(err, "Error verificando el pago");

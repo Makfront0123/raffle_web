@@ -1,5 +1,5 @@
 import { api } from "@/api/api";
-import { Payment, PaymentCreateDto, PaymentStatusEnum, WidgetPaymentDto, WompiPaymentResponse } from "@/type/Payment";
+import { Payment, PaymentCreateDto, PaymentStatusEnum, VerifyPaymentResponse, WidgetPaymentDto, WompiPaymentResponse } from "@/type/Payment";
 import { WompiSignatureDto } from "@/type/WompiSignature";
 
 export class PaymentService {
@@ -39,7 +39,7 @@ export class PaymentService {
     return res.data;
   }
 
-  static async verifyPaymentManually(reference: string): Promise<Payment> {
+  static async verifyPaymentManually(reference: string): Promise<VerifyPaymentResponse> {
     const response = await api.post(`/api/payment/manual/verify/${reference}`);
     return response.data;
   }

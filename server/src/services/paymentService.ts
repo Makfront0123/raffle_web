@@ -829,8 +829,10 @@ export class PaymentService {
 
     if (status === "APPROVED") {
       await this.simulateWebhook(reference, "APPROVED");
-    } else if (["DECLINED", "ERROR"].includes(status)) {
-      await this.simulateWebhook(reference, "DECLINED");
+    }
+
+    else if (status === "DECLINED" || status === "ERROR") {
+      await this.cancelPaymentByReference(reference);
     }
 
     return await this.paymentRepo.findOne({ where: { reference } });

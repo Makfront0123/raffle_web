@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { PaymentService } from "@/services/paymentService";
-import { Payment, PaymentCreateDto, PaymentStatusEnum, WidgetPaymentDto, WompiPaymentResponse } from "@/type/Payment";
+import { Payment, PaymentCreateDto, PaymentStatusEnum, VerifyPaymentResponse, WidgetPaymentDto, WompiPaymentResponse } from "@/type/Payment";
 import { WompiSignatureDto } from "@/type/WompiSignature";
 
 
@@ -22,7 +22,7 @@ interface PaymentStore {
 
 
   completePayment: (id: number,) => Promise<void>;
-  verifyPaymentManually: (reference: string, force?: boolean) => Promise<Payment>;
+  verifyPaymentManually: (reference: string, force?: boolean) => Promise<VerifyPaymentResponse>;
   cancelPayment: (id: number,) => Promise<void>;
 
   getWompiSignature: (data: WompiSignatureDto,) => Promise<{ signature: string }>;
@@ -89,7 +89,9 @@ export const usePaymentStore = create<PaymentStore>((set, get) => ({
   },
 
   verifyPaymentManually: async (reference: string) => {
-    const updatedPayment = await PaymentService.verifyPaymentManually(reference);
+    const res = await PaymentService.verifyPaymentManually(reference);
+
+    const updatedPayment = res.payment;
 
     set({
       payments: get().payments.map((p) =>
@@ -97,7 +99,7 @@ export const usePaymentStore = create<PaymentStore>((set, get) => ({
       ),
     });
 
-    return updatedPayment;
+    return res;
   },
   cancelPayment: async (id: number,) => {
     await PaymentService.cancelPayment(id);
