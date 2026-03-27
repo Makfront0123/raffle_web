@@ -201,7 +201,6 @@ export class PaymentService {
             const user = payment.user;
             const tickets = payment.details.map(d => d.ticket.ticket_number);
 
-            /*
             await sendEmail({
               to: user.email,
               subject: `Compra confirmada - ${payment.raffle.title}`,
@@ -219,7 +218,6 @@ export class PaymentService {
                 endDate: payment.raffle.end_date ?? '',
               }),
             });
-            */
             break;
 
           case "DECLINED":
