@@ -189,7 +189,7 @@ export class PaymentController {
                 return res.status(400).json({ message: "User ID requerido" });
             }
 
-            const { raffle_id, ticket_ids, method, reference, reservation_id } = req.body;
+            const { raffle_id, ticket_ids, reference, reservation_id } = req.body;
 
             if (!raffle_id || !ticket_ids?.length || !reference) {
                 return res.status(400).json({ message: "Datos incompletos o inválidos" });

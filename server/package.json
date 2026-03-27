@@ -36,7 +36,8 @@
     "resend": "^6.9.4",
     "twilio": "^5.11.1",
     "typeorm": "^0.3.28",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
