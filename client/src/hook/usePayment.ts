@@ -20,6 +20,8 @@ export function usePayment({ onPaymentSuccess }: UsePaymentProps = {}) {
     widgetPayment,
     getWompiSignature,
     getPaymentStatusByReference,
+    attachTransactionId,
+    verifyPaymentManually,
     loading,
   } = usePaymentStore();
 
@@ -137,10 +139,16 @@ export function usePayment({ onPaymentSuccess }: UsePaymentProps = {}) {
       checkout.open(async (result) => {
         const tx = result?.transaction;
 
+
         if (!tx) {
           setFailedModalOpen(true);
           return;
         }
+
+        if (tx?.id) {
+          await attachTransactionId(finalReference, tx.id);
+        }
+
 
         if (tx.status === "DECLINED" || tx.status === "ERROR") {
           setFailedModalOpen(true);

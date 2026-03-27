@@ -18,10 +18,11 @@ interface PaymentStore {
 
   createPayment: (data: PaymentCreateDto,) => Promise<Payment>;
   widgetPayment: (data: WidgetPaymentDto,) => Promise<WompiPaymentResponse>;
+  attachTransactionId: (reference: string, transactionId: string) => Promise<void>;
 
 
   completePayment: (id: number,) => Promise<void>;
-  verifyPaymentManually: (reference: string,) => Promise<Payment>;
+  verifyPaymentManually: (reference: string, force?: boolean) => Promise<Payment>;
   cancelPayment: (id: number,) => Promise<void>;
 
   getWompiSignature: (data: WompiSignatureDto,) => Promise<{ signature: string }>;
@@ -55,6 +56,10 @@ export const usePaymentStore = create<PaymentStore>((set, get) => ({
     } finally {
       set({ loading: false });
     }
+  },
+
+  attachTransactionId: async (reference: string, transactionId: string) => {
+    await PaymentService.attachTransactionId(reference, transactionId);
   },
 
   createPayment: async (data: PaymentCreateDto,) => {

@@ -18,6 +18,7 @@ export default function PaymentsTable({ payments, onVerify }: PaymentsTableProps
             <th className="px-6 py-3 text-left font-medium text-gray-700">ID</th>
             <th className="px-6 py-3 text-left font-medium text-gray-700">Rifa</th>
             <th className="px-6 py-3 text-left font-medium text-gray-700">Valor</th>
+            <th className="px-6 py-3 text-left font-medium text-gray-700">Usuario</th>
             <th className="px-6 py-3 text-left font-medium text-gray-700">Estado</th>
             <th className="px-6 py-3 text-left font-medium text-gray-700">Fecha</th>
             <th className="px-6 py-3 text-left font-medium text-gray-700">Acción</th>
@@ -45,6 +46,7 @@ export default function PaymentsTable({ payments, onVerify }: PaymentsTableProps
                 <td className="px-6 py-4">{p.id}</td>
                 <td className="px-6 py-4">{p.raffle.title}</td>
                 <td className="px-6 py-4">${p.total_amount}</td>
+                <td className="px-6 py-4">{p?.user?.name}</td>
                 <td className="px-6 py-4">
                   <Badge
                     variant={

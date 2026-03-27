@@ -63,6 +63,14 @@ router.post(
   paymentController.sendWhatsappReceiptController.bind(paymentController)
 );
 
+router.post(
+  "/manual/attachTransactionId/:reference",
+  authMiddleware,
+  paymentActionLimiter,
+  paymentController.attachTransactionId.bind(paymentController)
+);
+
+
 
 
 router.post(

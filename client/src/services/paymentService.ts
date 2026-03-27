@@ -44,4 +44,8 @@ export class PaymentService {
     return response.data;
   }
 
+  static async attachTransactionId(reference: string, transactionId: string): Promise<void> {
+    await api.post(`/api/payment/manual/attachTransactionId/${reference}`, { transactionId });
+  }
+
 }

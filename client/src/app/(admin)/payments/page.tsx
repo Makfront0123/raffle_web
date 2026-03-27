@@ -23,6 +23,8 @@ export default function PaymentsPage() {
     setDateTo,
   } = usePaymentsPageLogic();
 
+  console.log("filteredPayments", filteredPayments);
+
   const ITEMS_PER_PAGE = 5;
   const totalPages = Math.ceil(filteredPayments.length / ITEMS_PER_PAGE);
   const start = (currentPage - 1) * ITEMS_PER_PAGE;

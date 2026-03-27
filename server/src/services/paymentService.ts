@@ -173,7 +173,19 @@ export class PaymentService {
           return;
         }
 
-        payment.transaction_id = tx.id;
+        if (!payment.transaction_id) {
+          payment.transaction_id = tx.id;
+        }
+
+        if (payment.expires_at && payment.expires_at < new Date()) {
+          await this.logPaymentEventTx(
+            manager,
+            payment.id,
+            "WEBHOOK_IGNORED_EXPIRED",
+            tx.status
+          );
+          return;
+        }
 
         switch (tx.status) {
           case "APPROVED":
@@ -189,6 +201,7 @@ export class PaymentService {
             const user = payment.user;
             const tickets = payment.details.map(d => d.ticket.ticket_number);
 
+            /*
             await sendEmail({
               to: user.email,
               subject: `Compra confirmada - ${payment.raffle.title}`,
@@ -206,20 +219,18 @@ export class PaymentService {
                 endDate: payment.raffle.end_date ?? '',
               }),
             });
+            */
             break;
 
           case "DECLINED":
           case "ERROR":
-            payment.status = PaymentStatus.CANCELLED;
-            await this.logPaymentEventTx(manager, payment.id, "PAYMENT_DECLINED", tx.status);
+            await this.logPaymentEventTx(
+              manager,
+              payment.id,
+              "PAYMENT_DECLINED",
+              tx.status
+            );
 
-            for (const d of payment.details) {
-              if (d.ticket.status === TicketStatus.HELD) {
-                d.ticket.status = TicketStatus.AVAILABLE;
-                d.ticket.held_until = null;
-                await manager.save(d.ticket);
-              }
-            }
             break;
 
           case "PENDING":
@@ -767,7 +778,7 @@ export class PaymentService {
       .digest("hex");
   }
 
-  async verifyPaymentManually(reference: string, force = true) {
+  async verifyPaymentManually(reference: string, force = false) {
     const payment = await this.paymentRepo.findOne({
       where: { reference },
       relations: ["details", "details.ticket", "raffle", "user"]
@@ -825,5 +836,26 @@ export class PaymentService {
     }
 
     return await this.paymentRepo.findOne({ where: { reference } });
+  }
+
+  async attachTransactionId(reference: string, transactionId: string) {
+    console.log("attachTransactionId called", reference, transactionId);
+    const payment = await this.paymentRepo.findOne({
+      where: { reference }
+    });
+
+    if (!payment) {
+      throw new Error("Pago no encontrado");
+    }
+
+    if (payment.transaction_id) {
+      return;
+    }
+
+    payment.transaction_id = transactionId;
+
+    await this.paymentRepo.save(payment);
+
+    return payment;
   }
 }

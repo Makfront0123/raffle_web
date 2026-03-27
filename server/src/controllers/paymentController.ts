@@ -282,7 +282,7 @@ export class PaymentController {
         const { reference } = req.params;
 
         try {
-            const result = await this.paymentService.verifyPaymentManually(reference, true);
+            const result = await this.paymentService.verifyPaymentManually(reference, false);
 
             return res.status(200).json({
                 message: "Pago verificado",
@@ -299,6 +299,30 @@ export class PaymentController {
 
             console.error("Error verifyPaymentManually:", error);
             return res.status(500).json({ message: "Error verificando pago" });
+        }
+    }
+
+    async attachTransactionId(req: Request, res: Response) {
+        try {
+            const { reference } = req.params;
+            const { transactionId } = req.body;
+
+            if (!transactionId) {
+                return res.status(400).json({
+                    message: "transactionId es requerido",
+                });
+            }
+
+            const payment = await this.paymentService.attachTransactionId(
+                reference,
+                transactionId
+            );
+
+            return res.json(payment);
+        } catch (error) {
+            return res.status(400).json({
+                message: error instanceof Error ? error.message : "Error",
+            });
         }
     }
 }
