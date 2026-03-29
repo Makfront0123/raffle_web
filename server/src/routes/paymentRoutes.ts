@@ -25,7 +25,7 @@ router.put("/:id/cancel", authMiddleware, adminMiddleware, adminMiddlewareLimite
 router.get("/:id/logs", authMiddleware, adminMiddleware, adminLimiter, validate({ params: idSchema }), paymentController.getPaymentLogs.bind(paymentController));
 router.post("/cancel/reference/:reference", statusLimiter, validate({ params: referenceSchema }), paymentController.cancelPaymentByReference.bind(paymentController));
 
-router.post("/manual/verify/:reference", validate({ params: referenceSchema }), paymentController.verifyPaymentManually.bind(paymentController));
+router.post("/manual/verify/:reference", authMiddleware, adminMiddleware, validate({ params: referenceSchema }), paymentController.verifyPaymentManually.bind(paymentController));
 
 router.post("/wompi", authMiddleware, blockAdminMiddleware, paymentActionLimiter, validate({ body: createPaymentSchema }), paymentController.createWompiPayment.bind(paymentController));
 router.post("/wompi/webhook", express.raw({ type: "*/*" }), paymentController.wompiWebhook.bind(paymentController));

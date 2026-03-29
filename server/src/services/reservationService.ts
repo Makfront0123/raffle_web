@@ -72,8 +72,8 @@ export class ReservationService {
       const existingReservations = await queryRunner.manager
         .createQueryBuilder(Reservation, "reservation")
         .leftJoinAndSelect("reservation.reservationTickets", "rt")
-        .where("reservation.userId = :userId", { userId })
-        .andWhere("reservation.raffleId = :raffleId", { raffleId })
+        .where("reservation.user.id = :userId", { userId })
+        .andWhere("reservation.raffle.id = :raffleId", { raffleId })
         .andWhere("reservation.expires_at > :now", { now: new Date() })
         .getMany();
 
@@ -217,7 +217,7 @@ export class ReservationService {
       }
 
       for (const resTicket of reservation.reservationTickets) {
-        TicketStatus.AVAILABLE;
+        resTicket.ticket.status = TicketStatus.AVAILABLE;
         await queryRunner.manager.save(resTicket.ticket);
       }
 

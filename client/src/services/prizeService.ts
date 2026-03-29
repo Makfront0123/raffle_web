@@ -1,5 +1,5 @@
 import { api } from "@/api/api";
-import { Prizes, CreatePrizeDTO } from "@/type/Prizes";
+import { Prizes, CreatePrizeDTO, UpdatePrizeDTO } from "@/type/Prizes";
 import { Winner } from "@/type/Winner";
 
 
@@ -24,7 +24,7 @@ export class PrizeService {
     return res.data;
   }
 
-  async updatePrize(id: number, prize: Partial<Prizes>): Promise<BackendResponse<Prizes>> {
+  async updatePrize(id: number, prize: UpdatePrizeDTO): Promise<BackendResponse<Prizes>> {
     const res = await api.patch(`/api/prizes/${id}`, prize);
     return res.data;
   }

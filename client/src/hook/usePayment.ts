@@ -102,7 +102,6 @@ export function usePayment({ onPaymentSuccess }: UsePaymentProps = {}) {
       const reference = `RAFFLE_${raffle.id}_${Date.now()}`;
 
       const paymentData = await widgetPayment({
-        method: "wompi",
         raffle_id: raffle.id,
         ticket_ids: tickets.map((t) => t.id_ticket),
         reservation_id,

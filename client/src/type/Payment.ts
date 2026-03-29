@@ -31,10 +31,8 @@ export interface VerifyPaymentResponse {
 }
 
 export interface WidgetPaymentDto {
-  method: string;
   raffle_id: number;
   ticket_ids: number[];
-  card_token?: string;
   reference: string;
   reservation_id?: number;
 }

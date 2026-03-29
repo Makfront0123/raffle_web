@@ -28,7 +28,13 @@ export class UserService {
         const user = await this.userRepo.findOne({ where: { id } });
         if (!user) throw new Error("Usuario no encontrado");
 
-        Object.assign(user, data);
+        const allowedFields: (keyof User)[] = ["name", "picture"];
+
+        for (const key of allowedFields) {
+            if (data[key] !== undefined) {
+                user[key] = data[key] as any;
+            }
+        }
         await this.userRepo.save(user);
 
         return { message: "Usuario actualizado correctamente", user };

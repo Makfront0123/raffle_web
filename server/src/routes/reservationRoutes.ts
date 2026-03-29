@@ -18,7 +18,7 @@ router.get('/user', authMiddleware, authLimiter, reservationController.getAllRes
 router.get('/:id', authMiddleware, adminLimiter, adminMiddleware, validate({ params: idSchema }), reservationController.getReservationById.bind(reservationController));
 router.post('/', authMiddleware, authLimiter, blockAdminMiddleware, validate({ body: createReservationSchema }), reservationController.createReservation.bind(reservationController));
 router.post("/release-expired", authMiddleware, authLimiter, reservationController.releaseExpiredReservations.bind(reservationController));
-router.delete('/:id', authMiddleware, authLimiter, validate({ params: idSchema }), validate({ params: idSchema }), reservationController.deleteReservation.bind(reservationController));
+router.delete('/:id', authMiddleware, authLimiter, validate({ params: idSchema }), reservationController.deleteReservation.bind(reservationController));
 
 
 export default router;

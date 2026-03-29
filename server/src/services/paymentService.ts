@@ -148,7 +148,14 @@ export class PaymentService {
 
         paymentId = payment.id;
 
-        if (payment.status !== PaymentStatus.PENDING) return;
+        if (payment.status !== PaymentStatus.PENDING) {
+          await this.logPaymentEventTx(
+            manager,
+            payment.id,
+            "WEBHOOK_IGNORED_ALREADY_PROCESSED"
+          );
+          return;
+        }
 
         await this.logPaymentEventTx(
           manager,
@@ -201,23 +208,25 @@ export class PaymentService {
             const user = payment.user;
             const tickets = payment.details.map(d => d.ticket.ticket_number);
 
-            await sendEmail({
-              to: user.email,
-              subject: `Compra confirmada - ${payment.raffle.title}`,
-              text: `Tu compra fue exitosa`,
-              html: purchaseEmailTemplate({
-                name: user.name,
-                raffleTitle: payment.raffle.title,
-                tickets,
-                total: payment.total_amount,
-                reference: payment.reference,
-                prizes: payment.raffle.prizes?.map(p => ({
-                  name: p.name,
-                  value: Number(p.value),
-                })),
-                endDate: payment.raffle.end_date ?? '',
-              }),
-            });
+            setImmediate(async () => {
+              await sendEmail({
+                to: user.email,
+                subject: `Compra confirmada - ${payment.raffle.title}`,
+                text: `Tu compra fue exitosa`,
+                html: purchaseEmailTemplate({
+                  name: user.name,
+                  raffleTitle: payment.raffle.title,
+                  tickets,
+                  total: payment.total_amount,
+                  reference: payment.reference,
+                  prizes: payment.raffle.prizes?.map(p => ({
+                    name: p.name,
+                    value: Number(p.value),
+                  })),
+                  endDate: payment.raffle.end_date ?? '',
+                }),
+              }).catch(console.error);
+            })
             break;
 
           case "DECLINED":
@@ -290,6 +299,9 @@ export class PaymentService {
 
       if (totalHeldTickets > 20) {
         throw new Error("Demasiados tickets en proceso");
+      }
+      if (ticket_ids.length > 10) {
+        throw new Error("Demasiados tickets por solicitud");
       }
       const raffle = await manager.getRepository(Raffle).findOne({
         where: { id: raffle_id },
@@ -777,6 +789,7 @@ export class PaymentService {
   }
 
   async verifyPaymentManually(reference: string, force = false) {
+
     const payment = await this.paymentRepo.findOne({
       where: { reference },
       relations: ["details", "details.ticket", "raffle", "user"]
@@ -819,9 +832,10 @@ export class PaymentService {
 
     const wompiResponse = await fetch(
       `https://sandbox.wompi.co/v1/transactions/${payment.transaction_id}`,
-      { headers: { Authorization: `Bearer ${process.env.WOMPI_PRIVATE_KEY}` } }
+
     );
     const data = await wompiResponse.json();
+    console.log("WOMPI STATUS:", data.data.status);
 
     if (!data.data) throw new Error("Transacción no encontrada en Wompi");
 

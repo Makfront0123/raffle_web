@@ -4,13 +4,12 @@ import { automationRunner } from "../cron/automationRunner";
 const router = Router();
 
 router.get("/", async (req, res) => {
-    try {
-        await automationRunner();
-        res.json({ status: "ok", message: "Automation runner executed (or skipped by cooldown)" });
-    } catch (error: unknown) {
-        console.error("[PING-AUTOMATION] error:", error);
-        res.status(500).json({ status: "error", error: error instanceof Error ? error.message : error });
+    if (!req.headers["x-cron-secret"] ||
+        req.headers["x-cron-secret"] !== process.env.CRON_SECRET) {
+        return res.status(403).json({ error: "Unauthorized" });
     }
-});
 
+    await automationRunner();
+    res.json({ status: "ok" });
+});
 export default router;

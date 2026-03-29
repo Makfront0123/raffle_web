@@ -8,13 +8,6 @@ import { useZodForm } from "./useZodForm";
 import { ProviderFormValues, providerSchema } from "@/lib/schemas/provider.schema";
 import { handleApiError } from "@/helper/handleApiError";
 import { toast } from "sonner";
-export interface ProviderFormState {
-  id?: number;
-  name: string;
-  contact_name: string;
-  contact_email: string;
-  contact_phone: string;
-}
 export const useProvidersLogic = () => {
   const { user } = AuthStore();
   const {
@@ -84,7 +77,14 @@ export const useProvidersLogic = () => {
   const handleEdit = (id: number) => {
     const provider = providers.find((p) => p.id === id);
     if (!provider) return;
-    setForm(provider);
+
+    setForm({
+      name: provider.name,
+      contact_name: provider.contact_name,
+      contact_email: provider.contact_email,
+      contact_phone: provider.contact_phone,
+    });
+
     setOpen(true);
   };
   const requestDeleteProvider = (id: number) => {

@@ -4,11 +4,10 @@ export const createRaffleSchema = z.object({
     title: z.string().min(3),
     description: z.string().min(5),
 
-    price: z.number().positive(),
-
+    price: z.coerce.number().positive(),
     endDate: z.string().datetime(),
 
-    digits: z.number().int().min(1).max(6),
+    digits: z.coerce.number().int().min(1).max(6),
 }).strict();
 
 export const updateRaffleSchema = createRaffleSchema
