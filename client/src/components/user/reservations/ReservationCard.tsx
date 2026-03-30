@@ -5,11 +5,10 @@ import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useCountdown } from "@/hook/useCountdown";
 import { toast } from "sonner";
-
 import { Raffle } from "@/type/Raffle";
 import { Reservation } from "@/type/Reservation";
 import { Ticket } from "@/type/Ticket";
-
+import { Icon } from "@iconify/react";
 import RaffleTicketModal from "@/components/user/raffles/RaffleTickedModal";
 import { TicketStatusEnum } from "@/type/Payment";
 
@@ -65,8 +64,8 @@ export default function ReservationCard({
         </CardHeader>
 
         <CardContent>
-          <p className="text-white/80">
-            ⏳ Expira en:{" "}
+          <p className="text-white/80 flex items-center gap-x-1">
+            <Icon icon="feather:clock" className="inline-block w-4 h-4 mr-1" />
             <span className="font-bold text-gold">
               {countdown}
             </span>

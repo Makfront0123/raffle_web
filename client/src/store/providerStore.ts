@@ -32,13 +32,14 @@ export const useProviderStore = create<ProviderStore>((set) => ({
     },
 
     addProvider: async (provider: Providers) => {
-        set((state) => ({ providers: [...state.providers, provider] }));
         try {
             const service = new ProviderService();
             const created = await service.createProvider(provider);
+
             set((state) => ({
-                providers: state.providers.map(p => p === provider ? created : p)
+                providers: [...state.providers, created]
             }));
+
             return created;
         } catch (err: unknown) {
             throw err;

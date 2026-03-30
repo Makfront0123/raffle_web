@@ -14,7 +14,7 @@ import { Reservation } from "./entities/reservation.entity";
 import { ReservationTicket } from "./entities/reservation_ticket.entity";
 import { PaymentLog } from "./entities/PaymentLog";
 
-
+const isProd = process.env.NODE_ENV === "production";
 export const AppDataSource = new DataSource({
     type: "mysql",
     host: process.env.DB_HOST,
@@ -39,7 +39,8 @@ export const AppDataSource = new DataSource({
         ReservationTicket,
         PaymentLog
     ],
-    migrations: ["dist/migrations/*.js"],
+    migrations: [isProd ? "dist/migrations/*.js" : "src/migrations/*.ts"
+    ],
     synchronize: false,
     logging: true,
 });

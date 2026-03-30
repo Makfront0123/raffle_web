@@ -34,6 +34,16 @@ export interface PrizeForm {
   type?: string;
 }
 
+export interface UpdatePrizeDTO {
+  name?: string;
+  description?: string;
+  value?: number;
+  type?: "product" | "cash" | "trip";
+  raffleId?: number;
+  providerId?: number;
+}
+
+
 export interface CreatePrizeDTO {
   name: string;
   description: string;

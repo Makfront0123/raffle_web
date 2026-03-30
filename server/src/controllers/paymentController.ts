@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { PaymentService } from '../services/paymentService';
 import { Raffle } from '../entities/raffle.entity';
+import { PaymentStatus } from '../entities/payment.entity';
 
 
 export class PaymentController {
@@ -188,7 +189,7 @@ export class PaymentController {
                 return res.status(400).json({ message: "User ID requerido" });
             }
 
-            const { raffle_id, ticket_ids, method, reference, reservation_id } = req.body;
+            const { raffle_id, ticket_ids, reference, reservation_id } = req.body;
 
             if (!raffle_id || !ticket_ids?.length || !reference) {
                 return res.status(400).json({ message: "Datos incompletos o inválidos" });
@@ -278,5 +279,63 @@ export class PaymentController {
             return res.status(500).json({ message: "Error obteniendo estado" });
         }
     }
+    async verifyPaymentManually(req: Request, res: Response) {
+        const { reference } = req.params;
 
+        try {
+            const payment = await this.paymentService.verifyPaymentManually(reference, false);
+
+            let message = "Pago en verificación";
+
+            if (payment?.status === PaymentStatus.COMPLETED) {
+                message = "Pago aprobado correctamente";
+            } else if (payment?.status === PaymentStatus.CANCELLED) {
+                message = "Pago rechazado o fallido";
+            } else if (payment?.status === PaymentStatus.PENDING) {
+                message = "El pago aún está pendiente";
+            }
+
+            return res.status(200).json({
+                message,
+                status: payment?.status,
+                payment,
+            });
+
+        } catch (error) {
+            if (error instanceof Error && error.message.includes("Transacción no encontrada")) {
+                return res.status(404).json({ message: error.message });
+            }
+
+            if (error instanceof Error && error.message.includes("No hay transaction_id")) {
+                return res.status(400).json({ message: error.message });
+            }
+
+            console.error("Error verifyPaymentManually:", error);
+            return res.status(500).json({ message: "Error verificando pago" });
+        }
+    }
+
+    async attachTransactionId(req: Request, res: Response) {
+        try {
+            const { reference } = req.params;
+            const { transactionId } = req.body;
+
+            if (!transactionId) {
+                return res.status(400).json({
+                    message: "transactionId es requerido",
+                });
+            }
+
+            const payment = await this.paymentService.attachTransactionId(
+                reference,
+                transactionId
+            );
+
+            return res.json(payment);
+        } catch (error) {
+            return res.status(400).json({
+                message: error instanceof Error ? error.message : "Error",
+            });
+        }
+    }
 }

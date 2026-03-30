@@ -1,4 +1,5 @@
 import { AppDataSource } from "../data-source";
+import { Prize } from "../entities/prize.entity";
 import { Provider } from "../entities/provider.entity";
 import { Ticket, TicketStatus } from "../entities/ticket.entity";
 
@@ -43,6 +44,10 @@ export class ProviderService {
     if (typeof data.contact_name === "string") {
       payload.contact_name = data.contact_name.trim();
     }
+
+    if (data.contact_email && !data.contact_email.includes("@")) {
+      throw new Error("Email inválido");
+    }
     if (typeof data.contact_email === "string") {
       payload.contact_email = data.contact_email.trim();
     }
@@ -53,6 +58,9 @@ export class ProviderService {
     if (Object.keys(payload).length === 0) {
       throw new Error("No se enviaron campos válidos para actualizar");
     }
+
+    const existing = await this.providerRepo.findOne({ where: { id } });
+    if (!existing) throw new Error("Proveedor no encontrado");
 
     await this.providerRepo.update(id, payload);
 
@@ -79,12 +87,16 @@ export class ProviderService {
       })
       .getCount();
 
-    if (blockingTicketsCount > 0) {
-      throw new Error(
-        "No se puede eliminar el proveedor porque tiene premios en rifas con tickets comprados o reservados"
-      );
-    }
+    const prizesCount = await AppDataSource.getRepository(Prize).count({
+      where: { provider: { id } },
+    });
 
+    if (prizesCount > 0) {
+      throw new Error("No se puede eliminar el proveedor porque tiene premios asociados");
+    }
+    if (blockingTicketsCount > 0) {
+      throw new Error("No se puede eliminar el proveedor porque tiene tickets asociados");
+    }
     await this.providerRepo.delete(id);
 
     return {

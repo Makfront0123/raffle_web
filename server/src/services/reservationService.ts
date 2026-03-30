@@ -69,9 +69,25 @@ export class ReservationService {
         throw new Error('Uno o más tickets ya no están disponibles.');
       }
 
+      const existingReservations = await queryRunner.manager
+        .createQueryBuilder(Reservation, "reservation")
+        .leftJoinAndSelect("reservation.reservationTickets", "rt")
+        .where("reservation.user.id = :userId", { userId })
+        .andWhere("reservation.raffle.id = :raffleId", { raffleId })
+        .andWhere("reservation.expires_at > :now", { now: new Date() })
+        .getMany();
+
+      const existingCount = existingReservations.reduce(
+        (acc: number, r: Reservation) => acc + r.reservationTickets.length,
+        0
+      );
+
       const maxTicketsPerUser = 5;
-      if (ticketIds.length > maxTicketsPerUser) {
-        throw new Error(`No puedes reservar más de ${maxTicketsPerUser} tickets.`);
+
+      if (existingCount + ticketIds.length > maxTicketsPerUser) {
+        throw new Error(
+          `Solo puedes tener ${maxTicketsPerUser} tickets activos en esta rifa.`
+        );
       }
 
       const expiresAt = new Date(Date.now() + 30 * 60000);
@@ -201,7 +217,7 @@ export class ReservationService {
       }
 
       for (const resTicket of reservation.reservationTickets) {
-        resTicket.ticket.status = 'available';
+        resTicket.ticket.status = TicketStatus.AVAILABLE;
         await queryRunner.manager.save(resTicket.ticket);
       }
 

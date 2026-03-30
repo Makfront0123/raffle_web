@@ -2,7 +2,7 @@
 
 import { usePrizeStore } from "@/store/prizeStore";
 import { useEffect, useState } from "react";
-import { PrizeForm, Prizes } from "@/type/Prizes";
+import { PrizeForm, Prizes, UpdatePrizeDTO } from "@/type/Prizes";
 import { handleApiError } from "@/helper/handleApiError";
 import { toast } from "sonner";
 
@@ -84,7 +84,16 @@ export function usePrizes() {
 
   const editPrize = async (id: number, updatedPrize: Partial<Prizes>) => {
     try {
-      const res = await updatePrize(id, updatedPrize as Prizes);
+      const payload: UpdatePrizeDTO = {
+        name: updatedPrize.name,
+        description: updatedPrize.description,
+        value: updatedPrize.value,
+        type: updatedPrize.type as "product" | "cash" | "trip",
+        raffleId: updatedPrize.raffle?.id,
+        providerId: updatedPrize.provider?.id,
+      };
+
+      const res = await updatePrize(id, payload);
 
       await getPrizes();
 

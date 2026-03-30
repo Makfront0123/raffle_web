@@ -11,7 +11,7 @@ import { toast } from "sonner";
 
 export default function PaymentsPage() {
   const {
-    completePayment,
+    verifyPaymentManually,
     currentPage,
     setCurrentPage,
     filteredPayments,
@@ -22,6 +22,8 @@ export default function PaymentsPage() {
     dateTo,
     setDateTo,
   } = usePaymentsPageLogic();
+
+  console.log("filteredPayments", filteredPayments);
 
   const ITEMS_PER_PAGE = 5;
   const totalPages = Math.ceil(filteredPayments.length / ITEMS_PER_PAGE);
@@ -59,7 +61,7 @@ export default function PaymentsPage() {
         <CardContent>
           <PaymentsTable
             payments={paginatedPayments}
-            onComplete={completePayment}
+            onVerify={verifyPaymentManually}
           />
 
           <PaymentsPagination

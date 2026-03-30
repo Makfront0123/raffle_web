@@ -39,6 +39,7 @@ export class AuthService {
 
   async getUserByToken(token: string) {
     const decoded = this.verifyToken(token);
+    if (!decoded.id || typeof decoded.id !== "number") throw new Error("Token inválido o expirado");
     return this.userRepository.findById(decoded.id);
   }
 
@@ -50,12 +51,11 @@ export class AuthService {
     }
   }
 
-  async verifyRefreshToken(token: string): Promise<boolean> {
+  async verifyRefreshToken(token: string): Promise<JwtPayload> {
     try {
-      jwt.verify(token, env.JWT_REFRESH_SECRET);
-      return true;
+      return jwt.verify(token, env.JWT_REFRESH_SECRET) as JwtPayload;
     } catch {
-      return false;
+      throw new Error("Refresh token inválido");
     }
   }
 }

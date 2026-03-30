@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import {
     Dialog,
     DialogContent,
@@ -51,47 +51,43 @@ const steps = [
             "¡Ya puedes comenzar a utilizar el panel de administración!",
     },
 ]
-
 export function AdminWelcomeModal() {
-    const { user } = useAuth()
+    const { user } = useAuth();
 
-    const [open, setOpen] = useState(false)
-    const [step, setStep] = useState(0)
-    const [ready, setReady] = useState(false)
-
+    const [open, setOpen] = useState(false);
+    const [step, setStep] = useState(0);
+    const [ready, setReady] = useState(false);
     useEffect(() => {
-        if (!user) return
+        if (!user) return;
 
-        const seen = sessionStorage.getItem("admin_onboarding_seen")
-
-        if (!seen && user.role === "admin") {
-            setOpen(true)
+        const seen = sessionStorage.getItem("admin_onboarding_seen");
+        if (user.role === "admin" && !seen) {
+            setOpen(true);
         }
 
-        setReady(true)
-    }, [user])
-
-    const next = () => {
-        if (step < steps.length - 1) {
-            setStep((prev) => prev + 1)
-        } else {
-            handleClose()
-        }
-    }
-
-    const prev = () => {
-        setStep((prev) => Math.max(prev - 1, 0))
-    }
+        setReady(true);
+    }, [user]);
 
     const handleClose = () => {
-        sessionStorage.setItem("admin_onboarding_seen", "true")
-        setOpen(false)
-    }
+        sessionStorage.setItem("admin_onboarding_seen", "true");
+        setOpen(false);
+    };
+    const next = () => {
+        if (step < steps.length - 1) setStep((prev) => prev + 1);
+        else handleClose();
+    };
 
-    if (!ready) return null
+
+    const prev = () => {
+        setStep((prev) => Math.max(prev - 1, 0));
+    };
+    if (!ready) return null;
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={(isOpen) => {
+            sessionStorage.setItem("admin_onboarding_seen", "true");
+            setOpen(isOpen);
+        }}>
             <DialogContent className="max-w-lg">
                 <DialogHeader>
                     <DialogTitle>{steps[step].title}</DialogTitle>
@@ -125,5 +121,5 @@ export function AdminWelcomeModal() {
                 </div>
             </DialogContent>
         </Dialog>
-    )
+    );
 }

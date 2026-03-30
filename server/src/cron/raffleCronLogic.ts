@@ -84,18 +84,22 @@ export async function closeExpiredRaffles(prizeServiceInjected = prizeService) {
             const prizes = await queryRunner.manager.find(Prize, {
                 where: { raffle: { id: raffle.id } },
             });
-
+            const usedTicketIds = new Set<number>();
             let winnersAssigned = 0;
 
             for (const prize of prizes) {
 
-                const winner = await prizeServiceInjected.selectWinner(prize.id);
+                const winner = await prizeServiceInjected.selectWinner(
+                    queryRunner.manager,
+                    prize.id,
+                    usedTicketIds
+                );
                 if (!winner?.winnerTicket?.user?.email) continue;
 
                 if (winner) {
+                    usedTicketIds.add(winner.winnerTicket.id_ticket);
                     winnersAssigned++;
                     try {
-
                         await sendEmail({
                             to: winner.winnerTicket.user.email,
                             subject: "🎉 ¡Ganaste una rifa!",
@@ -107,6 +111,7 @@ export async function closeExpiredRaffles(prizeServiceInjected = prizeService) {
                                 ticketNumber: String(winner.winnerTicket.ticket_number || "N/A"),
                             }),
                         });
+
                     } catch (emailError) {
                         console.error(
                             `Error enviando email al ganador (ticket ${winner.winnerTicket.ticket_number}):`,

@@ -14,8 +14,11 @@ export class TicketService {
     async getSoldPercentage(raffleId: number) {
         const tickets = await this.ticketRepo.find({ where: { raffleId } });
 
-        const total = tickets.length;
-        const sold = tickets.filter((t: Ticket) => t.status === TicketStatus.PURCHASED).length;
+        const total = await this.ticketRepo.count({ where: { raffleId } });
+
+        const sold = await this.ticketRepo.count({
+            where: { raffleId, status: TicketStatus.PURCHASED },
+        });
         const reserved = tickets.filter((t: Ticket) => t.status === TicketStatus.RESERVED).length;
         const available = tickets.filter((t: Ticket) => t.status === TicketStatus.AVAILABLE).length;
 

@@ -10,7 +10,6 @@ interface RateLimitAxiosError<T = unknown> extends AxiosError<T> {
     isRateLimit?: boolean;
 }
 let lastToastTime = 0;
-
 export const handleApiError = (
     err: unknown,
     defaultMessage: string
@@ -26,20 +25,19 @@ export const handleApiError = (
     }
 
     if (axios.isAxiosError<ApiError>(err)) {
-        const error = err as RateLimitAxiosError<ApiError>;
-
-        if (error.isRateLimit) {
+        const status = err.response?.status;
+        if (status === 429) {
             toast.error(
-                error.response?.data?.error ||
-                "Demasiadas solicitudes",
+                err.response?.data?.error ||
+                "Demasiadas solicitudes. Intenta más tarde ⏳",
                 { id: "rate-limit" }
             );
             return;
         }
 
         toast.error(
-            error.response?.data?.error ||
-            error.response?.data?.message ||
+            err.response?.data?.error ||
+            err.response?.data?.message ||
             defaultMessage,
             { id: "api-error" }
         );

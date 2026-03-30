@@ -5,16 +5,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 
+type PaymentStatusFilter = "all" | "completed" | "pending" | "expired";
+
 type PaymentsFiltersProps = {
   statusFilter: PaymentStatusFilter;
-  setStatusFilter: (v: "all" | "completed" | "pending") => void;
+  setStatusFilter: (v: PaymentStatusFilter) => void;
   dateFrom: string;
   setDateFrom: (v: string) => void;
   dateTo: string;
   setDateTo: (v: string) => void;
 };
-
-type PaymentStatusFilter = "all" | "completed" | "pending";
 
 
 export default function PaymentsFilters({
@@ -45,6 +45,7 @@ export default function PaymentsFilters({
                 <SelectItem value="all">Todos</SelectItem>
                 <SelectItem value="completed">Completados</SelectItem>
                 <SelectItem value="pending">Pendientes</SelectItem>
+                <SelectItem value="expired">Expirados</SelectItem>
               </SelectContent>
             </Select>
           </div>

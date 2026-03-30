@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useReservation } from "@/hook/useReservation";
 import { useReservationStore } from "@/store/reservationStore";
 import { AuthStore } from "@/store/authStore";
@@ -26,6 +26,20 @@ export function useReservationsLogic({ payWithWompiWidget }: Props) {
 
   const [canceling, setCanceling] = useState<number | null>(null);
   const [page, setPage] = useState(1);
+  const [filterRaffle, setFilterRaffle] = useState<"all" | number>("all");
+
+  const uniqueRaffles = useMemo(() => {
+    return Array.from(
+      new Map(
+        reservations
+          .map(r => r.raffle)
+          .filter(Boolean)
+          .map(r => [r.id, r])
+      ).values()
+    );
+  }, [reservations]);
+
+
 
   const itemsPerPage = 6;
 
@@ -36,15 +50,20 @@ export function useReservationsLogic({ payWithWompiWidget }: Props) {
       ),
     [reservations]
   );
+  const filteredReservations = useMemo(() => {
+    return activeReservations.filter(r =>
+      filterRaffle === "all" || r?.raffle?.id === filterRaffle
+    );
+  }, [activeReservations, filterRaffle]);
 
   const paginatedReservations = useMemo(() => {
-    return activeReservations.slice(
+    return filteredReservations.slice(
       (page - 1) * itemsPerPage,
       page * itemsPerPage
     );
-  }, [activeReservations, page]);
+  }, [filteredReservations, page]);
 
-  const totalPages = Math.ceil(activeReservations.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredReservations.length / itemsPerPage);
 
   const handleCancel = async (id: number) => {
     if (!user) return;
@@ -76,6 +95,12 @@ export function useReservationsLogic({ payWithWompiWidget }: Props) {
     }
   };
 
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages || 1);
+    }
+  }, [totalPages, page]);
+
   return {
     reservations,
     loading,
@@ -88,5 +113,8 @@ export function useReservationsLogic({ payWithWompiWidget }: Props) {
     setPage,
     handleCancel,
     handleAction,
+    filterRaffle,
+    setFilterRaffle,
+    uniqueRaffles,
   };
 }

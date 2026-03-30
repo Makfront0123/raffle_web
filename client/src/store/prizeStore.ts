@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { Prizes, CreatePrizeDTO } from "@/type/Prizes";
+import { Prizes, CreatePrizeDTO, UpdatePrizeDTO } from "@/type/Prizes";
 import { Winner } from "@/type/Winner";
 import { BackendResponse, PrizeService } from "@/services/prizeService";
 import { toast } from "sonner";
@@ -16,7 +16,7 @@ interface PrizeStore {
   getPrizeById: (id: number) => Promise<void>;
 
   addPrize: (prize: CreatePrizeDTO) => Promise<BackendResponse<Prizes>>;
-  updatePrize: (id: number, prize: Prizes) => Promise<BackendResponse<Prizes>>;
+  updatePrize: (id: number, prize: UpdatePrizeDTO) => Promise<BackendResponse<Prizes>>;
   deletePrize: (id: number) => Promise<BackendResponse<void>>;
 
   getWinnersByRaffle: (raffleId: number) => Promise<void>;
@@ -63,7 +63,7 @@ export const usePrizeStore = create<PrizeStore>()((set) => ({
     }
   },
 
-  updatePrize: async (id: number, prize: Prizes) => {
+  updatePrize: async (id: number, prize: UpdatePrizeDTO) => {
     try {
       const prizeService = new PrizeService();
       const res = await prizeService.updatePrize(id, prize);

@@ -8,7 +8,6 @@ import RafflePagination from "@/components/user/raffles/RafflesPagination";
 import { useRaffleDetail } from "@/hook/useRaffleDetail";
 import { usePayment } from "@/hook/usePayment";
 import LoadingScreen from "@/components/user/LoadingScreen";
-import { PaymentSuccessModalTwilio } from "@/components/user/payment/PaymentSuccessModalTwilio";
 import { PaymentFailedModal } from "@/components/user/payment/PaymentFailedModal";
 import { PaymentSuccessModalResend } from "@/components/user/payment/PaymentSuccesModalResend";
 
@@ -25,6 +24,7 @@ export default function RaffleDetailPage() {
 
   const raffleDetail = useRaffleDetail({
     payWithWompiWidget: payment.payWithWompiWidget,
+
   });
 
 
@@ -46,7 +46,10 @@ export default function RaffleDetailPage() {
         handleSelect={raffleDetail.handleTicketSelect}
       />
       <div className="text-sm text-gold mt-3">
-        {raffleDetail.selectedTickets.length} / 5 tickets seleccionados
+        {raffleDetail.reservedCount > 0 && (
+          <span>Reservados: {raffleDetail.reservedCount}</span>
+        )}
+        <span>Seleccionados: {raffleDetail.selectedTickets.length}</span>
       </div>
       {raffleDetail.selectedTickets.length > 0 && (
         <button

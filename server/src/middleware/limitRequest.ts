@@ -16,7 +16,7 @@ export const globalLimiter = rateLimit({
 
 export const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 20,
+    max: 200,
     handler: (req, res) => {
         res.status(429).json({
             error: "Demasiados intentos de autenticación",
@@ -50,6 +50,7 @@ export const actionLimiter = rateLimit({
 export const paymentActionLimiter = rateLimit({
     windowMs: 10 * 60 * 1000,
     max: 20,
+    //max: 20,
 });
 
 
