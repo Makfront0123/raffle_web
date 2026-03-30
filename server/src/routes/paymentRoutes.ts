@@ -20,7 +20,15 @@ router.get("/", authMiddleware, adminMiddleware, adminLimiter, paymentController
 router.get("/user", authMiddleware, paymentController.getPaymentUser.bind(paymentController));
 router.get("/:id", authMiddleware, adminMiddleware, adminLimiter, validate({ params: idSchema }), paymentController.getPaymentById.bind(paymentController));
 router.delete("/:id", authMiddleware, adminMiddleware, adminLimiter, validate({ params: idSchema }), paymentController.deletePayment.bind(paymentController));
-router.put("/:id/complete", authMiddleware, adminMiddleware, adminMiddlewareLimited, adminLimiter, validate({ params: idSchema }), paymentController.completePayment.bind(paymentController));
+router.put("/:id/complete", authMiddleware, adminMiddleware, adminMiddlewareLimited, adminLimiter, validate({ params: idSchema }), (req, res, next) => {
+  if (process.env.NODE_ENV === "production") {
+    return res.status(403).json({
+      message: "Ruta solo disponible en entorno de testing",
+    });
+  }
+  next();
+}, paymentController.completePayment.bind(paymentController));
+
 router.put("/:id/cancel", authMiddleware, adminMiddleware, adminMiddlewareLimited, adminLimiter, validate({ params: idSchema }), paymentController.cancelPayment.bind(paymentController));
 router.get("/:id/logs", authMiddleware, adminMiddleware, adminLimiter, validate({ params: idSchema }), paymentController.getPaymentLogs.bind(paymentController));
 router.post("/cancel/reference/:reference", statusLimiter, validate({ params: referenceSchema }), paymentController.cancelPaymentByReference.bind(paymentController));

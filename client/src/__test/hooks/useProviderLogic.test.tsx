@@ -59,19 +59,19 @@ describe("useProvidersLogic", () => {
     act(() => {
       result.current.handleChange({
         target: { name: "name", value: "Nuevo" },
-      } as any);
+      } as unknown as ChangeEvent<HTMLInputElement>);
 
       result.current.handleChange({
         target: { name: "contact_name", value: "Juan" },
-      } as any);
+      } as unknown as ChangeEvent<HTMLInputElement>);
 
       result.current.handleChange({
         target: { name: "contact_email", value: "juan@test.com" },
-      } as any);
+      } as unknown as ChangeEvent<HTMLInputElement>);
 
       result.current.handleChange({
         target: { name: "contact_phone", value: "123456" },
-      } as any);
+      } as unknown as ChangeEvent<HTMLInputElement>);
     });
 
 

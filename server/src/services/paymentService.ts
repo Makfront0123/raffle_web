@@ -208,25 +208,23 @@ export class PaymentService {
             const user = payment.user;
             const tickets = payment.details.map(d => d.ticket.ticket_number);
 
-            setImmediate(async () => {
-              await sendEmail({
-                to: user.email,
-                subject: `Compra confirmada - ${payment.raffle.title}`,
-                text: `Tu compra fue exitosa`,
-                html: purchaseEmailTemplate({
-                  name: user.name,
-                  raffleTitle: payment.raffle.title,
-                  tickets,
-                  total: payment.total_amount,
-                  reference: payment.reference,
-                  prizes: payment.raffle.prizes?.map(p => ({
-                    name: p.name,
-                    value: Number(p.value),
-                  })),
-                  endDate: payment.raffle.end_date ?? '',
-                }),
-              }).catch(console.error);
-            })
+            await sendEmail({
+              to: user.email,
+              subject: `Compra confirmada - ${payment.raffle.title}`,
+              text: `Tu compra fue exitosa`,
+              html: purchaseEmailTemplate({
+                name: user.name,
+                raffleTitle: payment.raffle.title,
+                tickets,
+                total: payment.total_amount,
+                reference: payment.reference,
+                prizes: payment.raffle.prizes?.map(p => ({
+                  name: p.name,
+                  value: Number(p.value),
+                })),
+                endDate: payment.raffle.end_date ?? '',
+              }),
+            }).catch(console.error);
             break;
 
           case "DECLINED":

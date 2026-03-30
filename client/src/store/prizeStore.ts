@@ -2,9 +2,8 @@ import { create } from "zustand";
 import { Prizes, CreatePrizeDTO, UpdatePrizeDTO } from "@/type/Prizes";
 import { Winner } from "@/type/Winner";
 import { BackendResponse, PrizeService } from "@/services/prizeService";
-import { toast } from "sonner";
 
-interface PrizeStore {
+export interface PrizeStore {
   prizes: Prizes[];
   winners: Winner[];
   winner: Winner | null;

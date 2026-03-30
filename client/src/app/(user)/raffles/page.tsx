@@ -15,7 +15,6 @@ export default function Raffles() {
   const {
     filteredRaffles,
     loading,
-    error,
     search,
     setSearch,
     filterPrize,

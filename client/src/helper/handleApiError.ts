@@ -5,10 +5,6 @@ type ApiError = {
     error?: string;
     message?: string;
 };
-
-interface RateLimitAxiosError<T = unknown> extends AxiosError<T> {
-    isRateLimit?: boolean;
-}
 let lastToastTime = 0;
 export const handleApiError = (
     err: unknown,

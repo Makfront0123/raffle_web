@@ -8,36 +8,13 @@ jest.mock("@/store/authStore", () => ({
 
 import { renderHook, act, waitFor } from "@testing-library/react";
 import { usePrizes } from "../../hook/usePrizes";
-import { usePrizeStore } from "@/store/prizeStore";
+import { PrizeStore, usePrizeStore } from "@/store/prizeStore";
 
-// ---------- Types ----------
-interface Prize {
-    id: number;
-    name: string;
-}
+let state: PrizeStore;
 
-interface Winner {
-    id: number;
-    winner: string;
-    raffle_id: number;
-}
-
-interface PrizeStoreState {
-    prizes: Prize[];
-    winners: Winner[];
-    getPrizes: jest.Mock<Promise<void>, []>;
-    getWinners: jest.Mock<Promise<void>, []>;
-    getWinnersByRaffle: jest.Mock<Promise<void>, [number]>;
-    addPrize: jest.Mock;
-    updatePrize: jest.Mock;
-    deletePrize: jest.Mock;
-}
-
-// ---------- Cast ----------
+// ---------- Cast correcto ----------
 const mockedUsePrizeStore =
     usePrizeStore as jest.MockedFunction<typeof usePrizeStore>;
-
-let state: PrizeStoreState;
 
 describe("usePrizes", () => {
     beforeEach(() => {
@@ -46,15 +23,60 @@ describe("usePrizes", () => {
         state = {
             prizes: [],
             winners: [],
+            winner: null,
+
+            setPrizes: jest.fn(),
+            setWinners: jest.fn(),
+            getPrizeById: jest.fn(),
 
             getPrizes: jest.fn().mockImplementation(async () => {
-                state.prizes = [{ id: 1, name: "Premio 1" }];
+                state.prizes = [
+                    {
+                        id: 1,
+                        name: "Premio 1",
+                        description: "Descripción del premio",
+                        value: 10,
+                        type: "cash",
+                        created_at: new Date().toISOString(),
+
+                        provider: {
+                            id: 1,
+                            name: "Proveedor",
+                            contact_name: "Juan",
+                            contact_email: "test@test.com",
+                            contact_phone: "123456",
+                        },
+
+                        raffle: {
+                            id: 1,
+                            title: "Rifa test",
+                        },
+
+                        winner_ticket: null,
+                    },
+                ];
             }),
 
             getWinners: jest.fn().mockResolvedValue(undefined),
 
             getWinnersByRaffle: jest.fn().mockImplementation(async (id: number) => {
-                state.winners = [{ id: 99, winner: "Juan", raffle_id: id }];
+                state.winners = [
+                    {
+                        prize_id: 1,
+                        raffle_id: id,
+                        raffle_title: "Rifa test",
+                        prize_name: "Premio 1",
+                        value: 10,
+
+                        winner_user: {
+                            id: 1,
+                            name: "Juan",
+                            email: "juan@test.com",
+                        },
+
+                        winner_ticket: "ABC123",
+                    },
+                ];
             }),
 
             addPrize: jest.fn(),
@@ -62,9 +84,9 @@ describe("usePrizes", () => {
             deletePrize: jest.fn(),
         };
 
-        // 🔥 FIX CLAVE (Zustand selector)
-        mockedUsePrizeStore.mockImplementation((selector: any) =>
-            selector(state)
+        mockedUsePrizeStore.mockImplementation(
+            <T,>(selector: (state: PrizeStore) => T): T =>
+                selector(state)
         );
     });
 
@@ -97,12 +119,11 @@ describe("usePrizes", () => {
     });
 
     test("maneja errores en premios", async () => {
-        state.getPrizes.mockImplementation(async () => {
+        (state.getPrizes as jest.Mock).mockImplementation(async () => {
             throw new Error("fail");
         });
 
-        // 🔥 Evita que el otro effect sobrescriba el error
-        state.getWinners.mockResolvedValue(undefined);
+        (state.getWinners as jest.Mock).mockResolvedValue(undefined);
 
         const hook = renderHook(() => usePrizes());
 
