@@ -29,12 +29,10 @@ export default function ReservationsPage() {
     filterRaffle,
     setFilterRaffle,
     uniqueRaffles,
-  } = useReservationsLogic({
-    payWithWompiWidget: payment.payWithWompiWidget,
-  });
+  } = useReservationsLogic();
 
   if (error) return <div className="p-10 text-yellow-500">{error}</div>;
-  
+
 
   return (
     <div className="flex-1 p-6 bg-white min-h-[30vh] overflow-y-auto">
@@ -44,7 +42,7 @@ export default function ReservationsPage() {
           value={filterRaffle === "all" ? "all" : filterRaffle.toString()}
           onValueChange={(v) => {
             setFilterRaffle(v === "all" ? "all" : Number(v));
-            setPage(1); 
+            setPage(1);
           }}
         >
           <SelectTrigger className="w-full md:w-64">
