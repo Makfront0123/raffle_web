@@ -82,13 +82,6 @@ const RaffleDetailPage = () => {
                     >
                         Volver al dashboard
                     </Button>
-                    {
-                        raffle.status === "ended" && <Button
-                            onClick={() => router.push(`/rafflesAdmin/${raffleId}/roulette`)}
-                        >
-                            Abrir Ruleta
-                        </Button>
-                    }
                 </div>
             </header>
 

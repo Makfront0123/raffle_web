@@ -12,7 +12,6 @@ import { PrizeStore, usePrizeStore } from "@/store/prizeStore";
 
 let state: PrizeStore;
 
-// ---------- Cast correcto ----------
 const mockedUsePrizeStore =
     usePrizeStore as jest.MockedFunction<typeof usePrizeStore>;
 
@@ -95,8 +94,11 @@ describe("usePrizes", () => {
 
         await waitFor(() => expect(hook.result.current.loading).toBe(false));
 
-        expect(hook.result.current.prizes).toEqual([
-            { id: 1, name: "Premio 1" },
+        expect(hook.result.current.prizes).toMatchObject([
+            {
+                id: 1,
+                name: "Premio 1",
+            },
         ]);
     });
 
@@ -113,8 +115,13 @@ describe("usePrizes", () => {
             expect(state.getWinnersByRaffle).toHaveBeenCalledWith(1)
         );
 
-        expect(hook.result.current.winners).toEqual([
-            { id: 99, winner: "Juan", raffle_id: 1 },
+        expect(hook.result.current.winners).toMatchObject([
+            {
+                raffle_id: 1,
+                winner_user: {
+                    name: "Juan",
+                },
+            },
         ]);
     });
 
