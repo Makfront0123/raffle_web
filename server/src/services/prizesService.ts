@@ -1,4 +1,4 @@
-import { In, IsNull, Not } from 'typeorm';
+import { EntityManager, In, IsNull, Not } from 'typeorm';
 import { AppDataSource } from '../data-source';
 import { Payment } from '../entities/payment.entity';
 import { PaymentDetail } from '../entities/payment_details.entity';
@@ -115,7 +115,9 @@ export class PrizesService {
     }
 
     async selectWinner(
-        prizeId: number
+        manager: EntityManager,
+        prizeId: number,
+        usedTicketIds: Set<number> = new Set()
     ): Promise<{
         prizeId: number;
         prizeName: string;
@@ -126,72 +128,63 @@ export class PrizesService {
         };
     } | null> {
 
-        return await AppDataSource.transaction(async (manager) => {
-            const prize = await this.prizeRepo.findOne({
-                where: { id: prizeId },
-                relations: ['raffle'],
-            });
-
-            if (!prize) throw new Error('Premio no encontrado');
-
-            const usedPrizes = await this.prizeRepo.find({
-                where: {
-                    raffle: { id: prize.raffle.id },
-                    winner_ticket: Not(IsNull()),
-                },
-                relations: ['winner_ticket'],
-            });
-
-            const excludedTicketIds = (usedPrizes || [])
-                .map(p => p.winner_ticket?.id_ticket)
-                .filter(Boolean);
-
-
-            const ticketsQB = this.ticketRepo
-                .createQueryBuilder('ticket')
-                .where('ticket.raffleId = :raffleId', { raffleId: prize.raffle.id })
-                .andWhere('ticket.status = :status', { status: 'purchased' });
-            if (excludedTicketIds.length > 0) {
-                ticketsQB.andWhere('ticket.id_ticket NOT IN (:...excluded)', {
-                    excluded: excludedTicketIds,
-                });
-            }
-            const validTickets = await ticketsQB.getMany();
-
-            if (validTickets.length === 0) {
-                throw new Error("No hay tickets comprados para esta rifa");
-            }
-
-
-            const winnerTicket =
-                validTickets[Math.floor(Math.random() * validTickets.length)];
-
-            const paymentDetail = await this.paymentDetailRepo.findOne({
-                where: { ticket: { id_ticket: winnerTicket.id_ticket } },
-                relations: ['payment', 'payment.user'],
-            });
-
-            if (!paymentDetail?.payment?.user) {
-                throw new Error("No se encontró el usuario asociado al ticket ganador");
-            }
-
-            prize.winner_ticket = winnerTicket;
-            await this.prizeRepo.save(prize);
-
-            return {
-                prizeId: prize.id,
-                prizeName: prize.name,
-                winnerTicket: {
-                    id_ticket: winnerTicket.id_ticket,
-                    ticket_number: Number(winnerTicket.ticket_number),
-                    user: {
-                        id: paymentDetail.payment.user.id,
-                        name: paymentDetail.payment.user.name,
-                        email: paymentDetail.payment.user.email,
-                    }
-                },
-            };
+        const prize = await manager.findOne(Prize, {
+            where: { id: prizeId },
+            relations: ['raffle'],
         });
+
+        if (!prize) throw new Error('Premio no encontrado');
+
+        const ticketsQB = this.ticketRepo
+            .createQueryBuilder('ticket')
+            .where('ticket.raffleId = :raffleId', { raffleId: prize.raffle.id })
+            .andWhere('ticket.status = :status', { status: 'purchased' });
+
+        if (usedTicketIds.size > 0) {
+            ticketsQB.andWhere('ticket.id_ticket NOT IN (:...excluded)', {
+                excluded: Array.from(usedTicketIds),
+            });
+        }
+
+        const validTickets = await ticketsQB.getMany();
+
+        if (validTickets.length === 0) {
+            throw new Error("No hay tickets comprados para esta rifa");
+        }
+
+
+        const winnerTicket =
+            validTickets[Math.floor(Math.random() * validTickets.length)];
+
+
+        if (usedTicketIds.has(winnerTicket.id_ticket)) {
+            throw new Error("Ticket ya usado (esto no debería pasar)");
+        }
+        const paymentDetail = await this.paymentDetailRepo.findOne({
+            where: { ticket: { id_ticket: winnerTicket.id_ticket } },
+            relations: ['payment', 'payment.user'],
+        });
+
+        if (!paymentDetail?.payment?.user) {
+            throw new Error("No se encontró el usuario asociado al ticket ganador");
+        }
+
+        prize.winner_ticket = winnerTicket;
+        await this.prizeRepo.save(prize);
+
+        return {
+            prizeId: prize.id,
+            prizeName: prize.name,
+            winnerTicket: {
+                id_ticket: winnerTicket.id_ticket,
+                ticket_number: Number(winnerTicket.ticket_number),
+                user: {
+                    id: paymentDetail.payment.user.id,
+                    name: paymentDetail.payment.user.name,
+                    email: paymentDetail.payment.user.email,
+                }
+            },
+        };
 
     }
 
@@ -338,33 +331,60 @@ export class PrizesService {
 
     async closeRaffle(raffleId: number) {
         if (!raffleId) throw new Error("Raffle ID requerido");
-        const prizeRepo = this.prizeRepo;
 
-        const raffle = await AppDataSource.getRepository(Raffle).findOne({ where: { id: raffleId } });
-        if (!raffle) throw new Error("Raffle no encontrada");
+        const queryRunner = AppDataSource.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
 
-        const prizes = await prizeRepo.find({
-            where: { raffle: { id: raffleId } },
-            relations: ['raffle', 'raffle.tickets', 'raffle.tickets.user'],
-        });
+        try {
+            const raffle = await queryRunner.manager.findOne(Raffle, {
+                where: { id: raffleId },
+            });
 
-        if (!prizes.length) {
+            if (!raffle) throw new Error("Raffle no encontrada");
+
+            const prizes = await queryRunner.manager.find(Prize, {
+                where: { raffle: { id: raffleId } },
+            });
+
+            if (!prizes.length) {
+                await queryRunner.commitTransaction();
+                return {
+                    message: 'Rifa cerrada pero no hay premios registrados',
+                    winners: []
+                };
+            }
+
+            const winners = [];
+
+            const usedTicketIds = new Set<number>();
+
+            for (const prize of prizes) {
+                const result = await this.selectWinner(
+                    queryRunner.manager,
+                    prize.id,
+                    usedTicketIds
+                );
+
+                if (result) {
+                    usedTicketIds.add(result.winnerTicket.id_ticket); // 🔥 control global
+                    winners.push(result);
+                }
+            }
+
+            await queryRunner.commitTransaction();
+
             return {
-                message: 'Rifa cerrada pero no hay premios registrados',
-                winners: []
+                message: 'Rifa cerrada y ganadores seleccionados',
+                winners
             };
-        }
 
-        const winners = [];
-        for (const prize of prizes) {
-            const result = await this.selectWinner(prize.id);
-            winners.push(result);
+        } catch (error) {
+            await queryRunner.rollbackTransaction();
+            throw error;
+        } finally {
+            await queryRunner.release();
         }
-
-        return {
-            message: 'Rifa cerrada y ganadores seleccionados',
-            winners
-        };
     }
 
 }

@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { PrizesService } from '../services/prizesService';
+import { AppDataSource } from '../data-source';
 
 export class PrizesController {
     constructor(private prizesService: PrizesService) { }
@@ -75,12 +76,31 @@ export class PrizesController {
     }
 
     async selectWinner(req: Request, res: Response) {
+        const queryRunner = AppDataSource.createQueryRunner();
+
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
         try {
             const prizeId = Number(req.params.id);
-            const winner = await this.prizesService.selectWinner(prizeId);
+
+            const winner = await this.prizesService.selectWinner(
+                queryRunner.manager,
+                prizeId,
+            );
+
+            await queryRunner.commitTransaction();
+
             res.status(200).json(winner);
         } catch (error: any) {
-            res.status(500).json({ message: 'Error seleccionando ganador', error: error.message || error });
+            await queryRunner.rollbackTransaction();
+
+            res.status(500).json({
+                message: 'Error seleccionando ganador',
+                error: error.message || error
+            });
+        } finally {
+            await queryRunner.release();
         }
     }
 

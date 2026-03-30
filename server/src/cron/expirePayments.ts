@@ -1,8 +1,6 @@
 import { AppDataSource } from "../data-source";
 import { Payment, PaymentStatus } from "../entities/payment.entity";
 import { Ticket, TicketStatus } from "../entities/ticket.entity";
-import { LessThan } from "typeorm";
-
 export const cleanupExpiredPayments = async (): Promise<number> => {
     const now = new Date();
 
