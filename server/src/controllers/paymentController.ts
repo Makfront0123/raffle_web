@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import { PaymentService } from '../services/paymentService';
-import { Raffle } from '../entities/raffle.entity';
 import { PaymentStatus } from '../entities/payment.entity';
 
 

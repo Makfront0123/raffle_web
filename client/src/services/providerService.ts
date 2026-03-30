@@ -1,7 +1,5 @@
 import { Providers } from "@/type/Providers";
 import { api } from "@/api/api";
-import { AxiosError } from "axios";
-
 export class ProviderService {
   async getAllProviders(): Promise<Providers[]> {
     const res = await api.get<Providers[]>("/api/providers");

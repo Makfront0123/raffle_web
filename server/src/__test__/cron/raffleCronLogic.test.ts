@@ -1,12 +1,3 @@
-
-import { AppDataSource } from "../../data-source";
-import { LessThanOrEqual } from "typeorm";
-import { Reservation } from "../../entities/reservation.entity";
-import { Ticket } from "../../entities/ticket.entity";
-import { Prize } from "../../entities/prize.entity";
-import { PrizesService } from "../../services/prizesService";
-import { cleanupExpiredReservations, closeExpiredRaffles } from "../../cron/raffleCronLogic";
-
 jest.mock("../../data-source", () => ({
     AppDataSource: {
         getRepository: jest.fn(),
@@ -20,27 +11,45 @@ jest.mock("../../services/prizesService", () => ({
     })),
 }));
 
+jest.mock("../../utils/sendEmail", () => ({
+    sendEmail: jest.fn().mockResolvedValue(true),
+}));
+
+import { AppDataSource } from "../../data-source";
+import { cleanupExpiredReservations, closeExpiredRaffles } from "../../cron/raffleCronLogic";
+import { PrizesService } from "../../services/prizesService";
+import { Prize } from "../../entities/prize.entity";
+import { Reservation } from "../../entities/reservation.entity";
+import { Ticket } from "../../entities/ticket.entity";
+
+jest.mock("../../data-source", () => ({
+    AppDataSource: {
+        getRepository: jest.fn(),
+        createQueryRunner: jest.fn(),
+        createQueryBuilder: jest.fn(), // 👈 🔥 ESTE FALTABA
+    },
+}));
+const createMockQueryBuilder = () => ({
+    update: jest.fn().mockReturnThis(),
+    delete: jest.fn().mockReturnThis(),
+    from: jest.fn().mockReturnThis(),
+    set: jest.fn().mockReturnThis(),
+    where: jest.fn().mockReturnThis(),
+    execute: jest.fn().mockResolvedValue({ affected: 1 }),
+});
+
 const mockReservationRepo = {
-    find: jest.fn(),
-    remove: jest.fn(),
+    createQueryBuilder: jest.fn(() => createMockQueryBuilder()),
 };
+
 const mockTicketRepo = {
-    createQueryBuilder: jest.fn().mockReturnValue({
-        update: () => ({
-            set: () => ({
-                whereInIds: () => ({
-                    execute: jest.fn(),
-                }),
-            }),
-        }),
-    }),
+    createQueryBuilder: jest.fn(() => createMockQueryBuilder()),
 };
 
 const mockRaffleRepo = {
     find: jest.fn(),
 };
 
-// Mock QueryRunner
 const mockQueryRunner = {
     connect: jest.fn(),
     startTransaction: jest.fn(),
@@ -50,25 +59,9 @@ const mockQueryRunner = {
     manager: {
         save: jest.fn(),
         find: jest.fn(),
-        createQueryBuilder: jest.fn().mockReturnValue({
-            update: () => ({
-                set: () => ({
-                    where: () => ({
-                        execute: jest.fn(),
-                    }),
-                }),
-            }),
-            delete: () => ({
-                from: () => ({
-                    where: () => ({
-                        execute: jest.fn(),
-                    }),
-                }),
-            }),
-        }),
+        createQueryBuilder: jest.fn(() => createMockQueryBuilder()),
     },
 };
-
 
 (AppDataSource.getRepository as jest.Mock).mockImplementation((entity) => {
     if (entity === Reservation) return mockReservationRepo;
@@ -79,6 +72,10 @@ const mockQueryRunner = {
 
 (AppDataSource.createQueryRunner as jest.Mock).mockReturnValue(mockQueryRunner);
 
+(AppDataSource.createQueryBuilder as jest.Mock).mockImplementation(() =>
+    createMockQueryBuilder()
+);
+
 const prizeServiceMock = new (PrizesService as any)();
 
 beforeEach(() => {
@@ -87,23 +84,13 @@ beforeEach(() => {
 
 describe("cleanupExpiredReservations", () => {
     it("libera tickets y elimina reservas expiradas", async () => {
-        mockReservationRepo.find.mockResolvedValue([
-            {
-                id: 10,
-                reservationTickets: [
-                    { ticket: { id_ticket: 1 } },
-                    { ticket: { id_ticket: 2 } },
-                ],
-            },
-        ]);
-
-        mockReservationRepo.remove.mockResolvedValue(true);
-
         const result = await cleanupExpiredReservations();
 
         expect(result).toBe(1);
-        expect(mockReservationRepo.find).toHaveBeenCalled();
-        expect(mockReservationRepo.remove).toHaveBeenCalledTimes(1);
+
+        // Validamos que se ejecutaron queries
+        expect(mockTicketRepo.createQueryBuilder).toHaveBeenCalled();
+        expect(mockReservationRepo.createQueryBuilder).toHaveBeenCalled();
     });
 });
 
@@ -118,13 +105,20 @@ describe("closeExpiredRaffles", () => {
             { id: 51, name: "Premio 2" },
         ]);
 
-        prizeServiceMock.selectWinner.mockResolvedValue(true);
+        prizeServiceMock.selectWinner.mockResolvedValue({
+            winnerTicket: {
+                id_ticket: 10,
+                ticket_number: 123,
+                user: { email: "test@mail.com", name: "Juan" },
+            },
+            prizeName: "Premio X",
+        });
 
         const res = await closeExpiredRaffles(prizeServiceMock);
 
-
         expect(mockRaffleRepo.find).toHaveBeenCalled();
         expect(prizeServiceMock.selectWinner).toHaveBeenCalledTimes(2);
+        expect(mockQueryRunner.commitTransaction).toHaveBeenCalled();
 
         expect(res).toEqual([
             {
@@ -139,7 +133,7 @@ describe("closeExpiredRaffles", () => {
 
         mockQueryRunner.manager.find.mockRejectedValue(new Error("DB fail"));
 
-        await expect(closeExpiredRaffles()).rejects.toThrow("DB fail");
+        await expect(closeExpiredRaffles(prizeServiceMock)).rejects.toThrow("DB fail");
 
         expect(mockQueryRunner.rollbackTransaction).toHaveBeenCalled();
     });

@@ -3,9 +3,6 @@ import { useRaffleStore } from "@/store/raffleStore";
 import { RaffleService } from "@/services/raffleService";
 import { Raffle } from "@/type/Raffle";
 
-jest.mock("sonner", () => ({
-  toast: { success: jest.fn(), error: jest.fn() },
-}));
 
 const mockRaffle: Partial<Raffle> = {
   id: 1,
@@ -21,6 +18,7 @@ const mockRaffle: Partial<Raffle> = {
 describe("RaffleStore", () => {
   beforeEach(() => {
     useRaffleStore.setState({ raffles: [] });
+    jest.clearAllMocks();
   });
 
   it("getRaffles carga rifas", async () => {
@@ -28,13 +26,13 @@ describe("RaffleStore", () => {
       .spyOn(RaffleService.prototype, "getAllRaffles")
       .mockResolvedValue([mockRaffle as Raffle]);
 
-
     await act(async () => {
-      await useRaffleStore.getState().deleteRaffle(99);
+      await useRaffleStore.getState().getRaffles();
     });
 
-    expect(useRaffleStore.getState().raffles.length).toBe(0);
-
+    const state = useRaffleStore.getState();
+    expect(state.raffles.length).toBe(1);
+    expect(state.raffles[0].id).toBe(1);
   });
 
   it("addRaffle agrega una rifa", async () => {
@@ -52,31 +50,39 @@ describe("RaffleStore", () => {
         prizes: [],
         tickets: [],
         total_numbers: 0,
-      });
+      } as Raffle);
 
     await act(async () => {
-      await useRaffleStore.getState().addRaffle(
-        { title: "Nueva Rifa", price: 5000, digits: 3 },
-      );
+      await useRaffleStore.getState().addRaffle({
+        title: "Nueva Rifa",
+        price: 5000,
+        digits: 3,
+      });
     });
 
-    expect(useRaffleStore.getState().raffles[0].id).toBe(99);
+    const state = useRaffleStore.getState();
+    expect(state.raffles.length).toBe(1);
+    expect(state.raffles[0].id).toBe(99);
   });
+
   it("deleteRaffle elimina rifa", async () => {
+    // Seteamos estado inicial
     useRaffleStore.setState({
-      raffles: [{
-        id: 99,
-        title: "Nueva Rifa",
-        description: "desc",
-        price: 5000,
-        end_date: "2025-12-31",
-        digits: 3,
-        status: "active",
-        created_at: "2025-01-01",
-        prizes: [],
-        tickets: [],
-        total_numbers: 0,
-      }],
+      raffles: [
+        {
+          id: 99,
+          title: "Nueva Rifa",
+          description: "desc",
+          price: 5000,
+          end_date: "2025-12-31",
+          digits: 3,
+          status: "active",
+          created_at: "2025-01-01",
+          prizes: [],
+          tickets: [],
+          total_numbers: 0,
+        },
+      ],
     });
 
     jest
@@ -87,7 +93,7 @@ describe("RaffleStore", () => {
       await useRaffleStore.getState().deleteRaffle(99);
     });
 
-    expect(useRaffleStore.getState().raffles.length).toBe(0);
+    const state = useRaffleStore.getState();
+    expect(state.raffles.length).toBe(0);
   });
-
 });

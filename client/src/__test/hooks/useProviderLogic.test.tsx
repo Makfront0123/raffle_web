@@ -7,6 +7,20 @@ jest.mock("@/store/authStore", () => ({
   AuthStore: () => ({ user: { id: 1, name: "Armando" }, token: "fake-token" }),
 }));
 
+jest.mock("@/hook/useZodForm", () => ({
+  useZodForm: () => ({
+    form: {
+      name: "Nuevo",
+      contact_name: "Juan",
+      contact_email: "juan@test.com",
+      contact_phone: "123456",
+    },
+    setForm: jest.fn(),
+    handleChange: jest.fn(),
+    validate: () => true,
+    errors: {},
+  }),
+}));
 
 const mockUseProviders = {
   providers: [
@@ -37,19 +51,27 @@ describe("useProvidersLogic", () => {
 
   const setup = () => renderHook(() => useProvidersLogic());
 
+
+
   it("debe llamar addProvider cuando form no tiene id", async () => {
     const { result } = setup();
 
-
-    const changeEvent: ChangeEvent<HTMLInputElement> = {
-      target: {
-        name: "name",
-        value: "Nuevo",
-      },
-    } as unknown as ChangeEvent<HTMLInputElement>;
-
     act(() => {
-      result.current.handleChange(changeEvent);
+      result.current.handleChange({
+        target: { name: "name", value: "Nuevo" },
+      } as any);
+
+      result.current.handleChange({
+        target: { name: "contact_name", value: "Juan" },
+      } as any);
+
+      result.current.handleChange({
+        target: { name: "contact_email", value: "juan@test.com" },
+      } as any);
+
+      result.current.handleChange({
+        target: { name: "contact_phone", value: "123456" },
+      } as any);
     });
 
 

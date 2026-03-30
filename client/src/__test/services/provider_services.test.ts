@@ -106,8 +106,14 @@ describe("ProviderService", () => {
       },
     });
 
-    await expect(service.deleteProvider(1)).rejects.toThrow(
-      "Error desde backend"
-    );
+    await expect(service.deleteProvider(1)).rejects.toMatchObject({
+      response: {
+        data: {
+          message: "Error desde backend",
+        },
+      },
+    });
+
+    expect(mockedApi.delete).toHaveBeenCalledWith("/api/providers/1");
   });
 });

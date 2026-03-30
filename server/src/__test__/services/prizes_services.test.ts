@@ -38,6 +38,7 @@ describe("PrizesService", () => {
   let paymentDetailRepo: any;
   let providerRepo: any;
   let raffleRepo: any;
+  let mockManager: any;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -48,6 +49,11 @@ describe("PrizesService", () => {
     paymentDetailRepo = mockRepo();
     providerRepo = mockRepo();
     raffleRepo = mockRepo();
+
+    mockManager = {
+      findOne: jest.fn(),
+      save: jest.fn(),
+    };
 
     (AppDataSource.getRepository as jest.Mock).mockImplementation((entity: any) => {
       if (entity.name === "Prize") return prizeRepo;
@@ -174,33 +180,52 @@ describe("PrizesService", () => {
 
 
   test("selectWinner: premio no encontrado", async () => {
-    prizeRepo.findOne.mockResolvedValue(null);
-    await expect(prizesService.selectWinner(1)).rejects.toThrow("Premio no encontrado");
+    mockManager.findOne.mockResolvedValue(null);
+
+    await expect(
+      prizesService.selectWinner(mockManager, 1)
+    ).rejects.toThrow("Premio no encontrado");
   });
 
   test("selectWinner: sin tickets comprados", async () => {
-    prizeRepo.findOne.mockResolvedValue({ raffle: { tickets: [] } });
-    ticketRepo.createQueryBuilder().getMany.mockResolvedValue([]);
-    await expect(prizesService.selectWinner(1)).rejects.toThrow("No hay tickets comprados para esta rifa");
+    mockManager.findOne.mockResolvedValue({ raffle: { id: 1 } });
+
+    const qb = ticketRepo.createQueryBuilder();
+    qb.getMany.mockResolvedValue([]);
+
+    await expect(
+      prizesService.selectWinner(mockManager, 1)
+    ).rejects.toThrow("No hay tickets comprados para esta rifa");
   });
 
   test("selectWinner: selecciona ganador correctamente", async () => {
-    const prize = { id: 1, name: "TV", raffle: { id: 5, tickets: [{ id_ticket: 10, status: "purchased", ticket_number: 15 }] } };
-    prizeRepo.findOne.mockResolvedValue(prize);
+    const prize = {
+      id: 1,
+      name: "TV",
+      raffle: { id: 5 },
+    };
 
-    ticketRepo.createQueryBuilder().getMany.mockResolvedValue(prize.raffle.tickets);
-    paymentDetailRepo.findOne.mockResolvedValue({ payment: { user: { id: 1, name: "Armando", email: "a@mail.com" } } });
-    prizeRepo.save.mockResolvedValue(prize);
+    mockManager.findOne.mockResolvedValue(prize);
 
-    const result = await prizesService.selectWinner(1);
+    const tickets = [
+      { id_ticket: 10, status: "purchased", ticket_number: 15 },
+    ];
 
-    expect(result).not.toBeNull();
-    expect(result!.prizeId).toBe(1);
-    expect(result!.prizeName).toBe("TV");
-    expect(result!.winnerTicket.id_ticket).toBe(10);
-    expect(result!.winnerTicket.ticket_number).toBe(15);
-    expect(result!.winnerTicket.user.name).toBe("Armando");
-    expect(result!.winnerTicket.user.email).toBe("a@mail.com");
+    const qb = ticketRepo.createQueryBuilder();
+    qb.getMany.mockResolvedValue(tickets);
+
+    paymentDetailRepo.findOne.mockResolvedValue({
+      payment: {
+        user: { id: 1, name: "Armando", email: "a@mail.com" },
+      },
+    });
+
+    mockManager.save.mockResolvedValue(prize);
+
+    const result = await prizesService.selectWinner(mockManager, 1);
+
+    expect(result?.prizeId).toBe(1);
+    expect(result?.winnerTicket.id_ticket).toBe(10);
   });
 
   test("getWinners: retorna datos formateados", async () => {

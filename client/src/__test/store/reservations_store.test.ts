@@ -78,11 +78,11 @@ describe("ReservationStore", () => {
     expect(useReservationStore.getState().reservations.length).toBe(1);
   });
 
-  it("cancelReservation elimina reserva y muestra toast", async () => {
+  it("cancelReservation elimina reserva", async () => {
     useReservationStore.setState({ reservations: [mockReservation] });
 
     (ReservationService.prototype.cancelReservation as jest.Mock).mockResolvedValue({
-      message: "Reserva cancelada"
+      message: "Reserva cancelada",
     });
 
     await act(async () => {
@@ -90,6 +90,8 @@ describe("ReservationStore", () => {
     });
 
     expect(useReservationStore.getState().reservations.length).toBe(0);
-    expect(toast.success).toHaveBeenCalledWith("Reserva cancelada");
+    expect(
+      useReservationStore.getState().reservations.find((r) => r.id === 1)
+    ).toBeUndefined();
   });
 });

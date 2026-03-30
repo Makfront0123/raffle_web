@@ -4,14 +4,14 @@ describe("TicketService", () => {
     let fakeTicketRepo: any;
     let fakePaymentRepo: any;
     let service: TicketService;
-
     beforeEach(() => {
         fakeTicketRepo = {
             find: jest.fn(),
+            count: jest.fn(),
         };
 
         fakePaymentRepo = {
-            find: jest.fn(),  
+            find: jest.fn(),
         };
 
         service = new TicketService({
@@ -19,7 +19,6 @@ describe("TicketService", () => {
             payment: fakePaymentRepo,
         });
     });
-
     test("getSoldPercentage devuelve cálculo correcto", async () => {
         fakeTicketRepo.find.mockResolvedValue([
             { status: "available" },
@@ -27,6 +26,10 @@ describe("TicketService", () => {
             { status: "purchased" },
             { status: "purchased" },
         ]);
+
+        fakeTicketRepo.count
+            .mockResolvedValueOnce(4) // total
+            .mockResolvedValueOnce(2); // sold
 
         const result = await service.getSoldPercentage(1);
 
@@ -36,7 +39,6 @@ describe("TicketService", () => {
         expect(result.availableTickets).toBe(1);
         expect(result.soldPercentage).toBe(50);
     });
-
     test("getTicketsByUser devuelve tickets de pagos", async () => {
         fakePaymentRepo.find.mockResolvedValue([
             {

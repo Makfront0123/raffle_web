@@ -100,12 +100,13 @@ describe("AuthService", () => {
         expect(result).toBe(true);
     });
 
-    test("verifyRefreshToken retorna false si es inválido", async () => {
+    test("verifyRefreshToken retorna error si es inválido", async () => {
         mockJwtVerify.mockImplementation(() => {
             throw new Error("Invalid");
         });
 
-        const result = await authService.verifyRefreshToken("bad");
-        expect(result).toBe(false);
+        await expect(
+            authService.verifyRefreshToken("bad")
+        ).rejects.toThrow("Refresh token inválido");
     });
 });

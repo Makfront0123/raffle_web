@@ -1,6 +1,5 @@
 import { ReservationService } from "../../services/reservationService";
 import { Reservation } from "../../entities/reservation.entity";
-import { ReservationTicket } from "../../entities/reservation_ticket.entity";
 import { Ticket } from "../../entities/ticket.entity";
 import { Raffle } from "../../entities/raffle.entity";
 
@@ -11,6 +10,8 @@ let mockRaffleRepo: any;
 let mockQueryRunner: any;
 let mockDataSource: any;
 let service: ReservationService;
+
+let mockQueryBuilder: any;
 
 beforeEach(() => {
 
@@ -30,6 +31,14 @@ beforeEach(() => {
         findOne: jest.fn(),
     };
 
+    // 🔥 MOCK DEL QUERY BUILDER
+    mockQueryBuilder = {
+        leftJoinAndSelect: jest.fn().mockReturnThis(),
+        setLock: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        andWhere: jest.fn().mockReturnThis(),
+        getMany: jest.fn(),
+    };
 
     mockQueryRunner = {
         connect: jest.fn(),
@@ -44,6 +53,8 @@ beforeEach(() => {
             create: jest.fn((entity, data) => data),
             save: jest.fn(async (obj) => obj),
             remove: jest.fn(),
+            update: jest.fn(), // 👈 IMPORTANTE
+            createQueryBuilder: jest.fn(() => mockQueryBuilder), // 👈 🔥 CLAVE
         },
     };
 
@@ -70,15 +81,18 @@ describe("ReservationService SIN BD", () => {
             { id_ticket: 11, status: "available", raffle },
         ];
 
-        mockQueryRunner.manager.find.mockResolvedValue(tickets);
-
-        mockQueryRunner.manager.save.mockImplementation(async (obj: any) => obj);
+        // 🔥 1ra llamada → tickets
+        // 🔥 2da llamada → existingReservations
+        mockQueryBuilder.getMany
+            .mockResolvedValueOnce(tickets)
+            .mockResolvedValueOnce([]);
 
         const result = await service.createReservation(99, 1, [10, 11]);
 
         expect(result.message).toBe("Tickets reservados exitosamente");
         expect(mockQueryRunner.manager.create).toHaveBeenCalled();
         expect(mockQueryRunner.manager.save).toHaveBeenCalled();
+        expect(mockQueryRunner.manager.update).toHaveBeenCalled();
         expect(mockQueryRunner.commitTransaction).toHaveBeenCalled();
     });
 
@@ -91,7 +105,9 @@ describe("ReservationService SIN BD", () => {
             raffle: { id: 999 },
         };
 
-        mockQueryRunner.manager.find.mockResolvedValue([wrongTicket]);
+        mockQueryBuilder.getMany
+            .mockResolvedValueOnce([wrongTicket]) // tickets
+            .mockResolvedValueOnce([]); // existingReservations
 
         await expect(
             service.createReservation(1, 1, [77])
@@ -104,6 +120,7 @@ describe("ReservationService SIN BD", () => {
         const reservation = {
             id: 5,
             user: { id: 99 },
+            expires_at: new Date(Date.now() + 60000),
             reservationTickets: [
                 { ticket: { status: "reserved" } },
             ],
@@ -131,7 +148,7 @@ describe("ReservationService SIN BD", () => {
             },
         ];
 
-        mockQueryRunner.manager.find.mockResolvedValue(expiredReservations);
+        mockQueryBuilder.getMany.mockResolvedValue(expiredReservations);
 
         const result = await service.releaseExpiredReservations();
 
@@ -139,5 +156,4 @@ describe("ReservationService SIN BD", () => {
         expect(mockQueryRunner.manager.save).toHaveBeenCalled();
         expect(mockQueryRunner.manager.remove).toHaveBeenCalled();
     });
-
 });

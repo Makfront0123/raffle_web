@@ -28,17 +28,22 @@ describe("ProviderService", () => {
     let providerService: ProviderService;
     let providerRepo: any;
     let ticketRepo: any;
+    let prizeRepo: any;
 
     beforeEach(() => {
         jest.clearAllMocks();
 
         providerRepo = mockRepo();
         ticketRepo = mockRepo();
+        prizeRepo = {
+            count: jest.fn(),
+        };
 
         (AppDataSource.getRepository as jest.Mock).mockImplementation(
             (entity: any) => {
                 if (entity.name === "Provider") return providerRepo;
                 if (entity.name === "Ticket") return ticketRepo;
+                if (entity.name === "Prize") return prizeRepo;
             }
         );
 
@@ -111,22 +116,16 @@ describe("ProviderService", () => {
     test("deleteProvider: tiene premios asociados", async () => {
         providerRepo.findOne.mockResolvedValue({ id: 1 });
 
-        const qb = {
-            innerJoin: jest.fn().mockReturnThis(),
-            where: jest.fn().mockReturnThis(),
-            andWhere: jest.fn().mockReturnThis(),
-            getCount: jest.fn().mockResolvedValue(3),
-        };
-
-        ticketRepo.createQueryBuilder.mockReturnValue(qb);
+        prizeRepo.count.mockResolvedValue(3); // 👈 🔥 importante
 
         await expect(providerService.deleteProvider(1)).rejects.toThrow(
-            "No se puede eliminar el proveedor porque tiene premios en rifas con tickets comprados o reservados"
+            "No se puede eliminar el proveedor porque tiene premios asociados"
         );
     });
 
     test("deleteProvider: elimina correctamente", async () => {
         providerRepo.findOne.mockResolvedValue({ id: 1 });
+        prizeRepo.count.mockResolvedValue(0);
 
         const qb = ticketRepo.createQueryBuilder();
         qb.getCount.mockResolvedValue(0);

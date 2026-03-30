@@ -15,6 +15,12 @@ jest.mock("next/navigation", () => ({
   }),
 }));
 
+jest.mock("@/hook/useReservation", () => ({
+  useReservation: () => ({
+    reservations: [],
+  }),
+}));
+
 
 jest.mock("sonner", () => ({
   toast: {

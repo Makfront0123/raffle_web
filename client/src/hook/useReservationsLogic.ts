@@ -9,16 +9,10 @@ import { Reservation } from "@/type/Reservation";
 import { Raffle } from "@/type/Raffle";
 import { Ticket } from "@/type/Ticket";
 import { TicketStatusEnum } from "@/type/Payment";
+import { usePayment } from "./usePayment";
 
-type Props = {
-  payWithWompiWidget: (data: {
-    raffle: Raffle;
-    tickets: Ticket[];
-    reservation_id?: number;
-  }) => Promise<void>;
-};
-
-export function useReservationsLogic({ payWithWompiWidget }: Props) {
+export function useReservationsLogic() {
+  const { payWithWompiWidget } = usePayment();
   const { reservations, loading, error, fetchReservations } = useReservation();
   const { cancelReservation } = useReservationStore();
   const { raffles } = useRaffles();

@@ -24,6 +24,17 @@ describe("useReservationsLogic", () => {
   const mockFetchReservations = jest.fn();
   const mockPayWithWompiWidget = jest.fn();
 
+  (useReservation as jest.Mock).mockReturnValue({
+    reservations: Array.from({ length: 20 }, (_, i) => ({
+      id: i + 1,
+      expires_at: "2099-01-01",
+      reservationTickets: [],
+    })),
+    loading: false,
+    error: null,
+    fetchReservations: mockFetchReservations,
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
     (useReservation as jest.Mock).mockReturnValue({
@@ -124,6 +135,17 @@ describe("useReservationsLogic", () => {
   });
 
   it("cambia la página correctamente", () => {
+    (useReservation as jest.Mock).mockReturnValue({
+      reservations: Array.from({ length: 20 }, (_, i) => ({
+        id: i + 1,
+        expires_at: "2099-01-01",
+        reservationTickets: [],
+      })),
+      loading: false,
+      error: null,
+      fetchReservations: mockFetchReservations,
+    });
+
     const { result } = renderHook(() => useReservationsLogic());
 
     act(() => {

@@ -1,5 +1,4 @@
 import { PaymentService } from "../../services/paymentService";
-import { In } from "typeorm";
 
 jest.mock("typeorm", () => {
   const actual = jest.requireActual("typeorm");

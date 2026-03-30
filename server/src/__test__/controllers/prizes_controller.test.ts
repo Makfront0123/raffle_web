@@ -1,5 +1,6 @@
 import { PrizesController } from '../../controllers/prizesController';
 import { Request, Response } from 'express';
+import { AppDataSource } from '../../data-source';
 
 const mockService = {
     getWinners: jest.fn(),
@@ -19,11 +20,31 @@ const mockResponse = () => {
     return res;
 };
 
+jest.mock('../../data-source.ts', () => ({
+    AppDataSource: {
+        createQueryRunner: jest.fn(),
+    },
+}));
+
+
 describe('PrizesController', () => {
     let controller: PrizesController;
 
+
     beforeEach(() => {
         jest.clearAllMocks();
+
+        const mockQueryRunner = {
+            connect: jest.fn(),
+            startTransaction: jest.fn(),
+            commitTransaction: jest.fn(),
+            rollbackTransaction: jest.fn(),
+            release: jest.fn(),
+            manager: {},
+        };
+
+        (AppDataSource.createQueryRunner as jest.Mock).mockReturnValue(mockQueryRunner);
+
         controller = new PrizesController(mockService as any);
     });
 
@@ -118,7 +139,9 @@ describe('PrizesController', () => {
 
         await controller.selectWinner(req, res);
 
-        expect(mockService.selectWinner).toHaveBeenCalledWith(1);
+        expect(mockService.selectWinner).toHaveBeenCalledWith(
+            expect.any(Object),
+            1);
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith(mockWinner);
     });

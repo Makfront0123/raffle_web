@@ -1,4 +1,3 @@
-
 jest.mock("@/store/prizeStore", () => ({
     usePrizeStore: jest.fn(),
 }));
@@ -28,6 +27,7 @@ interface PrizeStoreState {
     winners: Winner[];
     getPrizes: jest.Mock<Promise<void>, []>;
     getWinners: jest.Mock<Promise<void>, []>;
+    getWinnersByRaffle: jest.Mock<Promise<void>, [number]>;
     addPrize: jest.Mock;
     updatePrize: jest.Mock;
     deletePrize: jest.Mock;
@@ -46,18 +46,26 @@ describe("usePrizes", () => {
         state = {
             prizes: [],
             winners: [],
+
             getPrizes: jest.fn().mockImplementation(async () => {
                 state.prizes = [{ id: 1, name: "Premio 1" }];
             }),
-            getWinners: jest.fn().mockImplementation(async () => {
-                state.winners = [{ id: 99, winner: "Juan", raffle_id: 1 }];
+
+            getWinners: jest.fn().mockResolvedValue(undefined),
+
+            getWinnersByRaffle: jest.fn().mockImplementation(async (id: number) => {
+                state.winners = [{ id: 99, winner: "Juan", raffle_id: id }];
             }),
+
             addPrize: jest.fn(),
             updatePrize: jest.fn(),
             deletePrize: jest.fn(),
         };
 
-        mockedUsePrizeStore.mockReturnValue(state);
+        // 🔥 FIX CLAVE (Zustand selector)
+        mockedUsePrizeStore.mockImplementation((selector: any) =>
+            selector(state)
+        );
     });
 
     test("carga premios correctamente", async () => {
@@ -79,7 +87,9 @@ describe("usePrizes", () => {
             hook.result.current.setActiveRaffleId(1);
         });
 
-        await waitFor(() => expect(state.getWinners).toHaveBeenCalled());
+        await waitFor(() =>
+            expect(state.getWinnersByRaffle).toHaveBeenCalledWith(1)
+        );
 
         expect(hook.result.current.winners).toEqual([
             { id: 99, winner: "Juan", raffle_id: 1 },
@@ -90,6 +100,9 @@ describe("usePrizes", () => {
         state.getPrizes.mockImplementation(async () => {
             throw new Error("fail");
         });
+
+        // 🔥 Evita que el otro effect sobrescriba el error
+        state.getWinners.mockResolvedValue(undefined);
 
         const hook = renderHook(() => usePrizes());
 

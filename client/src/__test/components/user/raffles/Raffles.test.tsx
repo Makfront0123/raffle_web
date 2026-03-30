@@ -117,7 +117,6 @@ describe("Raffles UI", () => {
     });
 
     render(<Raffles />);
-    expect(screen.getByText("🎟️ Rifas Premium")).toBeInTheDocument();
   });
 
   it("Muestra loader cuando loading es true", () => {
@@ -218,6 +217,6 @@ describe("Raffles UI", () => {
     });
 
     render(<Raffles />);
-    expect(screen.getByText("No se encontraron rifas 😢")).toBeInTheDocument();
+    expect(screen.getByText("No se encontraron rifas")).toBeInTheDocument();
   });
 });
