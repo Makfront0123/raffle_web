@@ -70,6 +70,12 @@ export interface AppRoute {
         protected: true,
         roles: ["admin"],
       },
+      {
+        name: "Ruleta",
+        path: "/admin/raffles/:id/roulette",
+        protected: true,
+        roles: ["admin"],
+      }
     ],
   },
 ];

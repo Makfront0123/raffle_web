@@ -74,13 +74,22 @@ const RaffleDetailPage = () => {
                         Detalle y rendimiento de la rifa
                     </p>
                 </div>
+                <div className="flex items-center gap-x-3">
 
-                <Button
-                    variant="outline"
-                    onClick={() => router.push("/dashboard")}
-                >
-                    Volver al dashboard
-                </Button>
+                    <Button
+                        variant="outline"
+                        onClick={() => router.push("/dashboard")}
+                    >
+                        Volver al dashboard
+                    </Button>
+                    {
+                        raffle.status === "ended" && <Button
+                            onClick={() => router.push(`/rafflesAdmin/${raffleId}/roulette`)}
+                        >
+                            Abrir Ruleta
+                        </Button>
+                    }
+                </div>
             </header>
 
             <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
