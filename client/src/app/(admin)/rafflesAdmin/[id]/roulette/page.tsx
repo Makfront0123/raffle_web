@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Wheel } from "react-custom-roulette";
@@ -14,8 +13,9 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
+import { Winner } from "@/type/Winner";
 
- const RaffleRoulettePage = () => {
+const RaffleRoulettePage = () => {
     const { id } = useParams<{ id: string }>();
     const router = useRouter();
     const raffleId = Number(id);
@@ -23,10 +23,9 @@ import {
     const { winners } = usePrizes();
     const { raffles } = useRaffles();
 
-    // ✅ ESTADOS
     const [mustSpin, setMustSpin] = useState(false);
     const [prizeNumber, setPrizeNumber] = useState(0);
-    const [winner, setWinner] = useState<any>(null);
+    const [winner, setWinner] = useState<Winner | null>(null);
     const [open, setOpen] = useState(false);
     const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -36,8 +35,8 @@ import {
         .filter(w => w.raffle_id === raffleId)
         .sort((a, b) => a.prize_id - b.prize_id);
 
-   const isFinished = raffleWinners.length > 0;
-    
+    const isFinished = raffleWinners.length > 0;
+
 
     const wheelData = raffleWinners.map((w, index) => ({
         option: w.winner_user?.name || `Ticket ${w.winner_ticket}`,
@@ -135,10 +134,6 @@ import {
                                 ${winner.value}
                             </div>
 
-                            <div>
-                                <strong>Tipo:</strong>{" "}
-                                {winner.prize_type}
-                            </div>
 
                             <div>
                                 <strong>Rifa:</strong>{" "}
