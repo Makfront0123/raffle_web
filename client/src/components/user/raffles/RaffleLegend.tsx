@@ -18,6 +18,11 @@ export default function RaffleLegend() {
         <div className="w-4 h-4 rounded bg-red-700/60 border border-red-500" />
         <span>Comprado</span>
       </div>
+      <div className="flex items-center gap-2">
+        <div className="w-4 h-4 rounded bg-yellow-500/30 border border-yellow-400" />
+        <span>En proceso</span>
+      </div>
+
 
     </div>
   );

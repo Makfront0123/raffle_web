@@ -53,7 +53,7 @@ export const EditRaffleDialog: React.FC<EditRaffleDialogProps> = ({ raffle, onSa
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="secondary">Editar</Button>
+        <Button variant="ghost">Editar</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>

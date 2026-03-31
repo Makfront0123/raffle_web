@@ -88,7 +88,7 @@ export function useRaffles() {
         };
 
         await addRaffle(payload);
-        await getRaffles();
+        await refreshRaffles();
 
         toast.success("Rifa creada correctamente");
 

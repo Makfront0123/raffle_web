@@ -19,7 +19,7 @@ interface ConfirmDialogProps {
   cancelLabel?: string;
   triggerLabel: string;
   onConfirm: () => void | Promise<void>;
-  variant?: "default" | "secondary" | "destructive" | "outline";
+  variant?: "default" | "secondary" | "destructive" | "outline" | "ghost";
   size?: "sm" | "default" | "lg";
 }
 

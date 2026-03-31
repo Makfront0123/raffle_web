@@ -43,6 +43,7 @@ export const useProvidersLogic = () => {
 
   const resetForm = () => {
     setForm({
+      id: undefined,
       name: "",
       contact_name: "",
       contact_email: "",
@@ -79,6 +80,7 @@ export const useProvidersLogic = () => {
     if (!provider) return;
 
     setForm({
+      id: provider.id,
       name: provider.name,
       contact_name: provider.contact_name,
       contact_email: provider.contact_email,

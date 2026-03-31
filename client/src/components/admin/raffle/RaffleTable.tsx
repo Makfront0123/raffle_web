@@ -17,6 +17,7 @@ import { EditRaffleDialog } from "@/components/user/raffles/EditRaffleDialog";
 import { RafflesTableProps } from "@/type/RaffleTableProps";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
+import { ActionItem, TableActionsDropdown } from "@/components/TableActionsDropdown";
 
 export const RafflesTable = ({
     raffles,
@@ -45,7 +46,6 @@ export const RafflesTable = ({
                 <CardTitle>Rifas existentes</CardTitle>
 
                 <div className="flex flex-wrap gap-2">
-
                     {(["all", "pending", "active", "ended"] as const).map((status) => (
                         <button
                             key={status}
@@ -59,7 +59,6 @@ export const RafflesTable = ({
                                     ? "bg-indigo-600 text-white border-indigo-600"
                                     : "bg-white hover:bg-gray-50"
                             )}
-
                         >
                             {status === "all" ? "Todas" : status}
                         </button>
@@ -78,7 +77,6 @@ export const RafflesTable = ({
                         <div className="overflow-x-auto">
                             <table className="min-w-full text-sm text-gray-700">
                                 <thead className="bg-gray-50 text-gray-500 uppercase text-xs">
-
                                     <tr>
                                         <th className="px-4 py-2 text-left">Título</th>
                                         <th className="px-4 py-2">Números</th>
@@ -86,7 +84,7 @@ export const RafflesTable = ({
                                         <th className="px-4 py-2">Dígitos</th>
                                         <th className="px-4 py-2">Estado</th>
                                         <th className="px-4 py-2">Fecha</th>
-                                        <th className="px-4 py-2">Acciones</th>
+                                        <th className="px-4 py-2 text-right">Acciones</th>
                                     </tr>
                                 </thead>
 
@@ -95,6 +93,81 @@ export const RafflesTable = ({
                                         {raffles.map((r: Raffle) => {
                                             const isEnded = r.status === "ended";
                                             const expired = new Date(r.end_date) < new Date();
+
+                                            const actions: ActionItem[] = [];
+                                            actions.push({
+                                                label: "Eliminar",
+                                                destructive: true,
+                                                customRender: (
+                                                    <ConfirmDialog
+                                                        title="Eliminar rifa"
+                                                        triggerLabel="Eliminar"
+                                                        description="¿Seguro que deseas eliminar esta rifa?"
+                                                        variant="ghost"
+                                                        onConfirm={() => deleteRaffle(r.id)}
+                                                    />
+                                                ),
+                                            });
+
+                                            if (!isEnded) {
+                                                actions.push({
+                                                    label: "Regenerar tickets",
+                                                    customRender: (
+                                                        <RegenerateTicketsButton raffleId={r.id} />
+                                                    ),
+                                                });
+ 
+                                                actions.push({
+                                                    label: "Editar",
+                                                    customRender: (
+                                                        <EditRaffleDialog
+                                                            raffle={r}
+                                                            onSave={(updated) =>
+                                                                updateRaffle(r.id, updated)
+                                                            }
+                                                        />
+                                                    ),
+                                                });
+ 
+                                                if (r.status === "pending" && !expired) {
+                                                    actions.push({
+                                                        label: "Activar",
+                                                        customRender: (
+                                                            <ConfirmDialog
+                                                                title="Activar rifa"
+                                                                variant="ghost"
+                                                                description="¿Seguro que deseas activar esta rifa?"
+                                                                triggerLabel="Activar"
+                                                                onConfirm={() => activateRaffle(r.id)}
+                                                            />
+                                                        ),
+                                                    });
+                                                }
+ 
+                                                if (r.status === "pending" && expired) {
+                                                    actions.push({
+                                                        label: "Fecha vencida",
+                                                        disabled: true,
+                                                    });
+                                                }
+ 
+                                                if (r.status === "active") {
+                                                    actions.push({
+                                                        label: "Desactivar",
+                                                        customRender: (
+                                                            <ConfirmDialog
+                                                                title="Desactivar rifa"
+                                                                description="¿Seguro que deseas desactivar esta rifa?"
+                                                                triggerLabel="Desactivar"
+                                                                variant="ghost"
+                                                                onConfirm={() =>
+                                                                    deactivateRaffle(r.id)
+                                                                }
+                                                            />
+                                                        ),
+                                                    });
+                                                }
+                                            }
 
                                             return (
                                                 <motion.tr
@@ -116,46 +189,8 @@ export const RafflesTable = ({
                                                         {new Date(r.end_date).toLocaleDateString()}
                                                     </td>
 
-                                                    <td className="px-4 py-2 flex gap-2 flex-wrap">
-                                                        <ConfirmDialog
-                                                            title="Eliminar rifa"
-                                                            triggerLabel="Eliminar"
-                                                            variant="destructive"
-                                                            onConfirm={() => deleteRaffle(r.id)} description={undefined} />
-
-                                                        {!isEnded && (
-                                                            <>
-                                                                <RegenerateTicketsButton raffleId={r.id} />
-
-                                                                <EditRaffleDialog
-                                                                    raffle={r}
-                                                                    onSave={(updated) =>
-                                                                        updateRaffle(r.id, updated)
-                                                                    }
-                                                                />
-
-                                                                {r.status === "pending" && !expired && (
-                                                                    <ConfirmDialog
-                                                                        title="Activar rifa"
-                                                                        triggerLabel="Activar"
-                                                                        onConfirm={() => activateRaffle(r.id)} description={undefined} />
-                                                                )}
-
-                                                                {r.status === "pending" && expired && (
-                                                                    <span className="text-xs text-red-500">
-                                                                        Fecha vencida. Actualiza antes de activar.
-                                                                    </span>
-                                                                )}
-
-                                                                {r.status === "active" && (
-                                                                    <ConfirmDialog
-                                                                        title="Desactivar rifa"
-                                                                        triggerLabel="Desactivar"
-                                                                        variant="outline"
-                                                                        onConfirm={() => deactivateRaffle(r.id)} description={undefined} />
-                                                                )}
-                                                            </>
-                                                        )}
+                                                    <td className="px-4 py-2 text-right">
+                                                        <TableActionsDropdown actions={actions} />
                                                     </td>
                                                 </motion.tr>
                                             );
@@ -170,7 +205,9 @@ export const RafflesTable = ({
                                 <PaginationContent>
                                     <PaginationItem>
                                         <PaginationPrevious
-                                            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                                            onClick={() =>
+                                                setCurrentPage(Math.max(1, currentPage - 1))
+                                            }
                                         />
                                     </PaginationItem>
 
@@ -188,7 +225,9 @@ export const RafflesTable = ({
                                     <PaginationItem>
                                         <PaginationNext
                                             onClick={() =>
-                                                setCurrentPage(Math.min(totalPages, currentPage + 1))
+                                                setCurrentPage(
+                                                    Math.min(totalPages, currentPage + 1)
+                                                )
                                             }
                                         />
                                     </PaginationItem>

@@ -22,6 +22,7 @@ import {
 
 import { useState } from "react";
 import { Prizes, PrizesTableProps } from "@/type/Prizes";
+import { TableActionsDropdown } from "@/components/TableActionsDropdown";
 
 export function PrizesTable({
   prizes,
@@ -88,26 +89,26 @@ export function PrizesTable({
                       <td className="px-4 py-2">${p.value}</td>
                       <td className="px-4 py-2">{p.raffle?.title}</td>
                       <td className="px-4 py-2">{p.provider?.name}</td>
-                      <td className="px-4 py-2 flex gap-2">
-                        <Button
-                          size="sm"
-                          onClick={() => {
-                            setSelectedPrize(p);
-                            setEditOpen(true);
-                          }}
-                        >
-                          Editar
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() => {
-                            setSelectedPrize(p);
-                            setDeleteOpen(true);
-                          }}
-                        >
-                          Eliminar
-                        </Button>
+                      <td className="px-4 py-2 text-right">
+                        <TableActionsDropdown
+                          actions={[
+                            {
+                              label: "Editar",
+                              onClick: () => {
+                                setSelectedPrize(p);
+                                setEditOpen(true);
+                              },
+                            },
+                            {
+                              label: "Eliminar",
+                              destructive: true,
+                              onClick: () => {
+                                setSelectedPrize(p);
+                                setDeleteOpen(true);
+                              },
+                            },
+                          ]}
+                        />
                       </td>
                     </tr>
                   ))}

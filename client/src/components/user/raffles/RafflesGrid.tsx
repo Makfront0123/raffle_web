@@ -17,6 +17,13 @@ export default function RaffleGrid({
         <h2 className="text-3xl font-bold text-gold mb-10 drop-shadow-lg">
           Rifas Disponibles
         </h2>
+        {
+          raffles.length === 0 && (
+            <p className="text-center text-lg text-gray-500 font-light">
+              No hay rifas disponibles por el momento.
+            </p>
+          )
+        }
 
 
         <motion.div

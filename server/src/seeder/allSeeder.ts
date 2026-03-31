@@ -32,10 +32,8 @@ async function seedAll() {
     const paymentRepo = AppDataSource.getRepository(Payment);
     const paymentDetailRepo = AppDataSource.getRepository(PaymentDetail);
 
-    /* =========================
-       LIMPIEZA TOTAL
-    ========================= */
     console.log("🧹 Limpiando base de datos...");
+
     await AppDataSource.query(`SET FOREIGN_KEY_CHECKS=0`);
     await AppDataSource.query(`TRUNCATE payment_details`);
     await AppDataSource.query(`TRUNCATE payments`);
@@ -48,35 +46,26 @@ async function seedAll() {
     await AppDataSource.query(`DELETE FROM users WHERE roleId = 2`);
     await AppDataSource.query(`SET FOREIGN_KEY_CHECKS=1`);
 
-    /* =========================
-       ROLES
-    ========================= */
+    /* ========================= ROLES ========================= */
     let userRole = await roleRepo.findOne({ where: { id: 2 } });
     if (!userRole) {
-        userRole = roleRepo.create({ id: 2, name: "user" });
-        await roleRepo.save(userRole);
+        userRole = await roleRepo.save({ id: 2, name: "user" });
     }
 
-    /* =========================
-       PROVIDER
-    ========================= */
-    const provider = await providerRepo.save(
-        providerRepo.create({
-            name: "Proveedor Demo",
-            contact_name: "Admin",
-            contact_email: "admin@proveedor.com",
-            contact_phone: "+573000000000",
-        })
-    );
+    /* ========================= PROVIDER ========================= */
+    const provider = await providerRepo.save({
+        name: "Proveedor Demo",
+        contact_name: "Admin",
+        contact_email: "admin@proveedor.com",
+        contact_phone: "+573000000000",
+    });
 
-    /* =========================
-    USERS
- ========================= */
-    const users: User[] = [];
+    /* ========================= USERS (BATCH) ========================= */
     const TOTAL_USERS = 100;
 
+    const usersToInsert: User[] = [];
     for (let i = 1; i <= TOTAL_USERS; i++) {
-        const user = await userRepo.save(
+        usersToInsert.push(
             userRepo.create({
                 name: `Usuario ${i}`,
                 email: `user${i}@test.com`,
@@ -84,41 +73,35 @@ async function seedAll() {
                 roleId: userRole.id,
             })
         );
-        users.push(user);
     }
 
+    const users = await userRepo.save(usersToInsert);
 
-    /* =========================
-       RAFFLES + PRIZES + TICKETS
-    ========================= */
+    /* ========================= RAFFLES + PRIZES + TICKETS ========================= */
     for (const raffleData of rafflesData) {
         const { prizes, ...raffleFields } = raffleData;
 
-        const raffle = await raffleRepo.save(
-            raffleRepo.create({
-                ...raffleFields,
-                end_date: new Date(raffleFields.end_date),
-                total_numbers: Math.pow(10, raffleFields.digits),
+        const raffle = await raffleRepo.save({
+            ...raffleFields,
+            end_date: new Date(raffleFields.end_date),
+            total_numbers: Math.pow(10, raffleFields.digits),
+        });
+
+        // PRIZES (batch)
+        const prizesToInsert = prizes.map(p =>
+            prizeRepo.create({
+                ...p,
+                type: p.type as PrizeType,
+                raffle,
+                provider,
             })
         );
 
-        // 🎁 Premios
-        for (const prizeData of prizes) {
-            await prizeRepo.save(
-                prizeRepo.create({
-                    name: prizeData.name,
-                    description: prizeData.description,
-                    value: prizeData.value,
-                    type: prizeData.type as PrizeType,
-                    raffle,
-                    provider,
-                })
-            );
-        }
+        await prizeRepo.save(prizesToInsert);
 
-        // 🎟️ Tickets (batch)
+        // TICKETS (batch)
         const totalTickets = Math.pow(10, raffle.digits);
-        const batch: Ticket[] = [];
+        let batch: Ticket[] = [];
 
         for (let i = 1; i <= totalTickets; i++) {
             batch.push(
@@ -132,7 +115,7 @@ async function seedAll() {
 
             if (batch.length === BATCH_SIZE) {
                 await ticketRepo.save(batch);
-                batch.length = 0;
+                batch = [];
             }
         }
 
@@ -143,134 +126,123 @@ async function seedAll() {
         console.log(`🎯 Rifa creada: ${raffle.title}`);
     }
 
-    /* =========================
-     RESERVAS + PAGOS MASIVOS POR USUARIO
-  ========================= */
-
+    /* ========================= TICKETS DISPONIBLES ========================= */
     const availableTickets = await ticketRepo.find({
         where: { status: TicketStatus.AVAILABLE },
         relations: ["raffle"],
-        order: { id_ticket: "ASC" },
     });
 
+    // 🔥 Agrupar por rifa (evita O(n²))
+    const ticketsByRaffle = new Map<number, Ticket[]>();
+    for (const t of availableTickets) {
+        if (!ticketsByRaffle.has(t.raffle.id)) {
+            ticketsByRaffle.set(t.raffle.id, []);
+        }
+        ticketsByRaffle.get(t.raffle.id)!.push(t);
+    }
+
+    const raffles = Array.from(ticketsByRaffle.keys());
+
+    /* ========================= RESERVAS + PAGOS ========================= */
     const PAYMENTS_PER_USER = 10;
 
     for (const user of users) {
         for (let p = 0; p < PAYMENTS_PER_USER; p++) {
-
-            // 🎯 Elegir rifa
-            const raffle = randomItem(
-                [...new Set(availableTickets.map(t => t.raffle))]
-            );
-
-            // 🎟️ Tickets disponibles de esa rifa
-            const raffleTickets = availableTickets.filter(
-                t => t.raffle.id === raffle.id && t.status === "available"
-            );
+            const raffleId = randomItem(raffles);
+            const raffleTickets = ticketsByRaffle.get(raffleId)!;
 
             if (raffleTickets.length < 2) continue;
 
-            // 🧮 Tickets por compra
             const ticketsToBuy = Math.min(
-                Math.floor(Math.random() * 5) + 2, // 2–6
+                Math.floor(Math.random() * 5) + 2,
                 raffleTickets.length
             );
 
-            const selectedTickets = raffleTickets.slice(0, ticketsToBuy);
+            const selectedTickets = raffleTickets.splice(0, ticketsToBuy);
 
-            // 🔒 Reserva
-            const reservation = await reservationRepo.save(
-                reservationRepo.create({
-                    user,
-                    raffle,
-                    expires_at: new Date(Date.now() + 30 * 60 * 1000),
-                })
+            const reservation = await reservationRepo.save({
+                user,
+                raffle: selectedTickets[0].raffle,
+                expires_at: new Date(Date.now() + 30 * 60 * 1000),
+            });
+
+            const price = Number(selectedTickets[0].raffle.price);
+            const totalAmount = price * selectedTickets.length;
+
+            await ticketRepo.update(
+                selectedTickets.map(t => t.id_ticket),
+                {
+                    status: TicketStatus.HELD,
+                    held_until: reservation.expires_at,
+                }
+            );
+            await reservationTicketRepo.save(
+                selectedTickets.map(ticket =>
+                    reservationTicketRepo.create({ reservation, ticket })
+                )
             );
 
-            const price = Number(raffle.price);
-            let totalAmount = 0;
+            const payment = await paymentRepo.save({
+                user,
+                raffle: selectedTickets[0].raffle,
+                total_amount: totalAmount,
+                status: PaymentStatus.COMPLETED,
+                reference: `SEED_${user.id}_${raffleId}_${Date.now()}_${p}`,
+                transaction_id: `TX-${user.id}-${Date.now()}-${p}`,
+            });
 
-            for (const ticket of selectedTickets) {
-                ticket.status = TicketStatus.HELD;
-                ticket.held_until = reservation.expires_at;
-                await ticketRepo.save(ticket);
-
-                await reservationTicketRepo.save(
-                    reservationTicketRepo.create({
-                        reservation,
-                        ticket,
-                    })
-                );
-
-                totalAmount += price;
-            }
-
-            // 💳 Pago
-            const payment = await paymentRepo.save(
-                paymentRepo.create({
-                    user,
-                    raffle,
-                    total_amount: totalAmount,
-                    status: PaymentStatus.COMPLETED,
-                    reference: `SEED_${user.id}_${raffle.id}_${Date.now()}_${p}`,
-                    transaction_id: `TX-${user.id}-${Date.now()}-${p}`,
-                })
-            );
-
-            // 🧾 Detalles
-            for (const ticket of selectedTickets) {
-                await paymentDetailRepo.save(
+            await paymentDetailRepo.save(
+                selectedTickets.map(ticket =>
                     paymentDetailRepo.create({
                         payment,
                         ticket,
                         amount: price,
                     })
-                );
+                )
+            );
+            await ticketRepo.update(
+                selectedTickets.map(t => t.id_ticket),
+                {
+                    status: TicketStatus.PURCHASED,
+                    purchased_at: new Date(),
+                    held_until: null,
+                }
+            );
 
-                ticket.status = TicketStatus.PURCHASED;
-                ticket.purchased_at = new Date();
-                ticket.held_until = null;
-                await ticketRepo.save(ticket);
-            }
-
-            // 🧹 Cerrar reserva
             await reservationRepo.delete(reservation.id);
         }
     }
 
-    /* =========================
-   RESERVAS EXPIRADAS (SIN PAGO)
-========================= */
-
+    /* ========================= RESERVAS EXPIRADAS ========================= */
     for (let i = 0; i < 50; i++) {
         const user = randomItem(users);
-        const ticket = availableTickets.find(t => t.status === "available");
-        if (!ticket) break;
 
+        const raffleId = randomItem(raffles);
+        const raffleTickets = ticketsByRaffle.get(raffleId)!;
+
+        if (!raffleTickets.length) continue;
+
+        const ticket = raffleTickets.shift()!;
         const expiresAt = new Date(Date.now() - 10 * 60 * 1000);
 
-        ticket.status = TicketStatus.HELD;
-        ticket.held_until = expiresAt;
-        await ticketRepo.save(ticket);
+        await ticketRepo.update(ticket.id_ticket, {
+            status: TicketStatus.HELD,
+            held_until: expiresAt,
+        });
 
-        const reservation = await reservationRepo.save(
-            reservationRepo.create({
-                user,
-                raffle: ticket.raffle,
-                expires_at: expiresAt,
-            })
-        );
+        const reservation = await reservationRepo.save({
+            user,
+            raffle: ticket.raffle,
+            expires_at: expiresAt,
+        });
 
-        await reservationTicketRepo.save(
-            reservationTicketRepo.create({
-                reservation,
-                ticket,
-            })
-        );
+        await reservationTicketRepo.save({
+            reservation,
+            ticket,
+        });
     }
 
-
-    console.log("🎉 SEED COMPLETO Y FUNCIONAL");
+    console.log("SEED COMPLETO Y OPTIMIZADO");
     await AppDataSource.destroy();
 }
 

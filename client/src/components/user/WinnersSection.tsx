@@ -60,7 +60,7 @@ export default function WinnersSection({
         </div>
 
         {winners.length === 0 ? (
-          <div className="text-center py-16 text-white/40">
+          <div className="text-center py-16 text-white/40 font-light">
             No hay ganadores
           </div>
         ) : (

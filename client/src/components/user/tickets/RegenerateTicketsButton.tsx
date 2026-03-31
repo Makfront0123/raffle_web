@@ -23,7 +23,7 @@ const RegenerateTicketsButton = ({ raffleId }: { raffleId: number }) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline">Regenerar Tickets</Button>
+        <Button variant="ghost">Regenerar Tickets</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>

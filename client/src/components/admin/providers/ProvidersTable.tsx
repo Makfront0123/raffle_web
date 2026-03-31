@@ -1,5 +1,6 @@
 "use client";
 
+import { TableActionsDropdown } from "@/components/TableActionsDropdown";
 import { Button } from "@/components/ui/button";
 import { Providers } from "@/type/Providers";
 
@@ -28,7 +29,7 @@ export function ProvidersTable({ providers, onEdit, onDelete }: ProvidersTablePr
         </thead>
 
         <tbody>
-          {providers.map((p) => (
+          {providers.map((p: Providers) => (
             <tr key={p.id} className="border-t">
               <td className="px-4 py-2">{p.name}</td>
               <td className="px-4 py-2">{p.contact_name}</td>
@@ -36,15 +37,19 @@ export function ProvidersTable({ providers, onEdit, onDelete }: ProvidersTablePr
               <td className="px-4 py-2">{p.contact_phone}</td>
 
               <td className="px-4 py-2">
-                <div className="flex items-center gap-3">
-                  <Button className="bg-green-500" onClick={() => onEdit(p.id!)}>
-                    Editar
-                  </Button>
-
-                  <Button className="bg-red-500" onClick={() => onDelete(p.id!)}>
-                    Eliminar
-                  </Button>
-                </div>
+                <TableActionsDropdown
+                  actions={[
+                    {
+                      label: "Editar",
+                      onClick: () => onEdit(p.id!),
+                    },
+                    {
+                      label: "Eliminar",
+                      onClick: () => onDelete(p.id!),
+                      destructive: true,
+                    },
+                  ]}
+                />
               </td>
             </tr>
           ))}

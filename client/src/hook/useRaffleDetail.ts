@@ -38,6 +38,10 @@ export function useRaffleDetail({ payWithWompiWidget }: Props) {
   const [selectedTickets, setSelectedTickets] = useState<Ticket[]>([]);
   const [open, setOpen] = useState(false);
   const [page, setPage] = useState(1);
+  const hasInitialData = raffles.some(r => r.id === id);
+
+  const [loadingTickets, setLoadingTickets] = useState(!hasInitialData);
+  const [isFirstLoad, setIsFirstLoad] = useState(!hasInitialData);
 
   const [soldPercentage, setSoldPercentage] = useState<number>(0);
   const reservedCount = useMemo(() => {
@@ -47,24 +51,63 @@ export function useRaffleDetail({ payWithWompiWidget }: Props) {
       .filter((r) => r.raffleId === raffle.id)
       .reduce((acc, r) => acc + (r.reservationTickets?.length || 0), 0);
   }, [reservations, raffle]);
+
+
   const refreshRaffle = useCallback(async () => {
     if (!id || !user) return;
+    if (isFirstLoad) {
+      setLoadingTickets(true);
+    }
+
     try {
       const updated = await getRaffleById(id);
       setRaffle(updated);
+
       if (updated?.id) {
         const percentNumber = await getSoldPercentage(updated.id);
         setSoldPercentage(percentNumber);
-
       }
     } catch {
-      console.error("Error cargando rifa");
+      return;
+    } finally {
+      if (isFirstLoad) {
+        setLoadingTickets(false);
+        setIsFirstLoad(false);
+      }
     }
-  }, [id, getRaffleById, getSoldPercentage, user]);
+  }, [id, user, isFirstLoad, getRaffleById, getSoldPercentage]);
 
 
   useEffect(() => {
-    refreshRaffle();
+    let interval: NodeJS.Timeout;
+
+    const startPolling = () => {
+      interval = setInterval(() => {
+        refreshRaffle();
+      }, 8000);
+    };
+
+    const stopPolling = () => {
+      if (interval) clearInterval(interval);
+    };
+
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        refreshRaffle();
+        startPolling();
+      } else {
+        stopPolling();
+      }
+    };
+
+    handleVisibility();
+
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    return () => {
+      stopPolling();
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
   }, [refreshRaffle]);
 
   useEffect(() => {
@@ -72,6 +115,7 @@ export function useRaffleDetail({ payWithWompiWidget }: Props) {
     const found = raffles.find((r) => r.id === id);
     if (found) setRaffle(found);
   }, [raffles, id]);
+
   useEffect(() => {
     if (!raffle) return;
     setLocalTickets(raffle.tickets || []);
@@ -105,15 +149,20 @@ export function useRaffleDetail({ payWithWompiWidget }: Props) {
   const totalPages = Math.ceil(localTickets.length / perPage);
   const start = (page - 1) * perPage;
   const currentTickets = localTickets.slice(start, start + perPage);
-
-  const getTicketColor = (status: string) => {
+  const getTicketColor = (status: TicketStatusEnum) => {
     switch (status) {
-      case "available":
+      case TicketStatusEnum.AVAILABLE:
         return "bg-none border border-white";
-      case "reserved":
+
+      case TicketStatusEnum.HELD:
+        return "bg-yellow-500/30 opacity-70";
+
+      case TicketStatusEnum.RESERVED:
         return "bg-white/20 opacity-70";
-      case "purchased":
+
+      case TicketStatusEnum.PURCHASED:
         return "bg-red-700/60 opacity-70";
+
       default:
         return "bg-gray-500/20";
     }
@@ -173,12 +222,13 @@ export function useRaffleDetail({ payWithWompiWidget }: Props) {
         setLocalTickets((prev) =>
           prev.map((t) =>
             selectedTickets.some((s) => s.id_ticket === t.id_ticket)
-              ? { ...t, status: TicketStatusEnum.RESERVED }
+              ? { ...t, status: TicketStatusEnum.HELD }
               : t
           )
         );
 
         setSelectedTickets([]);
+        await refreshRaffle();
 
       } catch (err) {
         handleApiError(err, "No se pudo reservar");
@@ -206,5 +256,6 @@ export function useRaffleDetail({ payWithWompiWidget }: Props) {
     handleTicketSelect,
     selectedTickets,
     reservedCount,
+    loadingTickets,
   };
 }
