@@ -1,12 +1,68 @@
 "use client";
-import { useMemo } from "react";
+import { useEffect, useState } from "react";
+import { useRaffleStore } from "@/store/raffleStore";
 import { Raffle } from "@/type/Raffle";
-import { Prizes } from "@/type/Prizes";
-import { Payment } from "@/type/Payment";
-import { usePrizes } from "./usePrizes";
-import { useRaffles } from "./useRaffles";
-import { Winner } from "@/type/Winner";
-import { useAdminPayments } from "./userAdminPayments";
+
+export function useDashboardData(): {
+  stats: { title: string; value: string | number }[];
+  lastRaffles: Raffle[];
+  revenueData: { date: string; revenue: number }[];
+  raffleStatusData: { name: string; value: number }[];
+  loading: boolean;
+} {
+  const { dashboardData, getDashboardData } = useRaffleStore();
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      setLoading(true);
+      try {
+        await getDashboardData();
+      } catch (err) {
+        console.error("Error cargando dashboard", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, [getDashboardData]);
+
+  if (!dashboardData) {
+    return {
+      stats: [],
+      lastRaffles: [],
+      revenueData: [],
+      raffleStatusData: [],
+      loading,
+    };
+  }
+
+  const stats = [
+    { title: "Rifas activas", value: dashboardData.stats.activeRaffles },
+    { title: "Pagos recibidos", value: `$${dashboardData.stats.totalRevenue.toLocaleString()}` },
+    { title: "Premios", value: dashboardData.stats.totalPrizes },
+    { title: "Ganadores", value: dashboardData.stats.totalWinners },
+  ];
+
+  const revenueData = dashboardData.revenueData.map(r => ({
+    date: new Date(r.date).toLocaleDateString(),
+    revenue: r.total,
+  }));
+
+  const raffleStatusData = ["pending", "active", "ended"].map(status => {
+    const count = dashboardData.lastRaffles.filter(r => r.status === status).length;
+    return { name: status, value: count };
+  });
+
+  return {
+    stats,
+    lastRaffles: dashboardData.lastRaffles,
+    revenueData,
+    raffleStatusData,
+    loading,
+  };
+}
+/*
 
 interface DashboardStats {
   stats: { title: string; value: string | number }[];
@@ -69,3 +125,5 @@ export function useDashboardData(): DashboardStats {
 
   return { stats, lastRaffles, revenueData, raffleStatusData, loading };
 }
+
+*/

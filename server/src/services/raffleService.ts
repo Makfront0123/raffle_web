@@ -5,19 +5,22 @@ import { AppDataSource } from "../data-source";
 import { generateAllTicketNumbers } from "../utils/generateRandomNumber";
 import { Payment } from "../entities/payment.entity";
 import { Reservation } from "../entities/reservation.entity";
-import { Not } from "typeorm";
+import { IsNull, Not } from "typeorm";
 
 export class RaffleService {
     private raffleRepo;
     private ticketRepo;
     private dataSource;
-
+    private paymentRepo;
+    private prizeRepo;
     constructor(
-        repos?: { raffle?: any; ticket?: any },
+        repos?: { raffle?: any; ticket?: any; payment?: any, prize?: any },
         dataSource?: any
     ) {
         this.raffleRepo = repos?.raffle ?? AppDataSource.getRepository(Raffle);
         this.ticketRepo = repos?.ticket ?? AppDataSource.getRepository(Ticket);
+        this.paymentRepo = repos?.payment ?? AppDataSource.getRepository(Payment);
+        this.prizeRepo = repos?.prize ?? AppDataSource.getRepository(Prize);
         this.dataSource = dataSource ?? AppDataSource;
     }
 
@@ -330,4 +333,56 @@ export class RaffleService {
         }
     }
 
+    async getDashboardData() {
+        const [totalRaffles, activeRaffles, totalPayments, totalPrizes, totalWinners] = await Promise.all([
+            this.raffleRepo.count(),
+            this.raffleRepo.count({ where: { status: "active" } }),
+            this.paymentRepo.count({ where: { status: "completed" } }),
+            this.prizeRepo.count(),
+            this.prizeRepo.count({ where: { winner_ticket: Not(IsNull()) } }),
+        ]);
+
+        const revenueResult = await this.paymentRepo
+            .createQueryBuilder("payment")
+            .select("SUM(payment.total_amount)", "total")
+            .where("payment.status = :status", { status: "completed" })
+            .getRawOne();
+
+        const totalRevenue = Number(revenueResult?.total || 0);
+        const revenueByDay = await this.paymentRepo
+            .createQueryBuilder("payment")
+            .select("DATE(payment.created_at)", "date")
+            .addSelect("SUM(payment.total_amount)", "total")
+            .where("payment.status = :status", { status: "completed" })
+            .andWhere("payment.created_at >= NOW() - INTERVAL 30 DAY")
+            .groupBy("DATE(payment.created_at)")
+            .orderBy("date", "ASC")
+            .getRawMany();
+
+        const lastRaffles = await this.raffleRepo.find({
+            order: { created_at: "DESC" },
+            take: 5,
+        });
+
+        return {
+            stats: {
+                totalRaffles,
+                activeRaffles,
+                totalPayments,
+                totalRevenue,
+                totalPrizes,
+                totalWinners,
+            },
+            revenueData: revenueByDay.map((r: RevenueRow) => ({
+                date: r.date,
+                total: Number(r.total),
+            })),
+            lastRaffles,
+        };
+    }
 }
+
+type RevenueRow = {
+    date: string;
+    total: string;
+};

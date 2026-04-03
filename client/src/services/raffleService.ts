@@ -1,4 +1,4 @@
-import { CreateRaffleDTO, Raffle, UpdateRafflePayload } from "@/type/Raffle";
+import { CreateRaffleDTO, DashboardData, Raffle, UpdateRafflePayload } from "@/type/Raffle";
 import { api } from "@/api/api";
 
 export class RaffleService {
@@ -36,5 +36,10 @@ export class RaffleService {
 
   async deactivateRaffle(id: number): Promise<void> {
     await api.put(`/api/raffle/${id}/deactivate`);
+  }
+
+  async getDashboardData(): Promise<DashboardData> {
+    const res = await api.get<DashboardData>("/api/raffle/dashboard");
+    return res.data;
   }
 }

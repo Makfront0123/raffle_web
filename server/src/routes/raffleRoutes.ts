@@ -14,6 +14,7 @@ import { idSchema, regenerateTicketsSchema } from '../schema/common.schema';
 const router = express.Router();
 const raffleController = new RaffleController();
 
+router.get('/dashboard', authMiddleware, adminMiddleware, raffleController.getDashboard);
 router.get('/', publicLimiter, raffleController.getAllRaffles);
 router.post('/', authMiddleware, adminLimiter, adminMiddleware, adminMiddlewareLimited, validate({ body: createRaffleSchema }), raffleController.createRaffle);
 router.get('/:id', authMiddleware, authLimiter, validate({ params: idSchema }), raffleController.getRaffleById);

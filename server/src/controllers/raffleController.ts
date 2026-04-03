@@ -13,6 +13,18 @@ export class RaffleController {
     }
   }
 
+  async getDashboard(req: Request, res: Response) {
+    try {
+      const data = await raffleService.getDashboardData();
+      res.status(200).json(data);
+    } catch (error) {
+      return res.status(500).json({
+        message: 'Error obteniendo dashboard',
+        error,
+      });
+    }
+  }
+
   async createRaffle(req: Request, res: Response) {
     try {
       const { title, description, price, endDate, digits, type } = req.body;

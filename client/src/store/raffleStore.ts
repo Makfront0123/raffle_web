@@ -3,10 +3,11 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { RaffleService } from "@/services/raffleService";
-import { Raffle, CreateRaffleDTO, UpdateRafflePayload } from "@/type/Raffle";
+import { Raffle, CreateRaffleDTO, UpdateRafflePayload, DashboardData } from "@/type/Raffle";
 
 interface RaffleStore {
   raffles: Raffle[];
+  dashboardData: DashboardData | null;
   setRaffles: (raffles: Raffle[]) => void;
   getRaffles: () => Promise<void>;
   getRaffleById: (id: number) => Promise<Raffle>;
@@ -16,12 +17,14 @@ interface RaffleStore {
   regenerateTickets: (id: number, newDigits: number) => Promise<boolean>;
   activateRaffle: (id: number) => Promise<void>;
   deactivateRaffle: (id: number) => Promise<void>;
+  getDashboardData: () => Promise<void>;
 }
 
 export const useRaffleStore = create<RaffleStore>()(
   persist(
     (set, get) => ({
       raffles: [],
+      dashboardData: null,
 
       setRaffles: (raffles) => set({ raffles }),
 
@@ -119,6 +122,15 @@ export const useRaffleStore = create<RaffleStore>()(
         try {
           const raffleService = new RaffleService();
           await raffleService.deactivateRaffle(id);
+        } catch (err) {
+          throw err;
+        }
+      },
+      getDashboardData: async () => {
+        try {
+          const raffleService = new RaffleService();
+          const data = await raffleService.getDashboardData();
+          set({ dashboardData: data });
         } catch (err) {
           throw err;
         }

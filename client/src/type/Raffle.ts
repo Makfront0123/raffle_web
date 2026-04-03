@@ -16,6 +16,26 @@ export interface Raffle {
   total_numbers: number;
 }
 
+export interface DashboardData {
+  stats: {
+    totalRaffles: number;
+    activeRaffles: number;
+    totalPayments: number;
+    totalRevenue: number;
+    totalPrizes: number;
+    totalWinners: number;
+  };
+  lastRaffles: Raffle[];
+  revenueData: { date: string; total: number }[];
+}
+export interface DashboardStats {
+  stats: { title: string; value: string | number }[];
+  lastRaffles: Raffle[];
+  revenueData: { date: string; revenue: number }[];
+  raffleStatusData: { name: string; value: number }[];
+  loading: boolean;
+}
+
 export type RaffleForm = {
   title: string;
   description: string;

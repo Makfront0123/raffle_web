@@ -37,6 +37,8 @@ const iconMap = {
 };
 
 
+
+
 export default function Dashboard() {
   const router = useRouter();
   const { stats, lastRaffles, revenueData, raffleStatusData, loading } =
@@ -44,6 +46,8 @@ export default function Dashboard() {
 
   const { items, page, totalPages, nextPage, prevPage } =
     usePagination(lastRaffles, 5);
+
+    
 
   if (loading) {
     return (
@@ -63,7 +67,7 @@ export default function Dashboard() {
       </header>
 
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat) => {
+        {stats.map((stat: { title: string; value: string | number }) => {
           const key = titleToKeyMap[stat.title];
           const Icon = key ? iconMap[key] : null;
 
