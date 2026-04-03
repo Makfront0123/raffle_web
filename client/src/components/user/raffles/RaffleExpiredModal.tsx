@@ -8,6 +8,7 @@ import { Dispatch, SetStateAction } from "react";
 import Confetti from "react-confetti";
 import { useEffect, useState } from "react";
 import { Icon } from "@iconify/react";
+import { usePagination } from "@/hook/usePagination";
 
 interface Props {
   showExpiredModal: Raffle | null;
@@ -16,12 +17,51 @@ interface Props {
   loadingWinner: boolean;
 }
 
+import { motion, AnimatePresence } from "framer-motion";
+
+const variants = {
+  initial: (direction: number) => ({
+    x: direction > 0 ? 100 : -100,
+    opacity: 0,
+  }),
+  animate: {
+    x: 0,
+    opacity: 1,
+  },
+  exit: (direction: number) => ({
+    x: direction > 0 ? -100 : 100,
+    opacity: 0,
+  }),
+};
+
 export default function RaffleExpiredModalPremium({
   showExpiredModal,
   setShowExpiredModal,
   winners,
   loadingWinner
 }: Props) {
+
+  const shouldPaginate = winners.length > 2;
+
+  const {
+    items: paginatedWinners,
+    page,
+    totalPages,
+    nextPage,
+    prevPage
+  } = usePagination(winners, 2);
+
+  const [direction, setDirection] = useState(0);
+
+  const handleNext = () => {
+    setDirection(1);
+    nextPage();
+  };
+
+  const handlePrev = () => {
+    setDirection(-1);
+    prevPage();
+  };
 
   const [showConfetti, setShowConfetti] = useState(false);
   const [hasCelebrated, setHasCelebrated] = useState(false);
@@ -43,7 +83,7 @@ export default function RaffleExpiredModalPremium({
       setShowConfetti(false);
     }
 
-  }, [showExpiredModal, loadingWinner, winners]);
+  }, [showExpiredModal, loadingWinner, winners.length]);
 
   return (
     <>
@@ -58,9 +98,6 @@ export default function RaffleExpiredModalPremium({
             <DialogTitle className="text-2xl font-bold text-yellow-400">
               🎉 Rifa Finalizada
             </DialogTitle>
-            <DialogDescription className="text-yellow-400/60">
-              Información del ganador.
-            </DialogDescription>
           </DialogHeader>
 
           <p className="text-white">
@@ -79,24 +116,61 @@ export default function RaffleExpiredModalPremium({
               </p>
             ) : winners.length === 0 ? (
               <p className="text-yellow-500/60">
-                La rifa ha finalizado.
-                <br />
-                Estamos procesando el ganador.
-                <br />
-                Esto puede tardar unos minutos.
+                Procesando ganador...
               </p>
             ) : (
-              winners.map((w: Winner) => (
-                <div
-                  key={w.prize_id}
-                  className="p-4 mb-2 border border-gold/50 rounded-xl bg-yellow-400/40 shadow-md"
-                >
-                  <p className="font-medium text-yellow-500">{w.prize_name}</p>
-                  <p><Icon icon="heroicons-outline:cash" className="mr-2 inline-block h-6 w-6" /> {w.value} COP</p>
-                  <p><Icon icon="heroicons-outline:user" className="mr-2 inline-block h-6 w-6" /> {w.winner_user.name}</p>
-                  <p><Icon icon="heroicons-outline:ticket" className="mr-2 inline-block h-6 w-6" /> {w.winner_ticket}</p>
+              <>
+                <div className="relative overflow-hidden">
+                  <AnimatePresence custom={direction} mode="wait">
+                    <motion.div
+                      key={page}
+                      custom={direction}
+                      variants={variants}
+                      initial="initial"
+                      animate="animate"
+                      exit="exit"
+                      transition={{ duration: 0.35 }}
+                    >
+                      {(shouldPaginate ? paginatedWinners : winners).map((w: Winner) => (
+                        <div
+                          key={w.prize_id}
+                          className="p-4 mb-2 border border-gold/50 rounded-xl bg-yellow-400/40 shadow-md"
+                        >
+                          <p className="font-medium text-yellow-500">{w.prize_name}</p>
+                          <p>
+                            <Icon icon="heroicons-outline:cash" className="mr-2 inline-block h-6 w-6" />
+                            {w.value} COP
+                          </p>
+                          <p>
+                            <Icon icon="heroicons-outline:user" className="mr-2 inline-block h-6 w-6" />
+                            {w.winner_user.name}
+                          </p>
+                          <p>
+                            <Icon icon="heroicons-outline:ticket" className="mr-2 inline-block h-6 w-6" />
+                            {w.winner_ticket}
+                          </p>
+                        </div>
+                      ))}
+                    </motion.div>
+                  </AnimatePresence>
                 </div>
-              ))
+
+                {shouldPaginate && (
+                  <div className="flex justify-between items-center mt-4">
+                    <Button onClick={handlePrev} disabled={page === 1}>
+                      Anterior
+                    </Button>
+
+                    <span className="text-white text-sm">
+                      {page} / {totalPages}
+                    </span>
+
+                    <Button onClick={handleNext} disabled={page === totalPages}>
+                      Siguiente
+                    </Button>
+                  </div>
+                )}
+              </>
             )}
           </div>
 
